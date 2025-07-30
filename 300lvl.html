@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>300 Level Courses</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0; /* Reset default body margin */
+            display: flex;
+            flex-direction: column; /* Arrange content and footer vertically */
+            min-height: 100vh; /* Ensure body takes full viewport height */
+            background-color: #f4f4f4;
+            color: #333;
+        }
+        .container {
+            flex: 1; /* Allows content to grow and push footer down */
+            max-width: 800px;
+            margin: 20px auto; /* Top/bottom margin, auto left/right */
+            background: #fff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1, h2, h3 {
+            color: #0056b3;
+            text-align: center;
+        }
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        li {
+            background: #e9e9e9;
+            margin-bottom: 8px;
+            padding: 10px 15px;
+            border-radius: 4px;
+            transition: background-color 0.3s ease; /* Smooth hover effect */
+        }
+        li:hover {
+            background-color: #dcdcdc; /* Lighter on hover */
+        }
+        li a {
+            text-decoration: none; /* Remove underline from links */
+            color: #333; /* Make link color match text */
+            display: block; /* Make the entire list item clickable */
+            font-weight: bold;
+        }
+        li a:hover {
+            color: #007bff; /* Change link color on hover */
+        }
+
+        #facultyNameDisplay {
+            font-size: 1.2em;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 20px;
+            color: #007bff;
+        }
+        #loadingMessage {
+            text-align: center;
+            color: #555;
+            font-style: italic;
+        }
+        #errorMessage {
+            text-align: center;
+            color: red;
+            font-weight: bold;
+            margin-top: 20px;
+        }
+
+        /* --- Bottom Navigation Menu Styles (MATCHING IMAGE) --- */
+        .bottom-nav {
+            background-color: #ffffff; /* White background */
+            color: #555; /* Default text color, looks greyish in image */
+            padding: 5px 0; /* Reduced padding to match compact look */
+            text-align: center;
+            position: sticky;
+            bottom: 0;
+            width: 100%;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.05); /* Subtle shadow */
+            margin-top: auto;
+            border-top: 1px solid #eee; /* Slight border on top */
+        }
+        .bottom-nav ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            height: 60px; /* Fixed height for the menu bar */
+        }
+        .bottom-nav li {
+            background-color: transparent; /* Ensure no background from default li style */
+            margin-bottom: 0;
+            padding: 0;
+            border-radius: 0;
+            flex-grow: 1;
+        }
+        .bottom-nav a {
+            display: flex; /* Use flex for vertical alignment of icon and text */
+            flex-direction: column; /* Stack icon above text */
+            align-items: center; /* Center horizontally */
+            justify-content: center; /* Center vertically */
+            color: #555; /* Default link color */
+            text-decoration: none;
+            height: 100%; /* Make link fill the li height */
+            padding: 5px 0; /* Padding for internal content */
+            font-size: 0.85em; /* Smaller text size for compact look */
+            transition: color 0.3s ease; /* Smooth transition for text color */
+        }
+        .bottom-nav a:hover {
+            color: #007bff; /* Hover color (example blue) */
+        }
+        /* Icon styling (assuming you'll use Font Awesome or similar) */
+        .bottom-nav a i {
+            font-size: 1.5em; /* Larger icon size */
+            margin-bottom: 4px; /* Space between icon and text */
+            color: #777; /* Default icon color */
+            transition: color 0.3s ease;
+        }
+        .bottom-nav a:hover i {
+            color: #007bff; /* Icon color on hover */
+        }
+        /* Active state for the menu item */
+        .bottom-nav a.active {
+            color: #007bff; /* Active text color */
+        }
+        .bottom-nav a.active i {
+            color: #007bff; /* Active icon color */
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+
+    <div class="container">
+        <h1>Welcome to 300 Level!</h1>
+        <p id="loadingMessage">Loading your faculty courses...</p>
+        <div id="contentDisplay" style="display: none;">
+            <h2 id="facultyNameDisplay"></h2>
+            <h3>First Semester Courses:</h3>
+            <ul id="firstSemesterCourseList">
+                </ul>
+            <h3>Second Semester Courses:</h3>
+            <ul id="secondSemesterCourseList">
+                </ul>
+        </div>
+        <p id="errorMessage" style="display: none;"></p>
+    </div>
+
+    <nav class="bottom-nav">
+        <ul>
+            <li><a href="index.html">
+                <i class="fas fa-home"></i>
+                Home
+            </a></li>
+            <li><a href="chat.html">
+                <i class="fas fa-comments"></i>
+                Chat
+            </a></li>
+            <li><a href="news.html">
+                <i class="fas fa-newspaper"></i>
+                News
+            </a></li>
+            <li><a href="market.html">
+                <i class="fas fa-store"></i>
+                Market
+            </a></li>
+            <li><a href="profile.html">
+                <i class="fas fa-user"></i>
+                Profile
+            </a></li>
+        </ul>
+    </nav>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const loadingMessage = document.getElementById('loadingMessage');
+            const contentDisplay = document.getElementById('contentDisplay');
+            const facultyNameDisplay = document.getElementById('facultyNameDisplay');
+            const firstSemesterCourseList = document.getElementById('firstSemesterCourseList');
+            const secondSemesterCourseList = document.getElementById('secondSemesterCourseList');
+            const errorMessage = document.getElementById('errorMessage');
+
+            const userFaculty = localStorage.getItem('faculty');
+            const normalizedUserFaculty = userFaculty ? userFaculty.trim() : null;
+
+            // Define the 300-level course data for all faculties
+            const facultyCourses300L = {
+                "Agriculture": { // Corrected from "Agricultural Sciences"
+                    "firstSemester": [
+                        "AGR 301: Farm Management and Planning",
+                        "AGR 303: Agricultural Extension Methods",
+                        "AGR 305: Soil Fertility and Management",
+                        "AGR 307: Principles of Animal Breeding",
+                        "AGR 309: Food Processing and Preservation"
+                    ],
+                    "secondSemester": [
+                        "AGR 302: Crop Protection",
+                        "AGR 304: Livestock Production Management",
+                        "AGR 306: Agricultural Marketing",
+                        "AGR 308: Agricultural Finance and Cooperatives",
+                        "AGR 310: Aquaculture and Fisheries"
+                    ]
+                },
+                "Arts": {
+                    "firstSemester": [
+                        "ENG 301: History of English Language",
+                        "LIT 301: Oral Literature",
+                        "HIS 301: Constitutional Development of Nigeria",
+                        "PHL 301: Epistemology",
+                        "FRE 301: French Phonetics and Phonology"
+                    ],
+                    "secondSemester": [
+                        "ENG 302: English Morphology and Syntax",
+                        "LIT 302: Literary Criticism",
+                        "HIS 302: Nigeria and the Wider World",
+                        "PHL 302: Metaphysics",
+                        "FRE 302: Advanced French Grammar"
+                    ]
+                },
+                "Medicine": { // MERGED FACULTY: Basic Medical Sciences + Clinical Sciences
+                    "firstSemester": [
+                        "ANA 301: Histology",
+                        "PHY 301: Neurophysiology",
+                        "BIOC 301: Protein and Nucleic Acid Metabolism",
+                        "MIC 301: Basic Bacteriology",
+                        "MED 301: Introduction to Clinical Medicine",
+                        "SUR 301: Introduction to Surgery",
+                        "PHA 301: Systemic Pharmacology I",
+                        "OBS 301: Introduction to Obstetrics & Gynecology"
+                    ],
+                    "secondSemester": [
+                        "ANA 302: Embryology",
+                        "PHY 302: Cardiovascular Physiology",
+                        "BIOC 302: Enzymology and Bioenergetics",
+                        "MIC 302: Basic Virology",
+                        "MED 302: Clinical Methods in Medicine",
+                        "SUR 302: Principles of Surgical Care",
+                        "PHA 302: Systemic Pharmacology II",
+                        "OBS 302: Antenatal Care"
+                    ]
+                },
+                "Education": {
+                    "firstSemester": [
+                        "EDU 301: Tests and Measurement in Education",
+                        "EDU 303: Principles of Guidance and Counselling",
+                        "EDU 305: Research Methods in Education",
+                        "EDU 307: Educational Statistics"
+                    ],
+                    "secondSemester": [
+                        "EDU 302: Educational Evaluation",
+                        "EDU 304: Vocational Guidance",
+                        "EDU 306: Micro-teaching Practicum",
+                        "EDU 308: History of Educational Ideas"
+                    ]
+                },
+                "Engineering": {
+                    "firstSemester": [
+                        "ENG 301: Fluid Mechanics",
+                        "ENG 303: Strength of Materials",
+                        "ENG 305: Thermodynamics",
+                        "ENG 307: Engineering Mathematics III"
+                    ],
+                    "secondSemester": [
+                        "ENG 302: Electrical Machines",
+                        "ENG 304: Machine Design",
+                        "ENG 306: Heat Transfer",
+                        "ENG 308: Workshop Practice"
+                    ]
+                },
+                "Environmental Sciences": {
+                    "firstSemester": [
+                        "ENV 301: Environmental Impact Assessment",
+                        "URP 301: Urban Planning Techniques",
+                        "ARC 301: Architectural Design I"
+                    ],
+                    "secondSemester": [
+                        "ENV 302: Waste Management",
+                        "URP 302: Regional Planning",
+                        "ARC 302: Architectural Design II"
+                    ]
+                },
+                "Law": {
+                    "firstSemester": [
+                        "LAW 301: Law of Contract I",
+                        "LAW 303: Equity and Trust I",
+                        "LAW 305: Company Law I",
+                        "LAW 307: Land Law I"
+                    ],
+                    "secondSemester": [
+                        "LAW 302: Law of Contract II",
+                        "LAW 304: Equity and Trust II",
+                        "LAW 306: Company Law II",
+                        "LAW 308: Land Law II"
+                    ]
+                },
+                "Management Sciences": {
+                    "firstSemester": [
+                        "ACC 301: Intermediate Financial Accounting I",
+                        "MGT 301: Principles of Management",
+                        "FIN 301: Principles of Finance",
+                        "MKT 301: Principles of Marketing"
+                    ],
+                    "secondSemester": [
+                        "ACC 302: Intermediate Financial Accounting II",
+                        "MGT 302: Business Policy",
+                        "FIN 302: Financial Management",
+                        "MKT 302: Marketing Research"
+                    ]
+                },
+                "Science": {
+                    "firstSemester": [
+                        "BIO 301: General Ecology",
+                        "CHM 301: Analytical Chemistry I",
+                        "CSC 301: Operating Systems",
+                        "MTH 301: Complex Analysis",
+                        "PHY 301: Classical Mechanics"
+                    ],
+                    "secondSemester": [
+                        "BIO 302: Evolution and Systematics",
+                        "CHM 302: Analytical Chemistry II",
+                        "CSC 302: Database Management Systems",
+                        "MTH 302: Differential Equations",
+                        "PHY 302: Quantum Mechanics"
+                    ]
+                },
+                "Social Sciences": {
+                    "firstSemester": [
+                        "ECO 301: Microeconomic Theory I",
+                        "POL 301: Public Administration",
+                        "SOC 301: Sociological Theory I",
+                        "PSY 301: Social Psychology"
+                    ],
+                    "secondSemester": [
+                        "ECO 302: Macroeconomic Theory II",
+                        "POL 302: Comparative Politics",
+                        "SOC 302: Sociological Theory II",
+                        "PSY 302: Developmental Psychology"
+                    ]
+                },
+                "Petroleum Studies": { // Added for consistency, though no 300L courses provided yet
+                    "firstSemester": [],
+                    "secondSemester": []
+                }
+            };
+
+            // Function to populate a course list
+            function populateCourseList(courseArray, targetUl) {
+                if (courseArray.length === 0) {
+                    const listItem = document.createElement('li');
+                    listItem.textContent = "No courses listed for this semester.";
+                    listItem.style.fontStyle = "italic";
+                    listItem.style.color = "#888";
+                    targetUl.appendChild(listItem);
+                    return;
+                }
+                courseArray.forEach(courseText => {
+                    const listItem = document.createElement('li');
+                    const link = document.createElement('a');
+
+                    const courseCodeMatch = courseText.match(/^([A-Z0-9 ]+)[-:]?/);
+                    let courseCode = '';
+                    if (courseCodeMatch && courseCodeMatch[1]) {
+                        courseCode = courseCodeMatch[1].trim().replace(/\s/g, '').toLowerCase();
+                    } else {
+                        courseCode = courseText.split(' ')[0].trim().toLowerCase();
+                    }
+
+                    link.href = `${courseCode}.html`;
+                    link.textContent = courseText;
+
+                    listItem.appendChild(link);
+                    targetUl.appendChild(listItem);
+                });
+            }
+
+            if (normalizedUserFaculty && facultyCourses300L[normalizedUserFaculty]) {
+                loadingMessage.style.display = 'none';
+                contentDisplay.style.display = 'block';
+
+                facultyNameDisplay.textContent = `Faculty of ${normalizedUserFaculty}`;
+
+                const firstSemCourses = facultyCourses300L[normalizedUserFaculty].firstSemester || [];
+                const secondSemCourses = facultyCourses300L[normalizedUserFaculty].secondSemester || [];
+
+                populateCourseList(firstSemCourses, firstSemesterCourseList);
+                populateCourseList(secondSemCourses, secondSemesterCourseList);
+
+            } else {
+                loadingMessage.style.display = 'none';
+                errorMessage.style.display = 'block';
+                if (!normalizedUserFaculty) {
+                    errorMessage.textContent = "Error: Your faculty was not found in localStorage. Please ensure it's set correctly.";
+                    console.error("Faculty not found in localStorage for 300 level.");
+                } else {
+                    errorMessage.textContent = `Error: No 300-level course data available for "${normalizedUserFaculty}". Please check the faculty name or data.`;
+                    console.error(`No 300-level course data found for faculty: ${normalizedUserFaculty}`);
+                }
+            }
+        });
+    </script>
+
+</body>
+</html>

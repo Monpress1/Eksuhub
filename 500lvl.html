@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>500 Level Courses</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0; /* Reset default body margin */
+            display: flex;
+            flex-direction: column; /* Arrange content and footer vertically */
+            min-height: 100vh; /* Ensure body takes full viewport height */
+            background-color: #f4f4f4;
+            color: #333;
+        }
+        .container {
+            flex: 1; /* Allows content to grow and push footer down */
+            max-width: 800px;
+            margin: 20px auto; /* Top/bottom margin, auto left/right */
+            background: #fff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1, h2, h3 {
+            color: #0056b3;
+            text-align: center;
+        }
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        li {
+            background: #e9e9e9;
+            margin-bottom: 8px;
+            padding: 10px 15px;
+            border-radius: 4px;
+            transition: background-color 0.3s ease; /* Smooth hover effect */
+        }
+        li:hover {
+            background-color: #dcdcdc; /* Lighter on hover */
+        }
+        li a {
+            text-decoration: none; /* Remove underline from links */
+            color: #333; /* Make link color match text */
+            display: block; /* Make the entire list item clickable */
+            font-weight: bold;
+        }
+        li a:hover {
+            color: #007bff; /* Change link color on hover */
+        }
+
+        #facultyNameDisplay {
+            font-size: 1.2em;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 20px;
+            color: #007bff;
+        }
+        #loadingMessage {
+            text-align: center;
+            color: #555;
+            font-style: italic;
+        }
+        #errorMessage {
+            text-align: center;
+            color: red;
+            font-weight: bold;
+            margin-top: 20px;
+        }
+
+        /* --- Bottom Navigation Menu Styles (MATCHING IMAGE) --- */
+        .bottom-nav {
+            background-color: #ffffff; /* White background */
+            color: #555; /* Default text color, looks greyish in image */
+            padding: 5px 0; /* Reduced padding to match compact look */
+            text-align: center;
+            position: sticky;
+            bottom: 0;
+            width: 100%;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.05); /* Subtle shadow */
+            margin-top: auto;
+            border-top: 1px solid #eee; /* Slight border on top */
+        }
+        .bottom-nav ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            height: 60px; /* Fixed height for the menu bar */
+        }
+        .bottom-nav li {
+            background-color: transparent; /* Ensure no background from default li style */
+            margin-bottom: 0;
+            padding: 0;
+            border-radius: 0;
+            flex-grow: 1;
+        }
+        .bottom-nav a {
+            display: flex; /* Use flex for vertical alignment of icon and text */
+            flex-direction: column; /* Stack icon above text */
+            align-items: center; /* Center horizontally */
+            justify-content: center; /* Center vertically */
+            color: #555; /* Default link color */
+            text-decoration: none;
+            height: 100%; /* Make link fill the li height */
+            padding: 5px 0; /* Padding for internal content */
+            font-size: 0.85em; /* Smaller text size for compact look */
+            transition: color 0.3s ease; /* Smooth transition for text color */
+        }
+        .bottom-nav a:hover {
+            color: #007bff; /* Hover color (example blue) */
+        }
+        /* Icon styling (assuming you'll use Font Awesome or similar) */
+        .bottom-nav a i {
+            font-size: 1.5em; /* Larger icon size */
+            margin-bottom: 4px; /* Space between icon and text */
+            color: #777; /* Default icon color */
+            transition: color 0.3s ease;
+        }
+        .bottom-nav a:hover i {
+            color: #007bff; /* Icon color on hover */
+        }
+        /* Active state for the menu item */
+        .bottom-nav a.active {
+            color: #007bff; /* Active text color */
+        }
+        .bottom-nav a.active i {
+            color: #007bff; /* Active icon color */
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+
+    <div class="container">
+        <h1>Welcome to 500 Level!</h1>
+        <p id="loadingMessage">Loading your faculty courses...</p>
+        <div id="contentDisplay" style="display: none;">
+            <h2 id="facultyNameDisplay"></h2>
+            <h3>First Semester Courses:</h3>
+            <ul id="firstSemesterCourseList">
+                </ul>
+            <h3>Second Semester Courses:</h3>
+            <ul id="secondSemesterCourseList">
+                </ul>
+        </div>
+        <p id="errorMessage" style="display: none;"></p>
+    </div>
+
+    <nav class="bottom-nav">
+        <ul>
+            <li><a href="index.html">
+                <i class="fas fa-home"></i>
+                Home
+            </a></li>
+            <li><a href="chat.html">
+                <i class="fas fa-comments"></i>
+                Chat
+            </a></li>
+            <li><a href="news.html">
+                <i class="fas fa-newspaper"></i>
+                News
+            </a></li>
+            <li><a href="market.html">
+                <i class="fas fa-store"></i>
+                Market
+            </a></li>
+            <li><a href="profile.html">
+                <i class="fas fa-user"></i>
+                Profile
+            </a></li>
+        </ul>
+    </nav>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const loadingMessage = document.getElementById('loadingMessage');
+            const contentDisplay = document.getElementById('contentDisplay');
+            const facultyNameDisplay = document.getElementById('facultyNameDisplay');
+            const firstSemesterCourseList = document.getElementById('firstSemesterCourseList');
+            const secondSemesterCourseList = document.getElementById('secondSemesterCourseList');
+            const errorMessage = document.getElementById('errorMessage');
+
+            const userFaculty = localStorage.getItem('faculty');
+            const normalizedUserFaculty = userFaculty ? userFaculty.trim() : null;
+
+            // Define the 500-level course data for all faculties
+            const facultyCourses500L = {
+                "Agriculture": {
+                    "firstSemester": [
+                        "AEA 501: Advanced Agricultural Economics",
+                        "AEM 503: Extension Methods and Communication",
+                        "ANS 501: Advanced Animal Nutrition",
+                        "CRP 501: Crop Production Techniques",
+                        "SSM 501: Soil Fertility and Management"
+                    ],
+                    "secondSemester": [
+                        "AEA 502: Farm Management and Accounting",
+                        "AEM 504: Rural Sociology",
+                        "ANS 502: Livestock Production Systems",
+                        "CRP 502: Pest and Disease Management",
+                        "SSM 502: Soil Conservation and Land Use Planning"
+                    ]
+                },
+                "Arts": {
+                    "firstSemester": [
+                        "ENG 501: Advanced English Syntax",
+                        "LIT 501: Literary Theory and Criticism",
+                        "HIS 501: Nigerian History in the 20th Century",
+                        "PHL 501: Contemporary Philosophical Issues",
+                        "FRE 501: Advanced French Grammar"
+                    ],
+                    "secondSemester": [
+                        "ENG 502: Semantics and Pragmatics",
+                        "LIT 502: African Literature in English",
+                        "HIS 502: African Diaspora Studies",
+                        "PHL 502: Philosophy of Science",
+                        "FRE 502: French Literature Analysis"
+                    ]
+                },
+                "Medicine": { // MERGED FACULTY: Basic Medical Sciences + Clinical Sciences + College of Medicine (courses merged)
+                    "firstSemester": [
+                        "ANA 501: Advanced Neuroanatomy",
+                        "BIOC 501: Metabolic Pathways",
+                        "PHY 501: Cardiovascular Physiology",
+                        "MIC 501: Medical Microbiology",
+                        "MED 501: Internal Medicine I",
+                        "SUR 501: General Surgery I",
+                        "OBS 501: Obstetrics I",
+                        "PED 501: Pediatrics I"
+                    ],
+                    "secondSemester": [
+                        "ANA 502: Clinical Anatomy",
+                        "BIOC 502: Clinical Biochemistry",
+                        "PHY 502: Neurophysiology",
+                        "MIC 502: Immunology and Serology",
+                        "MED 502: Internal Medicine II",
+                        "SUR 502: General Surgery II",
+                        "OBS 502: Obstetrics II",
+                        "PED 502: Pediatrics II"
+                    ]
+                },
+                "Education": {
+                    "firstSemester": [
+                        "EDU 501: Educational Administration and Planning",
+                        "EDU 503: Curriculum Development",
+                        "EDU 505: Educational Research Methods",
+                        "EDU 507: Comparative Education"
+                    ],
+                    "secondSemester": [
+                        "EDU 502: Instructional Technology",
+                        "EDU 504: Guidance and Counseling",
+                        "EDU 506: Measurement and Evaluation",
+                        "EDU 508: Special Education"
+                    ]
+                },
+                "Engineering": {
+                    "firstSemester": [
+                        "ENG 501: Engineering Project Design",
+                        "ENG 503: Advanced Thermodynamics",
+                        "ENG 505: Control Systems Engineering",
+                        "ENG 507: Structural Analysis"
+                    ],
+                    "secondSemester": [
+                        "ENG 502: Engineering Management",
+                        "ENG 504: Heat Transfer",
+                        "ENG 506: Power Systems",
+                        "ENG 508: Fluid Mechanics"
+                    ]
+                },
+                "Law": {
+                    "firstSemester": [
+                        "LAW 501: Jurisprudence and Legal Theory",
+                        "LAW 503: Company Law",
+                        "LAW 505: Law of Evidence",
+                        "LAW 507: Public International Law"
+                    ],
+                    "secondSemester": [
+                        "LAW 502: Environmental Law",
+                        "LAW 504: Intellectual Property Law",
+                        "LAW 506: Human Rights Law",
+                        "LAW 508: Conflict of Laws"
+                    ]
+                },
+                "Management Sciences": {
+                    "firstSemester": [
+                        "ACC 501: Advanced Financial Accounting",
+                        "MGT 501: Strategic Management",
+                        "FIN 501: Investment Analysis",
+                        "MKT 501: Marketing Research"
+                    ],
+                    "secondSemester": [
+                        "ACC 502: Auditing and Assurance Services",
+                        "MGT 502: Organizational Behavior",
+                        "FIN 502: Financial Markets and Institutions",
+                        "MKT 502: Consumer Behavior"
+                    ]
+                },
+                "Science": {
+                    "firstSemester": [
+                        "BIO 501: Molecular Biology",
+                        "CHM 501: Advanced Organic Chemistry",
+                        "MTH 501: Real Analysis",
+                        "PHY 501: Quantum Mechanics"
+                    ],
+                    "secondSemester": [
+                        "BIO 502: Cell Biology",
+                        "CHM 502: Physical Chemistry",
+                        "MTH 502: Complex Analysis",
+                        "PHY 502: Electromagnetism"
+                    ]
+                },
+                "Social Sciences": {
+                    "firstSemester": [
+                        "ECO 501: Advanced Microeconomic Theory",
+                        "POL 501: Political Theory",
+                        "SOC 501: Sociological Theory",
+                        "PSY 501: Research Methods in Psychology"
+                    ],
+                    "secondSemester": [
+                        "ECO 502: Advanced Macroeconomic Theory",
+                        "POL 502: Comparative Politics",
+                        "SOC 502: Social Change",
+                        "PSY 502: Developmental Psychology"
+                    ]
+                },
+                "Petroleum Studies": {
+                    "firstSemester": [
+                        "PEM 501: Petroleum Geology",
+                        "PEM 503: Reservoir Engineering",
+                        "PEM 505: Drilling Engineering",
+                        "PEM 507: Production Technology"
+                    ],
+                    "secondSemester": [
+                        "PEM 502: Petroleum Economics",
+                        "PEM 504: Well Logging",
+                        "PEM 506: Enhanced Oil Recovery",
+                        "PEM 508: Environmental Management in Petroleum Industry"
+                    ]
+                }
+            };
+
+            // Function to populate a course list
+            function populateCourseList(courseArray, targetUl) {
+                if (courseArray.length === 0) {
+                    const listItem = document.createElement('li');
+                    listItem.textContent = "No courses listed for this semester.";
+                    listItem.style.fontStyle = "italic";
+                    listItem.style.color = "#888";
+                    targetUl.appendChild(listItem);
+                    return;
+                }
+                courseArray.forEach(courseText => {
+                    const listItem = document.createElement('li');
+                    const link = document.createElement('a');
+                    const courseCodeMatch = courseText.match(/^([A-Z0-9 ]+)[-:]?/);
+                    let courseCode = '';
+                    if (courseCodeMatch && courseCodeMatch[1]) {
+                        courseCode = courseCodeMatch[1].trim().replace(/\s/g, '').toLowerCase();
+                    } else {
+                        courseCode = courseText.split(' ')[0].trim().toLowerCase();
+                    }
+                    link.href = `${courseCode}.html`;
+                    link.textContent = courseText;
+                    listItem.appendChild(link);
+                    targetUl.appendChild(listItem);
+                });
+            }
+
+            if (normalizedUserFaculty && facultyCourses500L[normalizedUserFaculty]) {
+                loadingMessage.style.display = 'none';
+                contentDisplay.style.display = 'block';
+
+                facultyNameDisplay.textContent = `Faculty of ${normalizedUserFaculty}`;
+
+                const firstSemCourses = facultyCourses500L[normalizedUserFaculty].firstSemester || [];
+                const secondSemCourses = facultyCourses500L[normalizedUserFaculty].secondSemester || [];
+
+                populateCourseList(firstSemCourses, firstSemesterCourseList);
+                populateCourseList(secondSemCourses, secondSemesterCourseList);
+
+            } else {
+                loadingMessage.style.display = 'none';
+                errorMessage.style.display = 'block';
+                if (!normalizedUserFaculty) {
+                    errorMessage.textContent = "Error: Your faculty was not found in localStorage. Please ensure it's set correctly.";
+                    console.error("Faculty not found in localStorage for 500 level.");
+                } else {
+                    errorMessage.textContent = `Error: No 500-level course data available for "${normalizedUserFaculty}". Please check the faculty name or data.`;
+                    console.error(`No 500-level course data found for faculty: ${normalizedUserFaculty}`);
+                }
+            }
+        });
+    </script>
+
+</body>
+</html>

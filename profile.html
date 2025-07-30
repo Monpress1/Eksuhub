@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>User Profile & Quiz History</title>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      margin: 20px;
+      background-color: #f4f6fa;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .profile-container, .quiz-history-container {
+      background-color: white;
+      padding: 25px; /* Slightly more padding */
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); /* Slightly stronger shadow */
+      width: 90%;
+      max-width: 700px; /* Increased max-width for more content */
+      text-align: left;
+      margin-bottom: 25px; /* Add more margin to separate containers */
+    }
+
+    .profile-container h2, .quiz-history-container h2 {
+      color: #303f9f;
+      margin-top: 0;
+      margin-bottom: 20px; /* More space below heading */
+      border-bottom: 2px solid #e0e0e0; /* Subtle separator */
+      padding-bottom: 10px;
+    }
+
+    .profile-container p {
+      color: #4b5563;
+      margin-bottom: 12px; /* More space between profile lines */
+      display: flex; /* Align strong and span nicely */
+    }
+
+    .profile-container strong {
+      font-weight: bold;
+      color: #374151;
+      margin-right: 8px; /* More space after strong text */
+      min-width: 100px; /* Give strong text a consistent width */
+    }
+
+    .button-container {
+      display: flex;
+      gap: 15px; /* More space between buttons */
+      margin-top: 25px; /* More space above buttons */
+      flex-wrap: wrap; /* Allow buttons to wrap */
+      justify-content: center; /* Center buttons */
+    }
+
+    .back-button,
+    .re-register-button,
+    .clear-history-button { /* Added clear history button */
+      background-color: #303f9f;
+      color: white;
+      padding: 10px 18px; /* Slightly larger buttons */
+      border: none;
+      border-radius: 5px; /* Slightly more rounded */
+      cursor: pointer;
+      font-size: 1rem; /* Standard font size */
+      text-decoration: none;
+      transition: background-color 0.3s ease; /* Smooth transition */
+    }
+
+    .back-button:hover,
+    .re-register-button:hover,
+    .clear-history-button:hover {
+      background-color: #283593;
+    }
+
+    .re-register-button {
+      background-color: #d32f2f; /* Red color for re-register */
+    }
+
+    .re-register-button:hover {
+      background-color: #b71c1c;
+    }
+
+    .clear-history-button {
+        background-color: #f57c00; /* Orange color for clear history */
+    }
+
+    .clear-history-button:hover {
+        background-color: #ef6c00;
+    }
+
+    .quiz-history-list {
+      list-style-type: none;
+      padding: 0;
+    }
+
+    .quiz-history-item {
+      background-color: #e8f0fe; /* Light blue background for each item */
+      border: 1px solid #c5d8f9;
+      border-radius: 6px; /* Slightly more rounded */
+      padding: 15px;
+      margin-bottom: 15px; /* More space between items */
+      color: #303f9f;
+      display: flex;
+      flex-direction: column; /* Stack items vertically */
+      position: relative; /* For review button positioning */
+    }
+
+    .quiz-history-item .quiz-title {
+      font-weight: bold;
+      color: #1a237e; /* Darker blue for the title */
+      margin-bottom: 8px; /* More space below title */
+      font-size: 1.2em; /* Larger title font */
+    }
+
+    .quiz-history-item .quiz-details {
+      display: flex;
+      flex-wrap: wrap; /* Allow wrapping on smaller screens */
+      gap: 15px; /* Space between detail items */
+      margin-bottom: 10px; /* Space above review button */
+    }
+
+    .quiz-history-item .detail-item {
+        font-size: 0.95em;
+        white-space: nowrap; /* Prevent breaking in the middle of a detail */
+    }
+
+    .quiz-history-item .detail-item strong {
+      color: #1a237e; /* Darker blue for strong text */
+    }
+
+    .no-history-message {
+      color: #6b7280;
+      font-style: italic;
+      text-align: center;
+      padding: 20px;
+    }
+
+    .review-button {
+        background-color: #4CAF50; /* Green */
+        color: white;
+        padding: 8px 15px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 0.9em;
+        transition: background-color 0.3s ease;
+        align-self: flex-end; /* Align button to the right/bottom */
+        margin-top: 10px; /* Space from details above */
+    }
+
+    .review-button:hover {
+        background-color: #45a049;
+    }
+
+    /* Modal for missed answers */
+    .modal {
+        display: none; /* Hidden by default */
+        position: fixed; /* Stay in place */
+        z-index: 1000; /* Sit on top */
+        left: 0;
+        top: 0;
+        width: 100%; /* Full width */
+        height: 100%; /* Full height */
+        overflow: auto; /* Enable scroll if needed */
+        background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+        justify-content: center;
+        align-items: center;
+    }
+
+    .modal-content {
+        background-color: #fefefe;
+        margin: auto;
+        padding: 30px;
+        border: 1px solid #888;
+        border-radius: 10px;
+        width: 90%;
+        max-width: 600px;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        position: relative;
+        max-height: 80vh; /* Max height to allow scrolling */
+        overflow-y: auto; /* Enable scrolling within the modal content */
+    }
+
+    .close-button {
+        color: #aaa;
+        float: right;
+        font-size: 28px;
+        font-weight: bold;
+        position: absolute;
+        top: 10px;
+        right: 20px;
+    }
+
+    .close-button:hover,
+    .close-button:focus {
+        color: black;
+        text-decoration: none;
+        cursor: pointer;
+    }
+
+    .modal-content h3 {
+        color: #303f9f;
+        margin-top: 0;
+        margin-bottom: 20px;
+        border-bottom: 1px solid #e0e0e0;
+        padding-bottom: 10px;
+    }
+
+    .modal-content ul {
+        list-style-type: none;
+        padding: 0;
+    }
+
+    .modal-content li {
+        background-color: #f9f9f9;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        padding: 15px;
+        margin-bottom: 15px;
+    }
+
+    .modal-content li p {
+        margin: 5px 0;
+    }
+
+    .modal-content li strong {
+        color: #374151;
+    }
+
+    .modal-content .your-answer {
+        color: #d32f2f; /* Red for incorrect answer */
+        font-weight: bold;
+    }
+
+    .modal-content .correct-answer {
+        color: #388e3c; /* Green for correct answer */
+        font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <div class="profile-container">
+    <h2>Your Profile</h2>
+    <p><strong>Name:</strong> <span id="profileName"></span></p>
+    <p><strong>Department:</strong> <span id="profileDepartment"></span></p>
+    <p><strong>Faculty:</strong> <span id="profileFaculty"></span></p>
+    <p><strong>Level:</strong> <span id="profileLevel"></span></p>
+  </div>
+
+  <div class="quiz-history-container">
+    <h2>Quiz History</h2>
+    <ul id="quizHistoryList" class="quiz-history-list">
+      <p class="no-history-message" id="noHistoryMessage">No quiz history available yet. Complete a quiz to see your results here.</p>
+    </ul>
+    <div class="button-container">
+        <button class="clear-history-button" id="clearHistoryButton">Clear All Quiz History</button>
+    </div>
+  </div>
+
+  <div class="button-container">
+    <button class="back-button" onclick="goBack()">Back to Dashboard</button>
+    <button class="re-register-button" onclick="reRegister()">Re-register</button>
+  </div>
+
+  <div id="failedAnswersModal" class="modal">
+    <div class="modal-content">
+      <span class="close-button">&times;</span>
+      <h3>Questions You Missed in This Quiz:</h3>
+      <ul id="missedQuestionsListModal">
+        </ul>
+      <p id="noMissedMessageModal" style="text-align: center; color: #6b7280; font-style: italic; display: none;">
+        Great job! You answered all questions correctly in this quiz.
+      </p>
+    </div>
+  </div>
+
+
+  <script>
+    const profileName = document.getElementById('profileName');
+    const profileDepartment = document.getElementById('profileDepartment');
+    const profileFaculty = document.getElementById('profileFaculty');
+    const profileLevel = document.getElementById('profileLevel');
+    const quizHistoryList = document.getElementById('quizHistoryList');
+    const noHistoryMessage = document.getElementById('noHistoryMessage');
+    const clearHistoryButton = document.getElementById('clearHistoryButton');
+
+    // Modal elements
+    const failedAnswersModal = document.getElementById('failedAnswersModal');
+    const closeButton = document.querySelector('.close-button');
+    const missedQuestionsListModal = document.getElementById('missedQuestionsListModal');
+    const noMissedMessageModal = document.getElementById('noMissedMessageModal');
+
+    function loadProfile() {
+      profileName.textContent = localStorage.getItem('name') || 'N/A';
+      profileDepartment.textContent = localStorage.getItem('department') || 'N/A';
+      profileFaculty.textContent = localStorage.getItem('faculty') || 'N/A';
+      profileLevel.textContent = localStorage.getItem('level') || 'N/A';
+    }
+
+    function loadQuizHistory() {
+      // Assuming quizHistory is stored as a JSON array of objects
+      // Each object should contain: quizName, score, total, percentage, timeTaken, date, allAnswers
+      const quizHistory = JSON.parse(localStorage.getItem('quizHistory')) || [];
+
+      quizHistoryList.innerHTML = ''; // Clear existing content
+
+      if (quizHistory.length === 0) {
+        noHistoryMessage.style.display = 'block'; // Show "No quiz history" message
+        clearHistoryButton.style.display = 'none'; // Hide clear button
+        return;
+      } else {
+        noHistoryMessage.style.display = 'none'; // Hide the message if there's history
+        clearHistoryButton.style.display = 'block'; // Show clear button
+      }
+
+      quizHistory.forEach((record, index) => {
+        const listItem = document.createElement('li');
+        listItem.classList.add('quiz-history-item');
+
+        const date = record.date || new Date().toLocaleString(); // Use stored date or current date
+        const quizName = record.quizName || 'Unnamed Quiz';
+        const score = record.score !== undefined ? record.score : 'N/A';
+        const total = record.total !== undefined ? record.total : 'N/A';
+        const percentage = record.percentage !== undefined ? record.percentage : 'N/A';
+        const timeTaken = record.timeTaken !== undefined ? `${record.timeTaken} minutes` : 'N/A';
+
+        listItem.innerHTML = `
+          <div class="quiz-title">${quizName}</div>
+          <div class="quiz-details">
+            <span class="detail-item"><strong>Date:</strong> ${date}</span>
+            <span class="detail-item"><strong>Score:</strong> ${score}/${total}</span>
+            <span class="detail-item"><strong>Percentage:</strong> ${percentage}%</span>
+            <span class="detail-item"><strong>Time Taken:</strong> ${timeTaken}</span>
+          </div>
+          <button class="review-button" data-index="${index}">Review Missed Answers</button>
+        `;
+        quizHistoryList.appendChild(listItem);
+      });
+
+      // Add event listeners to the dynamically created review buttons
+      document.querySelectorAll('.review-button').forEach(button => {
+        button.addEventListener('click', (event) => {
+          const index = event.target.dataset.index;
+          showSpecificFailedAnswers(parseInt(index));
+        });
+      });
+    }
+
+    function showSpecificFailedAnswers(historyIndex) {
+        const quizHistory = JSON.parse(localStorage.getItem('quizHistory')) || [];
+        const entry = quizHistory[historyIndex];
+
+        missedQuestionsListModal.innerHTML = ''; // Clear previous list in modal
+        noMissedMessageModal.style.display = 'none'; // Hide default message
+
+        if (entry && entry.allAnswers && entry.allAnswers.length > 0) {
+            const missed = entry.allAnswers.filter(answer => !answer.isCorrect);
+
+            if (missed.length > 0) {
+                missed.forEach((missedAnswer, qIndex) => {
+                    const listItem = document.createElement('li');
+                    listItem.innerHTML = `
+                        <p><strong>Question ${qIndex + 1}:</strong> ${missedAnswer.question}</p>
+                        <p class="your-answer"><strong>Your Answer:</strong> ${missedAnswer.userAnswer || 'Not answered'}</p>
+                        <p class="correct-answer"><strong>Correct Answer:</strong> ${missedAnswer.correctAnswer}</p>
+                    `;
+                    missedQuestionsListModal.appendChild(listItem);
+                });
+            } else {
+                noMissedMessageModal.style.display = 'block'; // Show "Great job" message
+            }
+        } else {
+            // Fallback if 'allAnswers' data is missing for some reason (e.g., old history format)
+            missedQuestionsListModal.innerHTML = '<li><p>No detailed answer data available for this quiz attempt.</p></li>';
+        }
+
+        failedAnswersModal.style.display = 'flex'; // Show the modal
+    }
+
+    function clearQuizHistory() {
+      if (confirm("Are you sure you want to clear all your quiz history? This action cannot be undone.")) {
+        localStorage.removeItem('quizHistory');
+        loadQuizHistory(); // Refresh the display
+        alert('Quiz history has been cleared.');
+      }
+    }
+
+    function goBack() {
+      window.location.href = 'index.html'; // Assuming your dashboard is named index.html
+    }
+
+    function reRegister() {
+      if (confirm("Are you sure you want to re-register? This will clear your profile data and log you out.")) {
+        localStorage.removeItem('signedUp');
+        localStorage.removeItem('name');
+        localStorage.removeItem('department');
+        localStorage.removeItem('faculty');
+        localStorage.removeItem('level');
+        // You might want to clear quiz history here too, or keep it.
+        // For now, let's keep it to demonstrate, but you can uncomment the line below to clear it:
+        // localStorage.removeItem('quizHistory');
+        alert('Your profile data has been cleared. You will be asked to re-register on the dashboard.');
+        window.location.href = 'index.html'; // Redirect back to the dashboard to trigger the sign-up form
+      }
+    }
+
+    // Event Listeners for the modal
+    closeButton.addEventListener('click', () => {
+        failedAnswersModal.style.display = 'none';
+    });
+
+    // Close the modal if user clicks outside of the modal content
+    window.addEventListener('click', (event) => {
+        if (event.target == failedAnswersModal) {
+            failedAnswersModal.style.display = 'none';
+        }
+    });
+
+    // Event listener for clear history button
+    clearHistoryButton.addEventListener('click', clearQuizHistory);
+
+    // Load profile and quiz history information when the page loads
+    loadProfile();
+    loadQuizHistory();
+  </script>
+</body>
+</html>

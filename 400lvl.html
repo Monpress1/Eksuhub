@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>400 Level Courses</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0; /* Reset default body margin */
+            display: flex;
+            flex-direction: column; /* Arrange content and footer vertically */
+            min-height: 100vh; /* Ensure body takes full viewport height */
+            background-color: #f4f4f4;
+            color: #333;
+        }
+        .container {
+            flex: 1; /* Allows content to grow and push footer down */
+            max-width: 800px;
+            margin: 20px auto; /* Top/bottom margin, auto left/right */
+            background: #fff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1, h2, h3 {
+            color: #0056b3;
+            text-align: center;
+        }
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        li {
+            background: #e9e9e9;
+            margin-bottom: 8px;
+            padding: 10px 15px;
+            border-radius: 4px;
+            transition: background-color 0.3s ease; /* Smooth hover effect */
+        }
+        li:hover {
+            background-color: #dcdcdc; /* Lighter on hover */
+        }
+        li a {
+            text-decoration: none; /* Remove underline from links */
+            color: #333; /* Make link color match text */
+            display: block; /* Make the entire list item clickable */
+            font-weight: bold;
+        }
+        li a:hover {
+            color: #007bff; /* Change link color on hover */
+        }
+
+        #facultyNameDisplay {
+            font-size: 1.2em;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 20px;
+            color: #007bff;
+        }
+        #loadingMessage {
+            text-align: center;
+            color: #555;
+            font-style: italic;
+        }
+        #errorMessage {
+            text-align: center;
+            color: red;
+            font-weight: bold;
+            margin-top: 20px;
+        }
+
+        /* --- Bottom Navigation Menu Styles (MATCHING IMAGE) --- */
+        .bottom-nav {
+            background-color: #ffffff; /* White background */
+            color: #555; /* Default text color, looks greyish in image */
+            padding: 5px 0; /* Reduced padding to match compact look */
+            text-align: center;
+            position: sticky;
+            bottom: 0;
+            width: 100%;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.05); /* Subtle shadow */
+            margin-top: auto;
+            border-top: 1px solid #eee; /* Slight border on top */
+        }
+        .bottom-nav ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            height: 60px; /* Fixed height for the menu bar */
+        }
+        .bottom-nav li {
+            background-color: transparent; /* Ensure no background from default li style */
+            margin-bottom: 0;
+            padding: 0;
+            border-radius: 0;
+            flex-grow: 1;
+        }
+        .bottom-nav a {
+            display: flex; /* Use flex for vertical alignment of icon and text */
+            flex-direction: column; /* Stack icon above text */
+            align-items: center; /* Center horizontally */
+            justify-content: center; /* Center vertically */
+            color: #555; /* Default link color */
+            text-decoration: none;
+            height: 100%; /* Make link fill the li height */
+            padding: 5px 0; /* Padding for internal content */
+            font-size: 0.85em; /* Smaller text size for compact look */
+            transition: color 0.3s ease; /* Smooth transition for text color */
+        }
+        .bottom-nav a:hover {
+            color: #007bff; /* Hover color (example blue) */
+        }
+        /* Icon styling (assuming you'll use Font Awesome or similar) */
+        .bottom-nav a i {
+            font-size: 1.5em; /* Larger icon size */
+            margin-bottom: 4px; /* Space between icon and text */
+            color: #777; /* Default icon color */
+            transition: color 0.3s ease;
+        }
+        .bottom-nav a:hover i {
+            color: #007bff; /* Icon color on hover */
+        }
+        /* Active state for the menu item */
+        .bottom-nav a.active {
+            color: #007bff; /* Active text color */
+        }
+        .bottom-nav a.active i {
+            color: #007bff; /* Active icon color */
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+
+    <div class="container">
+        <h1>Welcome to 400 Level!</h1>
+        <p id="loadingMessage">Loading your faculty courses...</p>
+        <div id="contentDisplay" style="display: none;">
+            <h2 id="facultyNameDisplay"></h2>
+            <h3>First Semester Courses:</h3>
+            <ul id="firstSemesterCourseList">
+                </ul>
+            <h3>Second Semester Courses:</h3>
+            <ul id="secondSemesterCourseList">
+                </ul>
+        </div>
+        <p id="errorMessage" style="display: none;"></p>
+    </div>
+
+    <nav class="bottom-nav">
+        <ul>
+            <li><a href="index.html">
+                <i class="fas fa-home"></i>
+                Home
+            </a></li>
+            <li><a href="chat.html">
+                <i class="fas fa-comments"></i>
+                Chat
+            </a></li>
+            <li><a href="news.html">
+                <i class="fas fa-newspaper"></i>
+                News
+            </a></li>
+            <li><a href="market.html">
+                <i class="fas fa-store"></i>
+                Market
+            </a></li>
+            <li><a href="profile.html">
+                <i class="fas fa-user"></i>
+                Profile
+            </a></li>
+        </ul>
+    </nav>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const loadingMessage = document.getElementById('loadingMessage');
+            const contentDisplay = document.getElementById('contentDisplay');
+            const facultyNameDisplay = document.getElementById('facultyNameDisplay');
+            const firstSemesterCourseList = document.getElementById('firstSemesterCourseList');
+            const secondSemesterCourseList = document.getElementById('secondSemesterCourseList');
+            const errorMessage = document.getElementById('errorMessage');
+
+            const userFaculty = localStorage.getItem('faculty');
+            const normalizedUserFaculty = userFaculty ? userFaculty.trim() : null;
+
+            // Define the 400-level course data for all faculties
+            const facultyCourses400L = {
+                "Agriculture": { // Corrected from "Agricultural Sciences"
+                    "firstSemester": [
+                        "AEA 303: Agricultural Production Economics and Resource Management",
+                        "AEM 405: Extension Training & Curriculum Development",
+                        "AEM 411: Social Relationships & Behavioural Change",
+                        "AEA 302: Agricultural Finance & Marketing",
+                        "AEA 310: Farm Business Organization",
+                        "AEM 458: Extension Strategies in Pilot Rural Development Project",
+                        "AGB 404: Bio Resources Management",
+                        "CSP 401: Biotechnology in Crop/Pest Management"
+                    ],
+                    "secondSemester": [
+                        "AEM 400: Student Industrial Work Experience Scheme (SIWES) – 12 Units (Compulsory)"
+                    ]
+                },
+                "Arts": {
+                    "firstSemester": [
+                        "ENG 401: Advanced English Grammar",
+                        "LIT 401: Literary Criticism",
+                        "HIS 401: History of Nigeria",
+                        "PHL 401: Philosophy of Language",
+                        "FRE 401: French Literature"
+                    ],
+                    "secondSemester": [
+                        "ENG 402: Discourse Analysis",
+                        "LIT 402: African Literature",
+                        "HIS 402: History of Africa",
+                        "PHL 402: Ethics",
+                        "FRE 402: French Language Skills"
+                    ]
+                },
+                "Medicine": { // MERGED FACULTY: Basic Medical Sciences + Clinical Sciences + College of Medicine (courses merged)
+                    "firstSemester": [
+                        "ANA 401: Advanced Human Anatomy",
+                        "BIOC 401: Advanced Biochemistry",
+                        "PHY 401: Advanced Physiology",
+                        "MIC 401: Medical Microbiology",
+                        "MED 401: General Medicine",
+                        "SUR 401: General Surgery",
+                        "PHA 401: Pharmacology",
+                        "OBS 401: Obstetrics and Gynaecology"
+                    ],
+                    "secondSemester": [
+                        "ANA 402: Neuroanatomy",
+                        "BIOC 402: Clinical Biochemistry",
+                        "PHY 402: Clinical Physiology",
+                        "MIC 402: Immunology",
+                        "MED 402: Internal Medicine",
+                        "SUR 402: Surgical Specialties",
+                        "PHA 402: Clinical Pharmacology",
+                        "OBS 402: Reproductive Health"
+                    ]
+                },
+                "Education": {
+                    "firstSemester": [
+                        "EDU 401: Curriculum Development",
+                        "EDU 403: Educational Psychology",
+                        "EDU 405: Measurement and Evaluation",
+                        "EDU 407: Educational Technology"
+                    ],
+                    "secondSemester": [
+                        "EDU 402: Instructional Methods",
+                        "EDU 404: Guidance and Counseling",
+                        "EDU 406: Research Methods in Education",
+                        "EDU 408: Comparative Education"
+                    ]
+                },
+                "Engineering": {
+                    "firstSemester": [
+                        "ENG 401: Engineering Mathematics",
+                        "ENG 403: Thermodynamics",
+                        "ENG 405: Fluid Mechanics",
+                        "ENG 407: Mechanics of Materials"
+                    ],
+                    "secondSemester": [
+                        "ENG 402: Structural Analysis",
+                        "ENG 404: Heat Transfer",
+                        "ENG 406: Electrical Circuits",
+                        "ENG 408: Control Systems"
+                    ]
+                },
+                "Law": {
+                    "firstSemester": [
+                        "LAW 401: Constitutional Law",
+                        "LAW 403: Criminal Law",
+                        "LAW 405: Law of Evidence",
+                        "LAW 407: Jurisprudence"
+                    ],
+                    "secondSemester": [
+                        "LAW 402: Administrative Law",
+                        "LAW 404: Civil Procedure",
+                        "LAW 406: Family Law",
+                        "LAW 408: Environmental Law"
+                    ]
+                },
+                "Management Sciences": {
+                    "firstSemester": [
+                        "ACC 401: Advanced Financial Accounting",
+                        "MGT 401: Strategic Management",
+                        "FIN 401: Corporate Finance",
+                        "MKT 401: Marketing Management"
+                    ],
+                    "secondSemester": [
+                        "ACC 402: Management Accounting",
+                        "MGT 402: Organizational Behavior",
+                        "FIN 402: Investment Analysis",
+                        "MKT 402: Consumer Behavior"
+                    ]
+                },
+                "Science": {
+                    "firstSemester": [
+                        "BIO 401: Advanced Biology",
+                        "CHM 401: Organic Chemistry",
+                        "MTH 401: Abstract Algebra",
+                        "PHY 401: Quantum Mechanics"
+                    ],
+                    "secondSemester": [
+                        "BIO 402: Genetics",
+                        "CHM 402: Inorganic Chemistry",
+                        "MTH 402: Real Analysis",
+                        "PHY 402: Electromagnetism"
+                    ]
+                },
+                "Social Sciences": {
+                    "firstSemester": [
+                        "ECO 401: Microeconomic Theory",
+                        "POL 401: Political Theory",
+                        "SOC 401: Sociological Theory",
+                        "PSY 401: Research Methods in Psychology"
+                    ],
+                    "secondSemester": [
+                        "ECO 402: Macroeconomic Theory",
+                        "POL 402: Comparative Politics",
+                        "SOC 402: Social Change",
+                        "PSY 402: Developmental Psychology"
+                    ]
+                },
+                "Petroleum Studies": { // NEW FACULTY
+                    "firstSemester": [
+                        "PEM 401: Petroleum Geology",
+                        "PEM 403: Reservoir Engineering",
+                        "PEM 405: Drilling Engineering",
+                        "PEM 407: Production Technology"
+                    ],
+                    "secondSemester": [
+                        "PEM 402: Petroleum Economics",
+                        "PEM 404: Well Logging",
+                        "PEM 406: Enhanced Oil Recovery",
+                        "PEM 408: Environmental Management in Petroleum Industry"
+                    ]
+                }
+            };
+
+            // Function to populate a course list
+            function populateCourseList(courseArray, targetUl) {
+                if (courseArray.length === 0) {
+                    const listItem = document.createElement('li');
+                    listItem.textContent = "No courses listed for this semester.";
+                    listItem.style.fontStyle = "italic";
+                    listItem.style.color = "#888";
+                    targetUl.appendChild(listItem);
+                    return;
+                }
+                courseArray.forEach(courseText => {
+                    const listItem = document.createElement('li');
+                    // Check if the course is SIWES or similar special text not meant for a link
+                    if (courseText.includes("SIWES") || courseText.includes("Note:")) {
+                        listItem.textContent = courseText; // Just display text, no link
+                    } else {
+                        const link = document.createElement('a');
+                        const courseCodeMatch = courseText.match(/^([A-Z0-9 ]+)[-:]?/);
+                        let courseCode = '';
+                        if (courseCodeMatch && courseCodeMatch[1]) {
+                            courseCode = courseCodeMatch[1].trim().replace(/\s/g, '').toLowerCase();
+                        } else {
+                            courseCode = courseText.split(' ')[0].trim().toLowerCase();
+                        }
+                        link.href = `${courseCode}.html`;
+                        link.textContent = courseText;
+                        listItem.appendChild(link);
+                    }
+                    targetUl.appendChild(listItem);
+                });
+            }
+
+            if (normalizedUserFaculty && facultyCourses400L[normalizedUserFaculty]) {
+                loadingMessage.style.display = 'none';
+                contentDisplay.style.display = 'block';
+
+                facultyNameDisplay.textContent = `Faculty of ${normalizedUserFaculty}`;
+
+                const firstSemCourses = facultyCourses400L[normalizedUserFaculty].firstSemester || [];
+                const secondSemCourses = facultyCourses400L[normalizedUserFaculty].secondSemester || [];
+
+                populateCourseList(firstSemCourses, firstSemesterCourseList);
+                populateCourseList(secondSemCourses, secondSemesterCourseList);
+
+            } else {
+                loadingMessage.style.display = 'none';
+                errorMessage.style.display = 'block';
+                if (!normalizedUserFaculty) {
+                    errorMessage.textContent = "Error: Your faculty was not found in localStorage. Please ensure it's set correctly.";
+                    console.error("Faculty not found in localStorage for 400 level.");
+                } else {
+                    errorMessage.textContent = `Error: No 400-level course data available for "${normalizedUserFaculty}". Please check the faculty name or data.`;
+                    console.error(`No 400-level course data found for faculty: ${normalizedUserFaculty}`);
+                }
+            }
+        });
+    </script>
+
+</body>
+</html>

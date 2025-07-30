@@ -1,0 +1,1343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>News Platform</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6; /* Light gray background */
+            color: #333;
+            overflow-x: hidden; /* Prevent horizontal scroll due to menu animation */
+        }
+        /* Custom scrollbar for better aesthetics */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+        /* Hide default number input arrows */
+        input[type="number"]::-webkit-inner-spin-button,
+        input[type="number"]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        input[type="number"] {
+            -moz-appearance: textfield;
+        }
+
+        /* Toast Message Styles */
+        #messageBox {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #333;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out;
+            pointer-events: none; /* Allows clicks to pass through when hidden */
+        }
+        #messageBox.show {
+            opacity: 1;
+        }
+
+        /* Loading Spinner Styles */
+        .spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            border-left-color: #3b82f6; /* Blue-500 */
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Featured Message Styles */
+        #featuredMessageContainer {
+            overflow: hidden; /* Hide overflowing text during transition */
+            height: 40px; /* Fixed height to prevent layout shifts */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            background-color: #e0f2fe; /* Light blue background */
+            color: #1e40af; /* Darker blue text */
+            font-weight: 600;
+            margin-top: 1rem; /* Space below header */
+            border-radius: 0.75rem; /* rounded-xl */
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); /* shadow-md */
+            padding: 0.5rem 1rem;
+        }
+        #featuredMessage {
+            position: absolute;
+            white-space: nowrap;
+            opacity: 0;
+            transform: translateY(100%); /* Start from bottom */
+            transition: opacity 0.5s ease-out, transform 0.5s ease-out;
+        }
+        #featuredMessage.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        #featuredMessage.hide {
+            opacity: 0;
+            transform: translateY(-100%); /* Exit to top */
+        }
+
+        /* --- Header Adjustments for Logo and Menu --- */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            background-color:  #212121 ; /* Primary header color */
+            color: #fff;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 1.8em;
+            cursor: pointer; /* Indicate it's clickable */
+            display: flex;
+            align-items: center;
+        }
+
+        .header .news-logo {
+            font-size: 1.5em;
+            margin-right: 10px;
+            cursor: pointer; /* Indicate it's clickable */
+        }
+
+        /* --- Hamburger Menu Icon --- */
+        .hamburger-menu {
+            font-size: 1.8em;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+            color: #fff;
+        }
+
+        .hamburger-menu.active {
+            transform: rotate(90deg); /* Rotate when active */
+        }
+
+        /* --- Side Navigation Menu --- */
+        .side-nav {
+            height: 100%;
+            width: 0; /* Initially hidden */
+            position: fixed;
+            z-index: 1001; /* Above header */
+            top: 0;
+            right: 0;
+            background-color: #111;
+            overflow-x: hidden;
+            transition: 0.5s; /* Animation for opening/closing */
+            padding-top: 60px;
+            box-shadow: -5px 0 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .side-nav a {
+            padding: 15px 25px 15px 35px;
+            text-decoration: none;
+            font-size: 25px;
+            color: #818181;
+            display: block;
+            transition: 0.3s;
+        }
+
+        .side-nav a:hover {
+            color: #f1f1f1;
+            background-color: #007bff; /* Highlight on hover */
+        }
+
+        .side-nav .closebtn {
+            position: absolute;
+            top: 0;
+            right: 25px;
+            font-size: 36px;
+            margin-left: 50px;
+            color: #ccc;
+        }
+
+        /* --- Article Modal/Overlay Styling --- */
+        .article-modal-overlay {
+            display: none; /* Hidden by default */
+            position: fixed;
+            z-index: 2000; /* High z-index to be on top */
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.7); /* Dark semi-transparent background */
+            justify-content: center;
+            align-items: center;
+        }
+
+        .article-modal-content {
+            background-color: #fefefe;
+            margin: auto;
+            padding: 30px;
+            border-radius: 10px;
+            width: 90%; /* Adjusted for better mobile view */
+            max-width: 800px; /* Increased max-width for better reading */
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            position: relative;
+            transform: translateY(50px); /* Start slightly below for animation */
+            opacity: 0;
+            transition: transform 0.3s ease-out, opacity 0.3s ease-out;
+            max-height: 95vh; /* Limit height to viewport */
+            overflow-y: auto; /* Enable scrolling for long articles */
+        }
+
+        .article-modal-overlay.show .article-modal-content {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .article-modal-content .close-button {
+            color: #aaa;
+            position: absolute;
+            top: 15px;
+            right: 25px;
+            font-size: 35px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .article-modal-content .close-button:hover,
+        .article-modal-content .close-button:focus {
+            color: #333;
+            text-decoration: none;
+        }
+
+        .article-modal-content h2 {
+            color: #0056b3;
+            margin-top: 0;
+            margin-bottom: 15px;
+            font-size: 2.2em; /* Larger title */
+        }
+
+        .article-modal-content p.full-content { /* Added a class for full content paragraphs */
+            color: #444;
+            line-height: 1.8;
+            margin-bottom: 1em;
+            text-align: justify;
+            font-size: 1.1em;
+        }
+
+        .article-modal-content .date {
+            font-size: 0.9em;
+            color: #999;
+            text-align: right;
+            margin-top: 20px;
+        }
+
+        .article-modal-content img {
+            max-width: 100%;
+            height: auto;
+            display: block;
+            margin: 0 auto 20px auto;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        /* Adjustments for news-item to fit longer description */
+        .news-item p {
+            display: block; /* Override Tailwind's default line clamping if necessary */
+            overflow: hidden; /* Ensure content stays within bounds */
+            text-overflow: ellipsis; /* Add ellipsis */
+            max-height: 4.8em; /* Roughly 3 lines for 1.6em line-height */
+            line-height: 1.6em;
+            word-wrap: break-word; /* Ensure long words break */
+        }
+
+        /* --- News Slider Styles --- */
+        #news-slider-container {
+            position: relative;
+            width: 100%;
+            max-width: 900px; /* Adjust as needed */
+            margin: 1rem auto;
+            overflow: hidden;
+            border-radius: 0.75rem; /* rounded-xl */
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); /* shadow-md */
+            background-color: #fff;
+            height: 250px; /* Fixed height for the slider */
+        }
+
+        #news-slider-inner {
+            display: flex;
+            transition: transform 0.5s ease-in-out; /* Smooth transition for slides */
+            height: 100%;
+        }
+
+        .news-slide {
+            min-width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0; /* Prevent shrinking */
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+        }
+
+        .news-slide img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover; /* Cover the entire slide area */
+            display: block;
+            filter: brightness(60%); /* Darken image for text readability */
+        }
+
+        .news-slide-content {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(to top, rgba(0,0,0,0.8), rgba(0,0,0,0));
+            padding: 1.5rem;
+            color: #fff;
+            text-align: center;
+            font-size: 1.5rem;
+            font-weight: 700;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            line-height: 1.3;
+        }
+
+        .news-slide-content h3 {
+            margin: 0;
+            font-size: 1.5rem;
+        }
+
+        /* Slider Navigation Arrows */
+        .slider-arrow {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background-color: rgba(0,0,0,0.5);
+            color: white;
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+            z-index: 10;
+            font-size: 1.5rem;
+            border-radius: 0.5rem;
+            transition: background-color 0.3s ease;
+        }
+
+        .slider-arrow:hover {
+            background-color: rgba(0,0,0,0.8);
+        }
+
+        #prevSlide {
+            left: 1rem;
+        }
+
+        #nextSlide {
+            right: 1rem;
+        }
+
+        /* Slider Dots */
+        .slider-dots {
+            position: absolute;
+            bottom: 1rem;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 0.5rem;
+            z-index: 10;
+        }
+
+        .dot {
+            width: 10px;
+            height: 10px;
+            background-color: rgba(255,255,255,0.5);
+            border-radius: 50%;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .dot.active {
+            background-color: #fff;
+        }
+
+        /* Responsive adjustments for slider */
+        @media (max-width: 768px) {
+            #news-slider-container {
+                height: 200px; /* Smaller height on mobile */
+            }
+            .news-slide-content h3 {
+                font-size: 1.2rem;
+            }
+            .slider-arrow {
+                font-size: 1.2rem;
+                padding: 0.3rem 0.8rem;
+            }
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+    <header class="header">
+        <h1 id="news-logo-title">
+         <i class="fa fa-book"> </i>    
+            Eksu News 
+        </h1>
+        <div class="hamburger-menu" id="hamburger-menu">
+            <i class="fas fa-bars"></i>
+        </div>
+    </header>
+
+    <div id="mySidenav" class="side-nav">
+        <a href="javascript:void(0)" class="closebtn" id="close-nav">&times;</a>
+        <a href="index.html">Dashboard</a>
+        <a href="market.html">Market</a>
+        <a href="chat.html">Chat</a>
+        <a href="#"></a>
+    </div>
+<div id="featuredMessageContainer" class="container mx-auto">
+        <span id="featuredMessage" class="px-2 py-1 rounded-md bg-blue-100 text-blue-800 text-sm font-semibold">Featured: Welcome to Global News Hub!</span>
+    </div>
+
+    <div id="news-slider-container">
+        <div id="news-slider-inner">
+            </div>
+        <div id="prevSlide" class="slider-arrow"><i class="fas fa-chevron-left"></i></div>
+        <div id="nextSlide" class="slider-arrow"><i class="fas fa-chevron-right"></i></div>
+        <div class="slider-dots" id="slider-dots">
+            </div>
+    </div>
+    
+    <main class="container mx-auto my-8 p-6 flex-grow">
+        <section class="bg-white p-8 rounded-xl shadow-lg border border-gray-200">
+            <h2 class="text-3xl font-semibold mb-6 text-gray-800 border-b pb-3">Latest News</h2>
+            <div id="loadingIndicator" class="flex justify-center items-center py-10 hidden">
+                <div class="spinner"></div>
+                <p class="ml-4 text-gray-600">Loading articles...</p>
+            </div>
+            <div id="newsArticlesContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <p id="noNewsMessage" class="col-span-full text-center text-gray-500 text-lg">No news articles published yet. Stay tuned!</p>
+            </div>
+        </section>
+    </main>
+
+    <footer class="bg-gray-800 text-white p-6 mt-8 rounded-t-xl shadow-lg">
+        <div class="container mx-auto text-center text-gray-400">
+            &copy; 2025 Global News Hub. All rights reserved.
+        </div>
+    </footer>
+
+    <div id="messageBox" class="hidden"></div>
+
+    <div id="article-modal-overlay" class="article-modal-overlay">
+        <div class="article-modal-content">
+            <span class="close-button" id="close-article-modal">&times;</span>
+            <img id="modal-article-image" src="" alt="Article Image" class="hidden">
+            <h2 id="modal-article-title"></h2>
+            <div id="modal-article-full-content"></div>
+            <div class="date" id="modal-article-date"></div>
+
+            <div class="flex justify-around items-center py-3 border-t border-gray-200 mt-4">
+                <button class="reaction-btn flex items-center space-x-1 text-gray-600 hover:text-blue-500 transition duration-200" data-article-id="" data-reaction-type="thumbs_up">
+                    <i class="fas fa-thumbs-up"></i>
+                    <span class="reaction-count">0</span>
+                </button>
+                <button class="reaction-btn flex items-center space-x-1 text-gray-600 hover:text-red-500 transition duration-200" data-article-id="" data-reaction-type="love">
+                    <i class="fas fa-heart"></i>
+                    <span class="reaction-count">0</span>
+                </button>
+                <button class="reaction-btn flex items-center space-x-1 text-gray-600 hover:text-yellow-500 transition duration-200" data-article-id="" data-reaction-type="sad">
+                    <i class="fas fa-sad-tear"></i>
+                    <span class="reaction-count">0</span>
+                </button>
+            </div>
+
+            <div class="mt-4 border-t border-gray-200 pt-4">
+                <h4 class="text-lg font-medium text-gray-700 mb-3">Comments</h4>
+                <div id="modal-comments-list" class="comments-list space-y-2 max-h-48 overflow-y-auto pr-2">
+                    <p class="text-gray-500 text-sm">No comments yet.</p>
+                </div>
+                <div class="mt-4 flex flex-col space-y-2">
+                    <input type="text" id="modal-comment-user-name" class="p-2 border border-gray-300 rounded-lg text-sm focus:ring-1 focus:ring-blue-400" placeholder="Your Name (Optional)" value="">
+                    <div class="flex space-x-2">
+                        <input type="text" id="modal-comment-input" class="flex-grow p-2 border border-gray-300 rounded-lg text-sm focus:ring-1 focus:ring-blue-400" placeholder="Add a comment...">
+                        <button id="modal-post-comment-btn" class="bg-blue-500 text-white px-4 py-2 rounded-lg text-sm hover:bg-blue-600 transition duration-200">
+                            Post
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+        // --- Global Variables ---
+        let ws;
+        const WEBSOCKET_SERVER_URL = 'wss://globalnews-production.up.railway.app';
+        let newsArticles = []; // Stores articles with their comments and reactions (this will be the source of truth from IndexedDB)
+        const CLIENT_ID = 'user_' + Math.random().toString(36).substring(2, 9);
+        let currentModalArticleId = null; // To keep track of the article ID in the modal
+
+        // IndexedDB variables
+        const DB_NAME = 'NewsPlatformDB';
+        const DB_VERSION = 1;
+        const STORE_NAME = 'articles';
+        let db; // Holds the IndexedDB database instance
+
+
+        // Rotating messages for the footer
+        const rotatingFooterMessages = [
+            "New features are dropping soon!",
+            "Thank you for joining us!",
+            "Stay informed with Global News Hub.",
+            "Your daily dose of reliable news.",
+            "We value your feedback!"
+        ];
+        let currentFooterMessageIndex = 0;
+        let footerMessageInterval; // To store the interval ID
+
+        // Rotating messages for the featured section at the top
+        const featuredMessages = [
+            "Welcome to Global News Hub!",
+            "Breaking news, delivered instantly.",
+            "Your trusted source for global updates.",
+            "Explore diverse perspectives.",
+            "Stay curious, stay informed."
+        ];
+        let currentFeaturedMessageIndex = 0;
+        let featuredMessageInterval;
+
+        // --- News Slider Variables ---
+        let sliderArticles = []; // Articles specifically for the slider (with images)
+        let currentSlideIndex = 0;
+        let slideInterval;
+        const SLIDE_INTERVAL_TIME = 3000; // 3 seconds
+
+        // --- DOM Elements ---
+        const newsLogo = document.getElementById('news-logo');
+        const newsLogoTitle = document.getElementById('news-logo-title'); // The h1 element
+        const hamburgerMenu = document.getElementById('hamburger-menu');
+        const sideNav = document.getElementById('mySidenav');
+        const closeNavBtn = document.getElementById('close-nav');
+        const newsArticlesContainer = document.getElementById('newsArticlesContainer');
+        const noNewsMessage = document.getElementById('noNewsMessage');
+        const messageBox = document.getElementById('messageBox');
+        const loadingIndicator = document.getElementById('loadingIndicator');
+        const footerText = document.querySelector('footer div'); // Select the div inside footer for messages
+        const featuredMessageElement = document.getElementById('featuredMessage');
+
+        // News Slider DOM Elements
+        const newsSliderInner = document.getElementById('news-slider-inner');
+        const prevSlideBtn = document.getElementById('prevSlide');
+        const nextSlideBtn = document.getElementById('nextSlide');
+        const sliderDotsContainer = document.getElementById('slider-dots');
+
+
+        // Modal DOM Elements
+        const articleModalOverlay = document.getElementById('article-modal-overlay');
+        const closeArticleModalBtn = document.getElementById('close-article-modal');
+        const modalArticleImage = document.getElementById('modal-article-image');
+        const modalArticleTitle = document.getElementById('modal-article-title');
+        const modalArticleFullContent = document.getElementById('modal-article-full-content');
+        const modalArticleDate = document.getElementById('modal-article-date');
+        const modalCommentsList = document.getElementById('modal-comments-list');
+        const modalCommentUserName = document.getElementById('modal-comment-user-name');
+        const modalCommentInput = document.getElementById('modal-comment-input');
+        const modalPostCommentBtn = document.getElementById('modal-post-comment-btn');
+        const modalReactionButtons = articleModalOverlay.querySelectorAll('.reaction-btn');
+
+
+        // --- Helper Functions ---
+
+        /**
+         * Displays a temporary message box (toast notification).
+         * @param {string} message - The message to display.
+         * @param {string} type - 'success' or 'error' for styling (optional).
+         */
+        function showMessage(message, type = 'info') {
+            messageBox.textContent = message;
+            messageBox.classList.remove('hidden', 'bg-red-500', 'bg-green-500', 'bg-gray-800');
+            if (type === 'success') {
+                messageBox.classList.add('bg-green-500');
+            } else if (type === 'error') {
+                messageBox.classList.add('bg-red-500');
+            } else {
+                messageBox.classList.add('bg-gray-800');
+            }
+            messageBox.classList.add('show');
+
+            setTimeout(() => {
+                messageBox.classList.remove('show');
+                setTimeout(() => messageBox.classList.add('hidden'), 300); // Hide after transition
+            }, 3000); // Message visible for 3 seconds
+        }
+
+        /**
+         * Rotates the messages in the footer.
+         */
+        function startRotatingFooterMessages() {
+            // Initial display
+            footerText.textContent = rotatingFooterMessages[currentFooterMessageIndex];
+
+            // Set interval for rotation
+            footerMessageInterval = setInterval(() => {
+                currentFooterMessageIndex = (currentFooterMessageIndex + 1) % rotatingFooterMessages.length;
+                footerText.textContent = rotatingFooterMessages[currentFooterMessageIndex];
+            }, 30000); // Every 30 seconds
+        }
+
+        /**
+         * Rotates the featured messages at the top of the screen with a swipe effect.
+         */
+        function startFeaturedMessages() {
+            const displayNextMessage = () => {
+                featuredMessageElement.classList.remove('show');
+                featuredMessageElement.classList.add('hide');
+
+                setTimeout(() => {
+                    currentFeaturedMessageIndex = (currentFeaturedMessageIndex + 1) % featuredMessages.length;
+                    featuredMessageElement.textContent = `Featured: ${featuredMessages[currentFeaturedMessageIndex]}`;
+                    featuredMessageElement.classList.remove('hide');
+                    featuredMessageElement.classList.add('show');
+                }, 500); // Wait for hide transition to finish before showing next
+            };
+
+            // Initial display
+            featuredMessageElement.textContent = `Featured: ${featuredMessages[currentFeaturedMessageIndex]}`;
+            featuredMessageElement.classList.add('show');
+
+            featuredMessageInterval = setInterval(displayNextMessage, 3000); // Change every 3 seconds
+        }
+
+
+        /**
+         * Renders a single news article card for the main feed, including comments and reactions.
+         * @param {object} article - The news article object.
+         * @returns {string} - HTML string for the news article card.
+         */
+        function renderNewsArticle(article) {
+            // Calculate reaction counts
+            const reactions = article.reactions || [];
+            const thumbsUpCount = reactions.filter(r => r.type === 'thumbs_up').length;
+            const loveCount = reactions.filter(r => r.type === 'love').length;
+            const sadCount = reactions.filter(r => r.type === 'sad').length;
+
+            // Generate comments HTML for the summary view (optional, you might remove if full comments are only in modal)
+            const commentsHtml = (article.comments || []).slice(0, 2).map(comment => `
+                <div class="bg-gray-100 p-2 rounded-lg mb-1 text-xs">
+                    <p class="font-semibold text-gray-700">${comment.userName || 'Anonymous'}:</p>
+                    <p class="text-gray-600">${comment.commentText.substring(0, 50)}...</p>
+                </div>
+            `).join('');
+
+            // Get saved user name from local storage to pre-fill comment input
+            const savedUserName = localStorage.getItem('userName') || '';
+
+            return `
+                <div class="bg-gray-50 p-6 rounded-xl shadow-md border border-gray-100 flex flex-col h-full transform transition duration-300 hover:scale-102 hover:shadow-lg group" data-article-id="${article.id}">
+                    <div class="cursor-pointer" onclick="openArticleModalById(${article.id})">
+                        ${article.imageUrl ? `<img src="${article.imageUrl}" alt="${article.title}" class="w-full h-48 object-contain rounded-lg mb-4 shadow-sm" onerror="this.onerror=null;this.src='https://placehold.co/600x400/E0E0E0/666666?text=Image+Not+Found';">` : ''}
+                        <h3 class="text-xl font-semibold text-gray-800 mb-2 group-hover:text-blue-700">${article.title}</h3>
+                        <p class="text-gray-600 text-sm flex-grow mb-4">${article.content.substring(0, 250)}...</p>
+                        <div class="text-xs text-gray-400 mt-auto">Published: ${new Date(article.timestamp).toLocaleString()}</div>
+                    </div>
+
+                    <div class="flex justify-around items-center py-3 border-t border-gray-200 mt-4">
+                        <button class="reaction-btn flex items-center space-x-1 text-gray-600 hover:text-blue-500 transition duration-200" data-article-id="${article.id}" data-reaction-type="thumbs_up">
+                            <i class="fas fa-thumbs-up"></i>
+                            <span class="reaction-count">${thumbsUpCount}</span>
+                        </button>
+                        <button class="reaction-btn flex items-center space-x-1 text-gray-600 hover:text-red-500 transition duration-200" data-article-id="${article.id}" data-reaction-type="love">
+                            <i class="fas fa-heart"></i>
+                            <span class="reaction-count">${loveCount}</span>
+                        </button>
+                        <button class="reaction-btn flex items-center space-x-1 text-gray-600 hover:text-yellow-500 transition duration-200" data-article-id="${article.id}" data-reaction-type="sad">
+                            <i class="fas fa-sad-tear"></i>
+                            <span class="reaction-count">${sadCount}</span>
+                        </button>
+                    </div>
+
+                    <div class="mt-4 border-t border-gray-200 pt-4">
+                        <h4 class="text-lg font-medium text-gray-700 mb-3">Recent Comments</h4>
+                        <div class="comments-list space-y-2 max-h-24 overflow-y-auto pr-2">
+                            ${commentsHtml.length > 0 ? commentsHtml : '<p class="text-gray-500 text-sm">No comments yet.</p>'}
+                        </div>
+                        <div class="mt-4 flex flex-col space-y-2">
+                            <input type="text" class="comment-user-name p-2 border border-gray-300 rounded-lg text-sm focus:ring-1 focus:ring-blue-400" placeholder="Your Name (Optional)" data-article-id="${article.id}" value="${savedUserName}">
+                            <div class="flex space-x-2">
+                                <input type="text" class="comment-input flex-grow p-2 border border-gray-300 rounded-lg text-sm focus:ring-1 focus:ring-blue-400" placeholder="Add a comment..." data-article-id="${article.id}">
+                                <button class="post-comment-btn bg-blue-500 text-white px-4 py-2 rounded-lg text-sm hover:bg-blue-600 transition duration-200" data-article-id="${article.id}">
+                                    Post
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        /**
+         * Renders comments for the modal view.
+         * @param {Array} comments - Array of comment objects.
+         * @returns {string} - HTML string for comments list.
+         */
+        function renderModalComments(comments) {
+            if (!comments || comments.length === 0) {
+                return '<p class="text-gray-500 text-sm">No comments yet.</p>';
+            }
+            return comments.map(comment => `
+                <div class="bg-gray-100 p-3 rounded-lg mb-2 text-sm">
+                    <p class="font-semibold text-gray-700">${comment.userName || 'Anonymous'}:</p>
+                    <p class="text-gray-600">${comment.commentText}</p>
+                    <span class="text-xs text-gray-500">${new Date(comment.timestamp).toLocaleString()}</span>
+                </div>
+            `).join('');
+        }
+
+        /**
+         * Updates the display of news articles.
+         */
+        function updateNewsDisplay() {
+            if (newsArticles.length === 0) {
+                noNewsMessage.classList.remove('hidden');
+                newsArticlesContainer.innerHTML = ''; // Clear existing articles if any
+            } else {
+                noNewsMessage.classList.add('hidden');
+                // Sort articles by timestamp in descending order (newest first)
+                const sortedArticles = [...newsArticles].sort((a, b) => b.timestamp - a.timestamp);
+                newsArticlesContainer.innerHTML = sortedArticles.map(renderNewsArticle).join('');
+            }
+            // If modal is open and current article exists in updated newsArticles, refresh modal content
+            if (articleModalOverlay.classList.contains('show') && currentModalArticleId !== null) {
+                const updatedArticle = newsArticles.find(a => a.id === currentModalArticleId);
+                if (updatedArticle) {
+                    updateModalContent(updatedArticle);
+                } else {
+                    closeArticleModal(); // Close modal if article was deleted
+                }
+            }
+            // Update slider after news articles are loaded/updated
+            updateSliderContent();
+        }
+
+        // --- IndexedDB Functions ---
+
+        /**
+         * Opens the IndexedDB database and creates object store if it doesn't exist.
+         * @returns {Promise<IDBDatabase>} A promise that resolves with the database instance.
+         */
+        function openDatabase() {
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open(DB_NAME, DB_VERSION);
+
+                request.onupgradeneeded = (event) => {
+                    const db = event.target.result;
+                    if (!db.objectStoreNames.contains(STORE_NAME)) {
+                        const objectStore = db.createObjectStore(STORE_NAME, { keyPath: 'id' });
+                        objectStore.createIndex('timestamp', 'timestamp', { unique: false });
+                        console.log('IndexedDB object store created/updated.');
+                    }
+                };
+
+                request.onsuccess = (event) => {
+                    db = event.target.result;
+                    console.log('IndexedDB opened successfully.');
+                    resolve(db);
+                };
+
+                request.onerror = (event) => {
+                    console.error('IndexedDB error:', event.target.errorCode);
+                    showMessage('Error opening local database.', 'error');
+                    reject(event.target.error);
+                };
+            });
+        }
+
+        /**
+         * Adds or updates an article in IndexedDB.
+         * @param {object} article - The article object to store.
+         * @returns {Promise<void>}
+         */
+        function addOrUpdateArticle(article) {
+            return new Promise((resolve, reject) => {
+                const transaction = db.transaction([STORE_NAME], 'readwrite');
+                const objectStore = transaction.objectStore(STORE_NAME);
+                const request = objectStore.put(article); // put() handles both add and update
+
+                request.onsuccess = () => {
+                    resolve();
+                };
+
+                request.onerror = (event) => {
+                    console.error('Error adding/updating article in IndexedDB:', event.target.error);
+                    reject(event.target.error);
+                };
+            });
+        }
+
+        /**
+         * Retrieves all articles from IndexedDB.
+         * @returns {Promise<Array<object>>} A promise that resolves with an array of articles.
+         */
+        function getAllArticlesFromDB() {
+            return new Promise((resolve, reject) => {
+                if (!db) {
+                    console.warn('IndexedDB not initialized.');
+                    return resolve([]); // Resolve with empty array if DB not ready
+                }
+                const transaction = db.transaction([STORE_NAME], 'readonly');
+                const objectStore = transaction.objectStore(STORE_NAME);
+                const request = objectStore.getAll();
+
+                request.onsuccess = (event) => {
+                    resolve(event.target.result);
+                };
+
+                request.onerror = (event) => {
+                    console.error('Error getting all articles from IndexedDB:', event.target.error);
+                    reject(event.target.error);
+                };
+            });
+        }
+
+        /**
+         * Deletes an article from IndexedDB. (Optional, but good for cleanup)
+         * @param {number} articleId - The ID of the article to delete.
+         * @returns {Promise<void>}
+         */
+        function deleteArticleFromDB(articleId) {
+            return new Promise((resolve, reject) => {
+                if (!db) {
+                    console.warn('IndexedDB not initialized.');
+                    return resolve();
+                }
+                const transaction = db.transaction([STORE_NAME], 'readwrite');
+                const objectStore = transaction.objectStore(STORE_NAME);
+                const request = objectStore.delete(articleId);
+
+                request.onsuccess = () => {
+                    console.log(`Article with ID ${articleId} deleted from IndexedDB.`);
+                    resolve();
+                };
+
+                request.onerror = (event) => {
+                    console.error('Error deleting article from IndexedDB:', event.target.error);
+                    reject(event.target.error);
+                };
+            });
+        }
+
+        /**
+         * Loads news articles from IndexedDB and displays them.
+         */
+        async function loadArticlesFromIndexedDB() {
+            loadingIndicator.classList.remove('hidden');
+            try {
+                newsArticles = await getAllArticlesFromDB();
+                if (newsArticles.length > 0) {
+                    updateNewsDisplay();
+                    showMessage('Loaded articles from local cache.', 'info');
+                } else {
+                    noNewsMessage.classList.remove('hidden');
+                    console.log('No articles found in local IndexedDB.');
+                }
+            } catch (error) {
+                console.error('Failed to load articles from IndexedDB:', error);
+                showMessage('Failed to load articles from local cache.', 'error');
+            } finally {
+                loadingIndicator.classList.add('hidden');
+            }
+        }
+
+
+        // --- WebSocket Implementation ---
+
+        /**
+         * Connects to the WebSocket server and sets up event handlers.
+         * This function now focuses on handling real-time updates and initial full sync.
+         */
+        function connectWebSocket() {
+            console.log('Attempting to connect WebSocket...');
+            // We show loading indicator when we first load from DB, so only show if no articles are present
+            if (newsArticles.length === 0) {
+                loadingIndicator.classList.remove('hidden'); // Show loading indicator if starting fresh
+            }
+
+            ws = new WebSocket(WEBSOCKET_SERVER_URL);
+
+            ws.onopen = () => {
+                console.log('WebSocket connected to server.');
+                showMessage('Connected to news server.', 'success');
+                loadingIndicator.classList.add('hidden'); // Hide loading indicator once connected
+
+                // Request all articles from the server to sync with the latest data
+                ws.send(JSON.stringify({ type: 'GET_ALL_ARTICLES' }));
+            };
+
+            ws.onmessage = async (event) => {
+                try {
+                    const data = JSON.parse(event.data);
+                    console.log('Received message from WebSocket:', data);
+
+                    if (data.type === 'NEW_ARTICLE') {
+                        // Add new article to the array and IndexedDB
+                        newsArticles.push(data.article);
+                        await addOrUpdateArticle(data.article);
+                        updateNewsDisplay();
+                        showMessage('New article published!', 'success');
+                    } else if (data.type === 'ALL_ARTICLES') {
+                        // When initial articles are received from server, clear existing and populate
+                        // This handles cases where local data might be outdated or empty.
+                        // We first update IndexedDB, then update our in-memory newsArticles array.
+                        const serverArticles = data.articles;
+                        await Promise.all(serverArticles.map(article => addOrUpdateArticle(article)));
+
+                        // After IndexedDB is updated, refresh our in-memory array from DB
+                        newsArticles = await getAllArticlesFromDB();
+                        updateNewsDisplay();
+                        showMessage('Articles synced with server.', 'info');
+                    } else if (data.type === 'NEW_COMMENT') {
+                        console.log('Handling NEW_COMMENT message...');
+                        const { articleId, comment } = data;
+                        const articleIndex = newsArticles.findIndex(a => a.id === articleId);
+                        if (articleIndex !== -1) {
+                            if (!newsArticles[articleIndex].comments) {
+                                newsArticles[articleIndex].comments = [];
+                            }
+                            newsArticles[articleIndex].comments.push(comment);
+                            // Update IndexedDB for the modified article
+                            await addOrUpdateArticle(newsArticles[articleIndex]);
+                            updateNewsDisplay();
+                            console.log(`New comment for article ${articleId}: "${comment.commentText}" - UI updated.`);
+                        } else {
+                            console.warn(`Article with ID ${articleId} not found for comment. Attempting to refetch from server.`);
+                            // Optionally, request a specific article update or full sync if an article is missing
+                            ws.send(JSON.stringify({ type: 'GET_ARTICLE_BY_ID', articleId: articleId }));
+                        }
+                    } else if (data.type === 'NEW_REACTION') {
+                        console.log('Handling NEW_REACTION message...');
+                        const { articleId, reaction } = data;
+                        const articleIndex = newsArticles.findIndex(a => a.id === articleId);
+                        if (articleIndex !== -1) {
+                            if (!newsArticles[articleIndex].reactions) {
+                                newsArticles[articleIndex].reactions = [];
+                            }
+                            newsArticles[articleIndex].reactions.push(reaction);
+                            // Update IndexedDB for the modified article
+                            await addOrUpdateArticle(newsArticles[articleIndex]);
+                            updateNewsDisplay();
+                            console.log(`New reaction '${reaction.type}' for article ${articleId} - UI updated.`);
+                        } else {
+                            console.warn(`Article with ID ${articleId} not found for reaction. Attempting to refetch from server.`);
+                             // Optionally, request a specific article update or full sync if an article is missing
+                            ws.send(JSON.stringify({ type: 'GET_ARTICLE_BY_ID', articleId: articleId }));
+                        }
+                    } else if (data.type === 'ERROR') {
+                        showMessage(`Server Error: ${data.message}`, 'error');
+                    } else if (data.type === 'ARTICLE_UPDATED') { // If the server sends an update for a single article
+                        const updatedArticle = data.article;
+                        const articleIndex = newsArticles.findIndex(a => a.id === updatedArticle.id);
+                        if (articleIndex !== -1) {
+                            newsArticles[articleIndex] = updatedArticle;
+                        } else {
+                            newsArticles.push(updatedArticle); // Add if it's new
+                        }
+                        await addOrUpdateArticle(updatedArticle);
+                        updateNewsDisplay();
+                        showMessage('Article updated from server.', 'info');
+                    }
+                } catch (e) {
+                    console.error('Error parsing WebSocket message:', e);
+                    showMessage('Error receiving data from server.', 'error');
+                }
+            };
+
+            ws.onclose = () => {
+                console.log('WebSocket disconnected. Attempting to reconnect in 5 seconds...');
+                showMessage('Disconnected from server. Reconnecting...', 'error');
+                loadingIndicator.classList.remove('hidden'); // Show loading indicator during reconnect
+                setTimeout(connectWebSocket, 5000);
+            };
+
+            ws.onerror = (error) => {
+                console.error('WebSocket error:', error);
+                showMessage('WebSocket connection error!', 'error');
+            };
+        }
+
+        // --- Menu Functionality ---
+        hamburgerMenu.addEventListener('click', () => {
+            sideNav.style.width = "250px"; // Open the side nav
+            hamburgerMenu.classList.add('active'); // Add active class for animation
+        });
+
+        closeNavBtn.addEventListener('click', () => {
+            sideNav.style.width = "0"; // Close the side nav
+            hamburgerMenu.classList.remove('active'); // Remove active class
+        });
+
+        // Close side nav if clicked outside (optional, but good UX)
+        document.addEventListener('click', (event) => {
+            // Check if sideNav is open AND click is outside sideNav AND click is outside hamburgerMenu
+            if (sideNav.style.width === "250px" && !sideNav.contains(event.target) && !hamburgerMenu.contains(event.target)) {
+                sideNav.style.width = "0";
+                hamburgerMenu.classList.remove('active');
+            }
+        });
+
+
+        // --- Article Modal Functionality ---
+        // Global function to be called from onclick attribute in renderNewsArticle
+        window.openArticleModalById = (articleId) => {
+            const article = newsArticles.find(a => a.id === articleId);
+            if (article) {
+                openArticleModal(article);
+            } else {
+                console.warn(`Article with ID ${articleId} not found for modal.`);
+                showMessage('Article not found!', 'error');
+            }
+        };
+
+        function updateModalContent(article) {
+            modalArticleImage.classList.add('hidden'); // Hide by default
+            if (article.imageUrl) {
+                modalArticleImage.src = article.imageUrl;
+                modalArticleImage.classList.remove('hidden');
+            }
+            modalArticleTitle.textContent = article.title;
+            // Split content by newlines and wrap each part in a paragraph
+            modalArticleFullContent.innerHTML = article.content.split('\n').map(p => `<p class="full-content">${p}</p>`).join('');
+            modalArticleDate.textContent = `Published: ${new Date(article.timestamp).toLocaleString('en-US', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })}`;
+
+            // Update comments in modal
+            modalCommentsList.innerHTML = renderModalComments(article.comments);
+
+            // Update reaction counts in modal
+            const reactions = article.reactions || [];
+            const thumbsUpCount = reactions.filter(r => r.type === 'thumbs_up').length;
+            const loveCount = reactions.filter(r => r.type === 'love').length;
+            const sadCount = reactions.filter(r => r.type === 'sad').length;
+
+            modalReactionButtons.forEach(button => {
+                button.dataset.articleId = article.id; // Set article ID for reaction buttons
+                const countSpan = button.querySelector('.reaction-count');
+                if (button.dataset.reactionType === 'thumbs_up') {
+                    countSpan.textContent = thumbsUpCount;
+                } else if (button.dataset.reactionType === 'love') {
+                    countSpan.textContent = loveCount;
+                } else if (button.dataset.reactionType === 'sad') {
+                    countSpan.textContent = sadCount;
+                }
+            });
+
+            // Set article ID for modal comment input and button
+            modalCommentUserName.value = localStorage.getItem('userName') || '';
+            modalCommentInput.value = ''; // Clear previous comment
+            modalPostCommentBtn.dataset.articleId = article.id;
+            modalCommentUserName.dataset.articleId = article.id;
+            modalCommentInput.dataset.articleId = article.id; // Also set data-article-id for modal input
+        }
+
+        function openArticleModal(article) {
+            currentModalArticleId = article.id; // Store current article ID
+            updateModalContent(article);
+
+            articleModalOverlay.style.display = 'flex'; // Show the modal overlay
+            setTimeout(() => articleModalOverlay.classList.add('show'), 10); // Add 'show' class for transition
+            document.body.style.overflow = 'hidden'; // Prevent scrolling on main body
+        }
+
+        function closeArticleModal() {
+            currentModalArticleId = null; // Reset current article ID
+            articleModalOverlay.classList.remove('show'); // Remove 'show' class for transition
+            setTimeout(() => {
+                articleModalOverlay.style.display = 'none'; // Hide after transition
+                document.body.style.overflow = ''; // Restore scrolling
+            }, 300); // Match CSS transition duration
+        }
+
+        closeArticleModalBtn.addEventListener('click', closeArticleModal);
+
+        // Close modal if clicked outside of content
+        articleModalOverlay.addEventListener('click', (event) => {
+            if (event.target === articleModalOverlay) {
+                closeArticleModal();
+            }
+        });
+
+        // Close modal with Escape key
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape' && articleModalOverlay.classList.contains('show')) {
+                closeArticleModal();
+            }
+        });
+
+        // Event listener for reactions within the modal
+        modalReactionButtons.forEach(button => {
+            button.addEventListener('click', (e) => {
+                const articleId = parseInt(e.currentTarget.dataset.articleId);
+                const reactionType = e.currentTarget.dataset.reactionType;
+                if (ws && ws.readyState === WebSocket.OPEN) {
+                    ws.send(JSON.stringify({
+                        type: 'POST_REACTION',
+                        articleId: articleId,
+                        reaction: {
+                            type: reactionType,
+                            clientId: CLIENT_ID,
+                            timestamp: Date.now()
+                        }
+                    }));
+                    console.log(`Modal Reaction '${reactionType}' sent for article ${articleId}`);
+                } else {
+                    showMessage('WebSocket not connected. Cannot post reaction.', 'error');
+                }
+            });
+        });
+
+        // Event listener for posting comments from within the modal
+        modalPostCommentBtn.addEventListener('click', () => {
+            const articleId = parseInt(modalPostCommentBtn.dataset.articleId);
+            const commentText = modalCommentInput.value.trim();
+            const userName = modalCommentUserName.value.trim() || 'Anonymous';
+
+            if (commentText && ws && ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify({
+                    type: 'POST_COMMENT',
+                    articleId: articleId,
+                    comment: {
+                        userName: userName,
+                        commentText: commentText,
+                        timestamp: Date.now()
+                    }
+                }));
+                modalCommentInput.value = ''; // Clear input
+                localStorage.setItem('userName', userName); // Save user name
+                showMessage('Comment posted!', 'success');
+            } else if (!commentText) {
+                showMessage('Comment cannot be empty.', 'info');
+            } else {
+                showMessage('WebSocket not connected. Cannot post comment.', 'error');
+            }
+        });
+
+
+        // --- Event Delegation for main feed reactions and comments ---
+        newsArticlesContainer.addEventListener('click', (e) => {
+            // Handle reaction buttons
+            const reactionButton = e.target.closest('.reaction-btn');
+            if (reactionButton && reactionButton.closest('.article-modal-overlay') === null) { // Ensure not inside modal
+                const articleId = parseInt(reactionButton.dataset.articleId); // Ensure ID is number
+                const reactionType = reactionButton.dataset.reactionType;
+                if (ws && ws.readyState === WebSocket.OPEN) {
+                    ws.send(JSON.stringify({
+                        type: 'POST_REACTION',
+                        articleId: articleId,
+                        reaction: {
+                            type: reactionType,
+                            clientId: CLIENT_ID, // Use a simple client ID for now
+                            timestamp: Date.now()
+                        }
+                    }));
+                    console.log(`Reaction '${reactionType}' sent for article ${articleId}`);
+                } else {
+                    showMessage('WebSocket not connected. Cannot post reaction.', 'error');
+                }
+                return; // Prevent further handling if a reaction button was clicked
+            }
+
+            // Handle post comment buttons
+            const postCommentButton = e.target.closest('.post-comment-btn');
+            if (postCommentButton && postCommentButton.closest('.article-modal-overlay') === null) { // Ensure not inside modal
+                const articleId = parseInt(postCommentButton.dataset.articleId); // Ensure ID is number
+                const articleCard = postCommentButton.closest('.bg-gray-50'); // Find the parent article card
+                const commentInput = articleCard.querySelector(`.comment-input[data-article-id="${articleId}"]`);
+                const userNameInput = articleCard.querySelector(`.comment-user-name[data-article-id="${articleId}"]`);
+
+                const commentText = commentInput.value.trim();
+                const userName = userNameInput.value.trim() || 'Anonymous'; // Default to Anonymous
+
+                if (commentText && ws && ws.readyState === WebSocket.OPEN) {
+                    ws.send(JSON.stringify({
+                        type: 'POST_COMMENT',
+                        articleId: articleId,
+                        comment: {
+                            userName: userName,
+                            commentText: commentText,
+                            timestamp: Date.now()
+                        }
+                    }));
+                    commentInput.value = ''; // Clear comment input field
+                    // Save username to local storage
+                    localStorage.setItem('userName', userName);
+                    console.log(`Comment sent for article ${articleId}: "${commentText}" by ${userName}`);
+                } else if (!commentText) {
+                    showMessage('Comment cannot be empty.', 'info');
+                } else {
+                    showMessage('WebSocket not connected. Cannot post comment.', 'error');
+                }
+            }
+        });
+
+        // --- News Slider Functionality ---
+
+        /**
+         * Renders the news slider with articles that have images.
+         */
+        function updateSliderContent() {
+            // Filter articles that have an imageUrl and sort by timestamp (newest first)
+            sliderArticles = [...newsArticles]
+                .filter(article => article.imageUrl)
+                .sort((a, b) => b.timestamp - a.timestamp);
+
+            newsSliderInner.innerHTML = ''; // Clear existing slides
+            sliderDotsContainer.innerHTML = ''; // Clear existing dots
+
+            if (sliderArticles.length === 0) {
+                // Optionally hide the slider container if no articles with images are available
+                document.getElementById('news-slider-container').style.display = 'none';
+                return;
+            } else {
+                document.getElementById('news-slider-container').style.display = 'block';
+            }
+
+            sliderArticles.forEach((article, index) => {
+                const slideDiv = document.createElement('div');
+                slideDiv.classList.add('news-slide');
+                slideDiv.setAttribute('data-article-id', article.id); // Add data-article-id
+
+                slideDiv.innerHTML = `
+                    <img src="${article.imageUrl}" alt="${article.title}" onerror="this.onerror=null;this.src='https://placehold.co/900x250/E0E0E0/666666?text=Image+Not+Found';">
+                    <div class="news-slide-content">
+                        <h3>${article.title}</h3>
+                    </div>
+                `;
+                slideDiv.addEventListener('click', () => openArticleModalById(article.id));
+                newsSliderInner.appendChild(slideDiv);
+
+                const dot = document.createElement('span');
+                dot.classList.add('dot');
+                if (index === 0) dot.classList.add('active');
+                dot.setAttribute('data-slide-index', index);
+                dot.addEventListener('click', () => goToSlide(index));
+                sliderDotsContainer.appendChild(dot);
+            });
+
+            // Reset slide position and interval
+            currentSlideIndex = 0;
+            newsSliderInner.style.transform = `translateX(0%)`;
+            updateDots();
+            startSlideShow(); // Restart slideshow when content updates
+        }
+
+        /**
+         * Moves the slider to the specified slide index.
+         * @param {number} index - The index of the slide to show.
+         */
+        function goToSlide(index) {
+            if (index < 0) {
+                currentSlideIndex = sliderArticles.length - 1;
+            } else if (index >= sliderArticles.length) {
+                currentSlideIndex = 0;
+            } else {
+                currentSlideIndex = index;
+            }
+            newsSliderInner.style.transform = `translateX(-${currentSlideIndex * 100}%)`;
+            updateDots();
+            resetSlideInterval(); // Reset timer on manual navigation
+        }
+
+        /**
+         * Updates the active dot indicator.
+         */
+        function updateDots() {
+            document.querySelectorAll('.dot').forEach((dot, index) => {
+                dot.classList.toggle('active', index === currentSlideIndex);
+            });
+        }
+
+        /**
+         * Starts the automatic slideshow.
+         */
+        function startSlideShow() {
+            stopSlideShow(); // Clear any existing interval
+            if (sliderArticles.length > 1) { // Only start if there's more than one slide
+                slideInterval = setInterval(() => {
+                    goToSlide(currentSlideIndex + 1);
+                }, SLIDE_INTERVAL_TIME);
+            }
+        }
+
+        /**
+         * Stops the automatic slideshow.
+         */
+        function stopSlideShow() {
+            if (slideInterval) {
+                clearInterval(slideInterval);
+            }
+        }
+
+        /**
+         * Resets the slideshow interval. Call after manual navigation.
+         */
+        function resetSlideInterval() {
+            stopSlideShow();
+            startSlideShow();
+        }
+
+        // Add event listeners for slider navigation
+        prevSlideBtn.addEventListener('click', () => goToSlide(currentSlideIndex - 1));
+        nextSlideBtn.addEventListener('click', () => goToSlide(currentSlideIndex + 1));
+
+
+        // --- Initial Setup ---
+        window.onload = async () => {
+            // 1. Open IndexedDB
+            await openDatabase();
+
+            // 2. Load articles from IndexedDB first for fast initial display
+            await loadArticlesFromIndexedDB();
+
+            // 3. Then, connect to WebSocket to get the latest updates and sync
+            connectWebSocket();
+
+            startRotatingFooterMessages(); // Start rotating messages on load
+            startFeaturedMessages(); // Start featured messages on load
+
+            // Pre-fill user name input if saved in local storage
+            const savedUserName = localStorage.getItem('userName');
+            if (savedUserName) {
+                // This will apply to any comment-user-name inputs rendered initially
+                document.querySelectorAll('.comment-user-name').forEach(input => {
+                    input.value = savedUserName;
+                });
+                modalCommentUserName.value = savedUserName; // Also for the modal
+            }
+        };
+
+    </script>
+</body>
+</html>

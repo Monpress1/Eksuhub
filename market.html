@@ -1,0 +1,1584 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Global Marketplace</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6; /* Light gray background */
+            color: #333;
+            overflow-x: hidden; /* Prevent horizontal scroll due to menu animation */
+        }
+        /* Custom scrollbar for better aesthetics */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+        /* Hide default number input arrows */
+        input[type="number"]::-webkit-inner-spin-button,
+        input[type="number"]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        input[type="number"] {
+            -moz-appearance: textfield;
+        }
+
+        /* Toast Message Styles */
+        #messageBox {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #333;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out;
+            pointer-events: none; /* Allows clicks to pass through when hidden */
+        }
+        #messageBox.show {
+            opacity: 1;
+        }
+
+        /* Loading Spinner Styles */
+        .spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            border-left-color: #3b82f6; /* Blue-500 */
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* --- Header Adjustments for Logo and Menu --- */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            background-color:  #212121 ; /* Primary header color */
+            color: #fff;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 1.8em;
+            cursor: pointer; /* Indicate it's clickable */
+            display: flex;
+            align-items: center;
+        }
+
+        .header .logo-icon { /* Renamed for clarity */
+            font-size: 1.5em;
+            margin-right: 10px;
+            cursor: pointer; /* Indicate it's clickable */
+        }
+
+        /* --- Hamburger Menu Icon --- */
+        .hamburger-menu {
+            font-size: 1.8em;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+            color: #fff;
+        }
+
+        .hamburger-menu.active {
+            transform: rotate(90deg); /* Rotate when active */
+        }
+
+        /* --- Side Navigation Menu --- */
+        .side-nav {
+            height: 100%;
+            width: 0; /* Initially hidden */
+            position: fixed;
+            z-index: 1001; /* Above header */
+            top: 0;
+            right: 0;
+            background-color: #111;
+            overflow-x: hidden;
+            transition: 0.5s; /* Animation for opening/closing */
+            padding-top: 60px;
+            box-shadow: -5px 0 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .side-nav a {
+            padding: 15px 25px 15px 35px;
+            text-decoration: none;
+            font-size: 25px;
+            color: #818181;
+            display: block;
+            transition: 0.3s;
+        }
+
+        .side-nav a:hover {
+            color: #f1f1f1;
+            background-color: #007bff; /* Highlight on hover */
+        }
+
+        .side-nav .closebtn {
+            position: absolute;
+            top: 0;
+            right: 25px;
+            font-size: 36px;
+            margin-left: 50px;
+            color: #ccc;
+        }
+
+        /* --- Product Item (Smaller Tiles - 2 per row on large screens) --- */
+        #productsContainer {
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); /* Adjusted for smaller tiles */
+            gap: 1.5rem; /* Increased gap for better spacing */
+        }
+        @media (min-width: 768px) {
+            #productsContainer {
+                grid-template-columns: repeat(2, 1fr); /* 2 products per row on medium screens */
+            }
+        }
+        @media (min-width: 1024px) { /* Adjust for larger screens if needed */
+            #productsContainer {
+                grid-template-columns: repeat(3, 1fr); /* You can keep 3 or even go for 4 */
+            }
+        }
+        @media (min-width: 1280px) { /* Even larger screens for 4 columns */
+            #productsContainer {
+                grid-template-columns: repeat(4, 1fr);
+            }
+        }
+
+
+        .product-item {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between; /* Pushes button to bottom */
+            height: auto; /* Allow height to adjust */
+            min-height: 380px; /* Minimum height for consistency */
+            overflow: hidden; /* For rounded corners on image */
+        }
+
+        .product-item img {
+            width: 100%;
+            height: 180px; /* Fixed height for images */
+            object-fit: cover; /* Ensures image covers area, crops if necessary */
+            border-radius: 0.5rem; /* rounded-lg */
+            margin-bottom: 1rem;
+        }
+        .product-item .product-info {
+            flex-grow: 1; /* Allows this section to take up available space */
+        }
+        .product-item .product-name {
+            font-size: 1.125rem; /* text-xl */
+            font-weight: 600; /* font-semibold */
+            margin-bottom: 0.5rem;
+            color: #333;
+            line-height: 1.3;
+            max-height: 2.6em; /* Limit to 2 lines */
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .product-item .product-price {
+            font-size: 1rem; /* text-lg */
+            font-weight: 700; /* font-bold */
+            color: #007bff; /* A nice blue for price */
+            margin-bottom: 0.75rem;
+        }
+
+        /* --- Categories Bar - Fixed to wrap --- */
+        #categoriesBar {
+            background-color: #ffffff;
+            padding: 0.75rem 0;
+            margin-top: 0;
+            border-bottom: 1px solid #e5e7eb;
+            display: flex; /* Use flexbox */
+            flex-wrap: wrap; /* Allow items to wrap to the next line */
+            justify-content: center; /* Center items if they don't fill a full row */
+            gap: 0.5rem; /* Space between categories */
+            padding-left: 1rem; /* Add some padding on the sides */
+            padding-right: 1rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05); /* subtle shadow */
+        }
+        .category-item {
+            display: inline-block; /* Now flex items, but inline-block still works */
+            padding: 0.5rem 1rem;
+            border-radius: 9999px; /* rounded-full */
+            background-color: #e2e8f0; /* bg-gray-200 */
+            color: #4a5568; /* text-gray-700 */
+            font-size: 0.875rem; /* text-sm */
+            font-weight: 500; /* font-medium */
+            cursor: pointer;
+            transition: background-color 0.2s, color 0.2s;
+        }
+        .category-item:hover {
+            background-color: #cbd5e0; /* bg-gray-300 */
+        }
+        .category-item.active {
+            background-color: #007bff; /* bg-blue-600 */
+            color: #ffffff;
+        }
+        .category-item.all { /* Style for 'All Categories' */
+            background-color: #0056b3;
+            color: #ffffff;
+        }
+        .category-item.all:hover {
+            background-color: #004085;
+        }
+
+        /* --- Modal Styles --- */
+        .modal {
+            display: none; /* Hidden by default */
+            position: fixed; /* Stay in place */
+            z-index: 1002; /* Sit on top */
+            left: 0;
+            top: 0;
+            width: 100%; /* Full width */
+            height: 100%; /* Full height */
+            overflow: auto; /* Enable scroll if needed */
+            background-color: rgba(0,0,0,0.5); /* Black w/ opacity */
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background-color: #fefefe;
+            margin: auto;
+            padding: 2rem;
+            border-radius: 0.75rem;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            width: 90%;
+            max-width: 600px;
+            position: relative;
+            animation: fadeInScale 0.3s ease-out;
+            max-height: 90vh; /* Max height for modal content */
+            overflow-y: auto; /* Scroll if content is too long */
+        }
+        @keyframes fadeInScale {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        .close-button {
+            color: #aaa;
+            font-size: 28px;
+            font-weight: bold;
+            position: absolute;
+            top: 10px;
+            right: 20px;
+            cursor: pointer;
+            transition: color 0.3s;
+        }
+        .close-button:hover,
+        .close-button:focus {
+            color: #333;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        .modal-image {
+            width: 100%;
+            max-height: 300px;
+            object-fit: contain; /* Changed to contain for full image visibility */
+            border-radius: 0.5rem;
+            margin-bottom: 1.5rem;
+            background-color: #eee; /* Background for containment */
+        }
+        .modal-detail-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.5rem 0;
+            border-bottom: 1px dashed #eee;
+        }
+        .modal-detail-row:last-child {
+            border-bottom: none;
+        }
+        .modal-detail-label {
+            font-weight: 600;
+            color: #555;
+            flex-shrink: 0;
+            margin-right: 1rem;
+        }
+        .modal-detail-value {
+            color: #333;
+            text-align: right;
+            flex-grow: 1;
+        }
+
+        /* Image Preview for Upload */
+        #imagePreview {
+            width: 150px;
+            height: 150px;
+            border: 2px dashed #ccc;
+            border-radius: 0.5rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            margin-top: 0.5rem;
+            background-color: #f9f9f9;
+        }
+        #imagePreview img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+        #imagePreview .placeholder {
+            color: #aaa;
+            font-size: 0.9rem;
+            text-align: center;
+            padding: 10px;
+        }
+
+        /* Filter Controls Toggle */
+        #priceFilterControls.hidden-filters {
+            display: none;
+        }
+
+        /* My Products Card Styling */
+        .product-management-card {
+            display: flex;
+            align-items: center;
+            background-color: #fff;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            gap: 1rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+        .product-management-card img {
+            width: 80px;
+            height: 80px;
+            object-fit: cover;
+            border-radius: 0.25rem;
+        }
+        .product-management-card .info {
+            flex-grow: 1;
+        }
+        .product-management-card .info h3 {
+            font-weight: 600;
+            color: #333;
+        }
+        .product-management-card .actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+        /* Inside your <style> block */
+
+.side-nav a.active-menu-link {
+    color: #fff; /* White text for active link */
+    background-color: #007bff; /* Highlight background */
+    font-weight: bold; /* Make it bold */
+    border-left: 5px solid #ffcc00; /* A yellow border for emphasis */
+    padding-left: 30px; /* Adjust padding due to border */
+}
+
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+    <header class="header">
+        <h2 id="platform-title" class="cursor-pointer" onclick="showBuyerMarketplace()">
+     <i class='fas fa-cart-arrow-down' style=''       style="color:orange;"></i>
+            Eksu Market
+        </h1>
+        <div class="flex items-center space-x-4">
+            <button id="sellProductBtn" class="bg-yellow-400 text-gray-900 px-4 py-2 rounded-lg font-semibold hover:bg-yellow-500 transition duration-200 shadow-md">
+                <i class="fas fa-plus-circle mr-2"></i> Sell Product
+            </button>
+            <div class="hamburger-menu" id="hamburger-menu">
+                <i class="fas fa-bars"></i>
+            </div>
+        </div>
+    </header>
+
+    <div id="mySidenav" class="side-nav">
+        <a href="javascript:void(0)" class="closebtn" id="close-nav">&times;</a>
+        <a href="index.html" onclick="showBuyerMarketplace()">Dashboard</a>
+        <a href="#" onclick="showMyProducts()">My Products</a>
+        <a href="#" onclick="showSellProductForm()">Sell Product</a>
+        <a href="News.html">News</a>
+        <a href="chat.html">Chat</a>
+    </div>
+
+    <div id="categoriesBar" class="mx-auto flex justify-start items-center px-4 py-2 bg-white shadow-sm border-b border-gray-200">
+        </div>
+
+
+    <main class="container mx-auto my-6 p-6 flex-grow">
+
+        <section id="buyerMarketplaceSection" class="bg-white p-6 rounded-xl shadow-lg border border-gray-200">
+            <h2 class="text-3xl font-semibold mb-6 text-gray-800 border-b pb-3">
+                Current Listings
+                <span id="currentCategory" class="text-xl text-blue-600 ml-3"></span>
+            </h2>
+
+            <div class="mb-6 flex flex-wrap gap-4 items-end">
+                <div class="flex-grow">
+                    <label for="search-input" class="block text-sm font-medium text-gray-700 mb-1">Search Products</label>
+                    <div class="relative">
+                        <input type="text" id="search-input" placeholder="Search by name, description..." class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 shadow-sm">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <i class="fas fa-search text-gray-400"></i>
+                        </div>
+                        <button id="clear-search" class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 transition duration-150" style="display: none;">
+                            <i class="fas fa-times-circle"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <button id="toggle-filters-btn" class="bg-gray-200 text-gray-800 px-5 py-2.5 rounded-lg font-medium hover:bg-gray-300 transition duration-200 shadow-md">
+                    <i class="fas fa-filter mr-2"></i> Show Filters
+                </button>
+
+                <div id="priceFilterControls" class="flex flex-wrap gap-4 hidden-filters">
+                    <div>
+                        <label for="min-price" class="block text-sm font-medium text-gray-700 mb-1">Min Price (₦)</label>
+                        <input type="number" id="min-price" placeholder="e.g., 5000" class="w-32 py-2 px-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 shadow-sm">
+                    </div>
+                    <div>
+                        <label for="max-price" class="block text-sm font-medium text-gray-700 mb-1">Max Price (₦)</label>
+                        <input type="number" id="max-price" placeholder="e.g., 50000" class="w-32 py-2 px-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 shadow-sm">
+                    </div>
+                    <button id="apply-filters" class="bg-blue-600 text-white px-5 py-2.5 rounded-lg font-medium hover:bg-blue-700 transition duration-200 shadow-md">
+                        Apply
+                    </button>
+                    <button id="clear-filters" class="bg-gray-300 text-gray-800 px-5 py-2.5 rounded-lg font-medium hover:bg-gray-400 transition duration-200 shadow-md">
+                        Clear
+                    </button>
+                </div>
+            </div>
+
+            <div id="loadingIndicator" class="flex justify-center items-center py-10 hidden">
+                <div class="spinner"></div>
+                <p class="ml-4 text-gray-600">Loading products...</p>
+            </div>
+            <div id="productsContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+                <p id="noProductsMessage" class="col-span-full text-center text-gray-500 text-lg hidden">No products advertised yet. Try adjusting your filters or search.</p>
+            </div>
+        </section>
+
+        <section id="sellProductSection" class="bg-white p-6 rounded-xl shadow-lg border border-gray-200 hidden">
+            <h2 class="text-3xl font-semibold mb-6 text-gray-800 border-b pb-3">
+                List Your Product
+            </h2>
+            <form id="sellProductForm" class="space-y-6">
+                <div>
+                    <label for="productName" class="block text-sm font-medium text-gray-700">Product Name</label>
+                    <input type="text" id="productName" name="productName" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500">
+                </div>
+                <div>
+                    <label for="productDescription" class="block text-sm font-medium text-gray-700">Description</label>
+                    <textarea id="productDescription" name="productDescription" rows="4" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500"></textarea>
+                </div>
+                <div>
+                    <label for="productPrice" class="block text-sm font-medium text-gray-700">Price (₦)</label>
+                    <input type="number" id="productPrice" name="productPrice" required min="1" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500">
+                </div>
+                <div>
+                    <label for="productCategory" class="block text-sm font-medium text-gray-700">Category</label>
+                    <select id="productCategory" name="productCategory" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500">
+                        <option value="">Select a Category</option>
+                        </select>
+                </div>
+                <div>
+                    <label for="productCondition" class="block text-sm font-medium text-gray-700">Condition</label>
+                    <select id="productCondition" name="productCondition" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500">
+                        <option value="">Select Condition</option>
+                        <option value="New">New</option>
+                        <option value="Used - Pristine">Used - Pristine</option>
+                        <option value="Used - Like New">Used - Like New</option>
+                        <option value="Used - Very Good">Used - Very Good</option>
+                        <option value="Used - Good">Used - Good</option>
+                        <option value="Used - Fair">Used - Fair</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="productNegotiable" class="block text-sm font-medium text-gray-700">Price Negotiable?</label>
+                    <select id="productNegotiable" name="productNegotiable" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500">
+                        <option value="true">Yes</option>
+                        <option value="false">No</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="productLocation" class="block text-sm font-medium text-gray-700">Location (City/State)</label>
+                    <input type="text" id="productLocation" name="productLocation" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500">
+                </div>
+                 <div>
+                    <label for="productPaymentOption" class="block text-sm font-medium text-gray-700">Payment Option</label>
+                    <select id="productPaymentOption" name="productPaymentOption" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500">
+                        <option value="Full Payment">Full Payment Only</option>
+                        <option value="Down Payment Accepted">Down Payment Accepted</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="sellerWhatsApp" class="block text-sm font-medium text-gray-700">Your WhatsApp Number (e.g., 2348012345678)</label>
+                    <input type="tel" id="sellerWhatsApp" name="sellerWhatsApp" placeholder="e.g., 234XXXXXXXXXX" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500">
+                </div>
+                <div>
+                    <label for="productImageUpload" class="block text-sm font-medium text-gray-700">Upload Product Image</label>
+                    <input type="file" id="productImageUpload" name="productImageUpload" accept="image/*" class="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+                    <div id="imagePreview" class="mt-2">
+                        <span class="placeholder">Image Preview</span>
+                    </div>
+                </div>
+
+                <div class="flex gap-4">
+                    <button type="submit" class="flex-grow bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700 transition duration-200 font-semibold text-lg shadow-md">
+                        List Product
+                    </button>
+                    <button type="button" id="cancelSellProduct" class="bg-gray-400 text-gray-800 py-2 px-4 rounded-md hover:bg-gray-500 transition duration-200 font-semibold text-lg shadow-md">
+                        Cancel
+                    </button>
+                </div>
+            </form>
+        </section>
+
+        <section id="myProductsSection" class="bg-white p-6 rounded-xl shadow-lg border border-gray-200 hidden">
+            <h2 class="text-3xl font-semibold mb-6 text-gray-800 border-b pb-3">
+                My Listed Products
+            </h2>
+            <p class="text-gray-600 mb-4">Manage your listed products here. In a real application, you would see products you've posted and have options to edit or mark as sold.</p>
+
+            <div id="myProductsList" class="space-y-4">
+                <p id="noMyProductsMessage" class="col-span-full text-center text-gray-500 text-lg hidden">You haven't listed any products yet.</p>
+            </div>
+            <div class="flex justify-center mt-8">
+                <button type="button" onclick="showBuyerMarketplace()" class="bg-blue-600 text-white py-2 px-6 rounded-md hover:bg-blue-700 transition duration-200 font-semibold shadow-md">
+                    Back to Marketplace
+                </button>
+            </div>
+        </section>
+
+
+    </main>
+
+    <footer class="bg-gray-800 text-white p-6 mt-8 rounded-t-xl shadow-lg">
+        <div class="container mx-auto text-center text-gray-400">
+            &copy; 2025 Global Marketplace. All rights reserved.
+        </div>
+    </footer>
+
+    <div id="messageBox" class="hidden"></div>
+
+    <div id="productDetailModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" id="closeModalBtn">&times;</span>
+            <h3 id="modalProductName" class="text-2xl font-bold text-gray-800 mb-4"></h3>
+            <img id="modalProductImage" src="" alt="Product Image" class="modal-image">
+
+            <div class="space-y-4 text-gray-700">
+                <p id="modalProductPrice" class="text-xl font-bold text-blue-700"></p>
+                <div class="modal-detail-row">
+                    <span class="modal-detail-label">Condition:</span>
+                    <span id="modalProductCondition" class="modal-detail-value"></span>
+                </div>
+                <div class="modal-detail-row">
+                    <span class="modal-detail-label">Negotiable:</span>
+                    <span id="modalProductNegotiable" class="modal-detail-value"></span>
+                </div>
+                <div class="modal-detail-row">
+                    <span class="modal-detail-label">Location:</span>
+                    <span id="modalProductLocation" class="modal-detail-value"></span>
+                </div>
+                <div class="modal-detail-row">
+                    <span class="modal-detail-label">Payment:</span>
+                    <span id="modalProductPayment" class="modal-detail-value"></span>
+                </div>
+                <div class="modal-detail-row">
+                    <span class="modal-detail-label">Description:</span>
+                </div>
+                <p id="modalProductDescription" class="text-gray-600 text-sm leading-relaxed"></p>
+            </div>
+
+            <button id="modalWhatsAppBtn" class="bg-green-500 text-white px-6 py-3 rounded-lg mt-6 text-lg font-semibold hover:bg-green-600 transition duration-200 flex items-center justify-center space-x-2 w-full">
+               <i class='fas fa-cart-arrow-down' style='font-size:24px'></i>
+                <span>Purchase</span>
+            </button>
+        </div>
+    </div>
+
+
+    <script>
+        // --- Global Variables ---
+        let ws;
+        // IMPORTANT: Replace this with the actual URL of your Railway app's WebSocket server!
+        // It will be similar to wss://YOUR-APP-NAME-production.up.railway.app
+        const WEBSOCKET_SERVER_URL = 'wss://energetic-blessing-production.up.railway.app'; // <--- VERIFY THIS URL
+
+        let products = []; // All raw product data
+        let filteredProducts = []; // Products after applying search and filters
+        let currentCategory = 'All'; // Currently selected category for filtering
+        // Simple client ID for demo; in production, use persistent user IDs (e.g., from auth)
+        const CLIENT_ID = 'user_' + Math.random().toString(36).substring(2, 9); 
+
+        // Demo Products Data (Updated with new fields and diverse images)
+        // These will ONLY be used if IndexedDB is empty AND WebSocket connection fails or doesn't provide initial data.
+        
+        
+
+        const CATEGORIES = [
+            "All", // Special category to show all
+            "Fashion & Accessories",
+            "Electronics & Gadgets",
+            "Phones & Tablets",
+            "Foodstuff",
+            "Collectibles",
+            "Home Appliances",
+            "Vehicles",
+            "Real Estate"
+        ];
+
+
+        // IndexedDB variables
+        const DB_NAME = 'MarketplaceDB';
+        const DB_VERSION = 1;
+        const STORE_NAME = 'products';
+        let db;
+
+        // DOM Elements
+        const platformTitle = document.getElementById('platform-title');
+        const hamburgerMenu = document.getElementById('hamburger-menu');
+        const sideNav = document.getElementById('mySidenav');
+        const closeNavBtn = document.getElementById('close-nav');
+        const productsContainer = document.getElementById('productsContainer');
+        const noProductsMessage = document.getElementById('noProductsMessage');
+        const messageBox = document.getElementById('messageBox');
+        const loadingIndicator = document.getElementById('loadingIndicator');
+        const footerText = document.querySelector('footer div');
+        const categoriesBar = document.getElementById('categoriesBar');
+        const currentCategoryTitle = document.getElementById('currentCategory');
+
+        // Main Sections
+        const buyerMarketplaceSection = document.getElementById('buyerMarketplaceSection');
+        const sellProductSection = document.getElementById('sellProductSection');
+        const myProductsSection = document.getElementById('myProductsSection');
+
+        // Search & Filter DOM Elements (within buyerMarketplaceSection)
+        const searchInput = document.getElementById('search-input');
+        const clearSearchBtn = document.getElementById('clear-search');
+        const minPriceInput = document.getElementById('min-price');
+        const maxPriceInput = document.getElementById('max-price');
+        const applyFiltersBtn = document.getElementById('apply-filters');
+        const clearFiltersBtn = document.getElementById('clear-filters');
+        const toggleFiltersBtn = document.getElementById('toggle-filters-btn');
+        const priceFilterControls = document.getElementById('priceFilterControls');
+
+
+        // Modal DOM Elements
+        const productDetailModal = document.getElementById('productDetailModal');
+        const closeModalBtn = document.getElementById('closeModalBtn');
+        const modalProductName = document.getElementById('modalProductName');
+        const modalProductImage = document.getElementById('modalProductImage');
+        const modalProductPrice = document.getElementById('modalProductPrice');
+        const modalProductCondition = document.getElementById('modalProductCondition');
+        const modalProductNegotiable = document.getElementById('modalProductNegotiable');
+        const modalProductLocation = document.getElementById('modalProductLocation');
+        const modalProductPayment = document.getElementById('modalProductPayment');
+        const modalProductDescription = document.getElementById('modalProductDescription');
+        const modalWhatsAppBtn = document.getElementById('modalWhatsAppBtn');
+
+        // Sell Product Form DOM Elements (within sellProductSection)
+        const sellProductBtn = document.getElementById('sellProductBtn');
+        const sellProductForm = document.getElementById('sellProductForm');
+        const sellFormProductName = document.getElementById('productName');
+        const sellFormProductDescription = document.getElementById('productDescription');
+        const sellFormProductPrice = document.getElementById('productPrice');
+        const sellFormProductCategory = document.getElementById('productCategory');
+        const sellFormProductCondition = document.getElementById('productCondition');
+        const sellFormProductNegotiable = document.getElementById('productNegotiable');
+        const sellFormProductLocation = document.getElementById('productLocation');
+        const sellFormProductPaymentOption = document.getElementById('productPaymentOption');
+        const sellFormSellerWhatsApp = document.getElementById('sellerWhatsApp');
+        const productImageUpload = document.getElementById('productImageUpload');
+        const imagePreview = document.getElementById('imagePreview');
+        let currentImageBase64 = null; // To store the base64 string of the uploaded image
+        const cancelSellProductBtn = document.getElementById('cancelSellProduct');
+
+        // My Products DOM Elements (within myProductsSection)
+        const myProductsList = document.getElementById('myProductsList');
+        const noMyProductsMessage = document.getElementById('noMyProductsMessage');
+
+        // --- Helper Functions ---
+
+        /**
+         * Displays a temporary message box (toast notification).
+         * @param {string} message - The message to display.
+         * @param {string} type - 'success' or 'error' for styling (optional).
+         */
+        function showMessage(message, type = 'info') {
+            messageBox.textContent = message;
+            messageBox.classList.remove('hidden', 'bg-red-500', 'bg-green-500', 'bg-gray-800');
+            if (type === 'success') {
+                messageBox.classList.add('bg-green-500');
+            } else if (type === 'error') {
+                messageBox.classList.add('bg-red-500');
+            } else {
+                messageBox.classList.add('bg-gray-800');
+            }
+            messageBox.classList.add('show');
+
+            setTimeout(() => {
+                messageBox.classList.remove('show');
+                setTimeout(() => messageBox.classList.add('hidden'), 300); // Hide after transition
+            }, 3000); // Message visible for 3 seconds
+        }
+
+        /**
+         * Rotates the messages in the footer.
+         */
+        function startRotatingFooterMessages() {
+            const rotatingFooterMessages = [
+                "Find your next great deal!",
+                "Connect directly with sellers.",
+                "New products added daily!",
+                "Your trusted platform for local goods.",
+                "Have a product to sell? Contact us!"
+            ];
+            let currentFooterMessageIndex = 0;
+            footerText.textContent = rotatingFooterMessages[currentFooterMessageIndex];
+            setInterval(() => {
+                currentFooterMessageIndex = (currentFooterMessageIndex + 1) % rotatingFooterMessages.length;
+                footerText.textContent = rotatingFooterMessages[currentFooterMessageIndex];
+            }, 10000); // Every 10 seconds
+        }
+
+        /**
+         * Renders a single product advertisement card.
+         * @param {object} product - The product object.
+         * @returns {string} - HTML string for the product card.
+         */
+        function renderProductCard(product) {
+            const formattedPrice = product.price.toLocaleString('en-NG', { style: 'currency', currency: 'NGN' });
+            // Use a specific placeholder image if imageUrl is missing or invalid
+            const imageUrl = product.imageUrl && (product.imageUrl.startsWith('data:image/') || product.imageUrl.startsWith('http')) ? product.imageUrl : 'https://placehold.co/400x300/E0E0E0/666666?text=Image+Not+Found';
+
+            return `
+                <div class="bg-white p-4 rounded-xl shadow-md border border-gray-100 flex flex-col product-item transform transition duration-300 hover:scale-102 hover:shadow-lg group" data-product-id="${product.id}">
+                    <div class="cursor-pointer product-card-content">
+                        <img src="${imageUrl}" alt="${product.name}" class="product-image" onerror="this.onerror=null;this.src='https://placehold.co/400x300/E0E0E0/666666?text=Image+Not+Found';">
+                        <div class="product-info">
+                            <h3 class="product-name">${product.name}</h3>
+                            <p class="product-price">Price: ${formattedPrice}</p>
+                        </div>
+                    </div>
+
+                    <button class="bg-green-500 text-white px-4 py-2 rounded-lg mt-auto text-sm hover:bg-green-600 transition duration-200 flex items-center justify-center space-x-2 w-full whatsapp-btn" data-product-id="${product.id}">
+                       
+                  <i class='fas fa-cart-arrow-down' style='font-size:24px'></i>     <span>Buy</span>
+                    </button>
+                </div>
+            `;
+        }
+
+        /**
+         * Updates the display of products based on `filteredProducts`.
+         * Now always displays all filtered products.
+         */
+        function updateProductDisplay() {
+            if (filteredProducts.length === 0) {
+                noProductsMessage.classList.remove('hidden');
+                productsContainer.innerHTML = '';
+            } else {
+                noProductsMessage.classList.add('hidden');
+                // Sort by timestamp (newest first)
+                const sortedProducts = [...filteredProducts].sort((a, b) => b.timestamp - a.timestamp);
+                productsContainer.innerHTML = sortedProducts.map(renderProductCard).join('');
+            }
+        }
+
+        /**
+         * Redirects the user to the seller's WhatsApp chat.
+         * @param {string} productId - The ID of the product.
+         */
+        function redirectToWhatsApp(productId) {
+            const product = products.find(p => p.id === productId);
+            if (product && product.sellerWhatsApp) {
+                const formattedPrice = product.price.toLocaleString('en-NG', { style: 'currency', currency: 'NGN' });
+                const whatsappMessage = encodeURIComponent(`Hello, I'm interested in your ${product.name} (Price: ${formattedPrice}) listed on Global Marketplace. Is it still available?`);
+                const whatsappLink = `https://wa.me/${product.sellerWhatsApp}?text=${whatsappMessage}`;
+
+                window.open(whatsappLink, '_blank');
+                showMessage(`Redirecting to WhatsApp for ${product.name}`, 'info');
+
+            } else {
+                showMessage('Seller contact information not available for this product.', 'error');
+                console.warn(`Product with ID ${productId} not found or missing WhatsApp number.`);
+            }
+        }
+
+        /**
+         * Opens the product details modal.
+         * @param {string} productId - The ID of the product to display.
+         */
+        function openProductDetails(productId) {
+            const product = products.find(p => p.id === productId);
+            if (!product) {
+                showMessage('Product details not found.', 'error');
+                return;
+            }
+
+            modalProductName.textContent = product.name;
+            modalProductImage.src = product.imageUrl && (product.imageUrl.startsWith('data:image/') || product.imageUrl.startsWith('http')) ? product.imageUrl : 'https://placehold.co/600x400/E0E0E0/666666?text=Image+Not+Found';
+            modalProductPrice.textContent = `Price: ${product.price.toLocaleString('en-NG', { style: 'currency', currency: 'NGN' })}`;
+            modalProductCondition.textContent = product.condition || 'N/A';
+            modalProductNegotiable.textContent = product.negotiable ? 'Yes' : 'No';
+            modalProductLocation.textContent = product.location || 'N/A';
+            modalProductPayment.textContent = product.paymentOption || 'N/A';
+            modalProductDescription.textContent = product.description || 'No description provided.';
+
+            // Set up WhatsApp button in modal
+            modalWhatsAppBtn.onclick = () => redirectToWhatsApp(product.id);
+
+            productDetailModal.style.display = 'flex'; // Use flex to center
+        }
+
+        /**
+         * Closes the product details modal.
+         */
+        function closeProductDetails() {
+            productDetailModal.style.display = 'none';
+        }
+
+
+        // --- IndexedDB Functions ---
+        /**
+         * Opens the IndexedDB database and creates object store if it doesn't exist.
+         * @returns {Promise<IDBDatabase>} A promise that resolves with the database instance.
+         */
+        function openDatabase() {
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open(DB_NAME, DB_VERSION);
+
+                request.onupgradeneeded = (event) => {
+                    const db = event.target.result;
+                    if (!db.objectStoreNames.contains(STORE_NAME)) {
+                        const objectStore = db.createObjectStore(STORE_NAME, { keyPath: 'id' });
+                        objectStore.createIndex('timestamp', 'timestamp', { unique: false });
+                        objectStore.createIndex('category', 'category', { unique: false });
+                        objectStore.createIndex('sellerId', 'sellerId', { unique: false }); // New index for seller's own products
+                        console.log('IndexedDB object store created/updated.');
+                    }
+                };
+
+                request.onsuccess = (event) => {
+                    db = event.target.result;
+                    console.log('IndexedDB opened successfully.');
+                    resolve(db);
+                };
+
+                request.onerror = (event) => {
+                    console.error('IndexedDB error:', event.target.errorCode);
+                    showMessage('Error opening local database.', 'error');
+                    reject(event.target.error);
+                };
+            });
+        }
+
+        /**
+         * Adds or updates a product in IndexedDB.
+         * @param {object} product - The product object to store.
+         * @returns {Promise<void>}
+         */
+        function addOrUpdateProduct(product) {
+            return new Promise((resolve, reject) => {
+                if (!db) {
+                    console.warn('IndexedDB not initialized. Cannot save product.');
+                    return resolve(); // Resolve even if DB isn't ready, to not block the app
+                }
+                const transaction = db.transaction([STORE_NAME], 'readwrite');
+                const objectStore = transaction.objectStore(STORE_NAME);
+                const request = objectStore.put(product);
+
+                request.onsuccess = () => {
+                    resolve();
+                };
+
+                request.onerror = (event) => {
+                    console.error('Error adding/updating product in IndexedDB:', event.target.error);
+                    reject(event.target.error);
+                };
+            });
+        }
+
+        /**
+         * Deletes a product from IndexedDB.
+         * @param {string} productId - The ID of the product to delete.
+         * @returns {Promise<void>}
+         */
+        function deleteProductFromDB(productId) {
+            return new Promise((resolve, reject) => {
+                if (!db) {
+                    console.warn('IndexedDB not initialized. Cannot delete product.');
+                    return resolve();
+                }
+                const transaction = db.transaction([STORE_NAME], 'readwrite');
+                const objectStore = transaction.objectStore(STORE_NAME);
+                const request = objectStore.delete(productId);
+
+                request.onsuccess = () => {
+                    resolve();
+                };
+
+                request.onerror = (event) => {
+                    console.error('Error deleting product from IndexedDB:', event.target.error);
+                    reject(event.target.error);
+                };
+            });
+        }
+
+        /**
+         * Retrieves all products from IndexedDB.
+         * @returns {Promise<Array<object>>} A promise that resolves with an array of products.
+         */
+        function getAllProductsFromDB() {
+            return new Promise((resolve, reject) => {
+                if (!db) {
+                    console.warn('IndexedDB not initialized.');
+                    return resolve([]);
+                }
+                const transaction = db.transaction([STORE_NAME], 'readonly');
+                const objectStore = transaction.objectStore(STORE_NAME);
+                const request = objectStore.getAll();
+
+                request.onsuccess = (event) => {
+                    resolve(event.target.result);
+                };
+
+                request.onerror = (event) => {
+                    console.error('Error getting all products from IndexedDB:', event.target.error);
+                    reject(event.target.error);
+                };
+            });
+        }
+
+        /**
+         * Loads products from IndexedDB and displays them.
+         */
+        async function loadProductsFromIndexedDB() {
+            loadingIndicator.classList.remove('hidden');
+            try {
+                products = await getAllProductsFromDB();
+                if (products.length === 0) {
+                    console.log("No products in IndexedDB.");
+                    // If no products in DB and no WebSocket, then load demo products
+                    if (!ws || ws.readyState !== WebSocket.OPEN) {
+                        console.log("Adding demo products as no DB products and no active WS connection.");
+                        // Ensure demo products have unique IDs and a sellerId for "My Products"
+                        demoProducts.forEach(p => {
+                            if (!p.id) p.id = `demo_${Date.now()}_${Math.floor(Math.random() * 1000)}`; // Simple unique ID
+                            if (!p.sellerId) p.sellerId = "user_demo_default"; // Assign a default if missing
+                        });
+                        products = [...demoProducts]; // Directly assign for initial load
+                        await Promise.all(products.map(p => addOrUpdateProduct(p))); // Save them to DB
+                        showMessage('Demo products loaded into local storage.', 'info');
+                    }
+                } else {
+                     console.log("Loaded products from IndexedDB.");
+                }
+                applyFiltersAndSearch(); // Apply initial filters/search after loading
+            } catch (error) {
+                console.error('Failed to load products from IndexedDB:', error);
+                showMessage('Failed to load products from local cache.', 'error');
+            } finally {
+                loadingIndicator.classList.add('hidden');
+            }
+        }
+
+
+        // --- WebSocket Implementation ---
+        /**
+         * Connects to the WebSocket server and sets up event handlers.
+         */
+        function connectWebSocket() {
+            if (!WEBSOCKET_SERVER_URL) {
+                console.log('WebSocket connection URL is not set. Skipping WebSocket connection.');
+                loadingIndicator.classList.add('hidden'); // Ensure hidden if WS not connecting
+                return;
+            }
+
+            console.log('Attempting to connect WebSocket...');
+            // Show loading indicator only if we are still waiting for initial data
+            if (products.length === 0) { // If products array is empty
+                loadingIndicator.classList.remove('hidden');
+            }
+
+            ws = new WebSocket(WEBSOCKET_SERVER_URL);
+
+            ws.onopen = () => {
+                console.log('WebSocket connected to server.');
+                showMessage('Connected to marketplace server.', 'success');
+                loadingIndicator.classList.add('hidden');
+                // Request all products from the server immediately upon connection
+                ws.send(JSON.stringify({ type: 'GET_ALL_PRODUCTS', payload: {} }));
+            };
+
+            ws.onmessage = async (event) => {
+                let message;
+                try {
+                    message = JSON.parse(event.data);
+                    console.log('Received message from WebSocket:', message.type, message.payload); // Log type and payload
+                } catch (e) {
+                    console.error('Error parsing WebSocket message JSON:', e, event.data);
+                    showMessage('Error receiving data from server: Invalid format.', 'error');
+                    return; // Stop processing if JSON is invalid
+                }
+
+                try {
+                    switch (message.type) {
+                        case 'ALL_PRODUCTS':
+                            // This payload is an array of all products from the server
+                            if (Array.isArray(message.payload)) {
+                                console.log(`Received ${message.payload.length} products from server.`);
+                                // Overwrite local products with server data for consistency
+                                products = message.payload;
+                                // Also update IndexedDB
+                                await Promise.all(message.payload.map(p => addOrUpdateProduct(p)));
+                                applyFiltersAndSearch(); // Refresh display with server data
+                                showMessage('Product listings synced with server.', 'info');
+                            } else {
+                                console.error('ALL_PRODUCTS payload is not an array:', message.payload);
+                                showMessage('Server sent malformed product data.', 'error');
+                            }
+                            break;
+
+                        case 'PRODUCT_ADDED':
+                            // This payload is a single product object
+                            if (message.payload && typeof message.payload === 'object') {
+                                products.unshift(message.payload); // Add to the beginning for "newest first"
+                                await addOrUpdateProduct(message.payload);
+                                applyFiltersAndSearch(); // Re-filter and display
+                                showMessage(`New product "${message.payload.name}" advertised!`, 'success');
+                            } else {
+                                console.error('PRODUCT_ADDED payload is malformed:', message.payload);
+                            }
+                            break;
+
+                        case 'PRODUCT_UPDATED':
+                            // This payload is the updated single product object
+                            if (message.payload && typeof message.payload === 'object' && message.payload.id) {
+                                const updatedProduct = message.payload;
+                                const index = products.findIndex(p => p.id === updatedProduct.id);
+                                if (index !== -1) {
+                                    products[index] = updatedProduct; // Update existing product
+                                } else {
+                                    products.unshift(updatedProduct); // Or add if it was somehow missing
+                                }
+                                await addOrUpdateProduct(updatedProduct);
+                                applyFiltersAndSearch(); // Re-filter and display
+                                showMessage(`Product "${updatedProduct.name}" updated.`, 'info');
+                            } else {
+                                console.error('PRODUCT_UPDATED payload is malformed or missing ID:', message.payload);
+                            }
+                            break;
+
+                        case 'PRODUCT_DELETED':
+                            // This payload is an object like { id: 'product-id' }
+                            if (message.payload && message.payload.id) {
+                                const deletedId = message.payload.id;
+                                products = products.filter(p => p.id !== deletedId); // Remove from array
+                                await deleteProductFromDB(deletedId); // Delete from IndexedDB
+                                applyFiltersAndSearch(); // Re-filter and display
+                                showMessage(`Product with ID ${deletedId} deleted.`, 'info');
+                            } else {
+                                console.error('PRODUCT_DELETED payload is malformed or missing ID:', message.payload);
+                            }
+                            break;
+
+                        case 'MY_PRODUCTS_LIST':
+                            // This payload is an array of products belonging to the current seller
+                            if (Array.isArray(message.payload)) {
+                                // This is a response to GET_MY_PRODUCTS, so just display them
+                                // Don't modify the global 'products' array from this specific request
+                                // unless you intend to replace ALL products with only 'my products'.
+                                // For now, we'll just use it for renderMyProducts.
+                                renderMyProducts(message.payload); // Pass the specific list to the renderer
+                                showMessage('Your product listings loaded.', 'success');
+                            } else {
+                                console.error('MY_PRODUCTS_LIST payload is not an array:', message.payload);
+                            }
+                            break;
+
+                        case 'ADD_PRODUCT_SUCCESS':
+                        case 'UPDATE_PRODUCT_SUCCESS':
+                        case 'DELETE_PRODUCT_SUCCESS':
+                            console.log(`Operation ${message.type} successful for ID:`, message.payload);
+                            // This is just a confirmation, no need to update local data as broadcas
+                            // will handle it. Can be used for UI feedback like closing a form.
+                            if (message.type === 'ADD_PRODUCT_SUCCESS') {
+                                showMessage('Your product has been listed!', 'success');
+                                sellProductForm.reset(); // Clear form
+                                imagePreview.innerHTML = `<span class="placeholder">Image Preview</span>`; // Reset image preview
+                                currentImageBase64 = null;
+                                showBuyerMarketplace(); // Go back to marketplace view
+                            } else if (message.type === 'DELETE_PRODUCT_SUCCESS') {
+                                showMessage('Product deleted successfully from server.', 'success');
+                                renderMyProducts(); // Re-render my products to reflect deletion
+                                applyFiltersAndSearch(); // Update main marketplace view
+                            } else if (message.type === 'UPDATE_PRODUCT_SUCCESS') {
+                                showMessage('Product updated successfully on server.', 'success');
+                                // Optionally, go back to my products or marketplace
+                                showMyProducts();
+                            }
+                            break;
+
+                        case 'ERROR':
+                            // This payload is a string error message
+                            showMessage(`Server Error: ${message.payload}`, 'error');
+                            console.error('Server Error:', message.payload);
+                            break;
+
+                        default:
+                            console.warn('Frontend received unknown message type:', message.type, message);
+                            showMessage('Received unknown server message.', 'info');
+                    }
+                } catch (error) {
+                    console.error('Error processing WebSocket message payload:', error, message);
+                    showMessage('Error processing server data.', 'error');
+                }
+            };
+
+            ws.onclose = () => {
+                console.log('WebSocket disconnected. Attempting to reconnect in 5 seconds...');
+                showMessage('Disconnected from server. Reconnecting...', 'error');
+                loadingIndicator.classList.remove('hidden');
+                setTimeout(connectWebSocket, 5000); // Attempt to reconnect
+            };
+
+            ws.onerror = (error) => {
+                console.error('WebSocket error:', error);
+                showMessage('WebSocket connection error!', 'error');
+            };
+        }
+
+        // --- View/Section Management (New) ---
+        function hideAllSections() {
+            buyerMarketplaceSection.classList.add('hidden');
+            sellProductSection.classList.add('hidden');
+            myProductsSection.classList.add('hidden');
+        }
+
+        function showBuyerMarketplace() {
+            hideAllSections();
+            buyerMarketplaceSection.classList.remove('hidden');
+            categoriesBar.classList.remove('hidden'); // Show categories for buyer view
+            currentCategory = 'All'; // Reset category when returning to home
+            renderCategories(); // Re-render categories to ensure 'All' is active
+            applyFiltersAndSearch(); // Refresh product display
+            closeSideNav();
+            // Reset search/filters visually if desired, but keep current logic
+            // searchInput.value = '';
+            // minPriceInput.value = '';
+            // maxPriceInput.value = '';
+            setActiveMenuLink('buyerMarketplaceSection');
+        }
+
+        function showSellProductForm(productToEdit = null) {
+            hideAllSections();
+            sellProductSection.classList.remove('hidden');
+            categoriesBar.classList.add('hidden'); // Hide categories when on sell form
+            populateSellFormCategories(); // Populate dropdown
+            closeSideNav();
+            
+            sellProductForm.reset(); // Always reset form
+            imagePreview.innerHTML = `<span class="placeholder">Image Preview</span>`;
+            currentImageBase64 = null;
+
+            if (productToEdit) {
+                // Populate form for editing
+                sellProductForm.dataset.editingId = productToEdit.id; // Store ID for update
+                sellFormProductName.value = productToEdit.name;
+                sellFormProductDescription.value = productToEdit.description;
+                sellFormProductPrice.value = productToEdit.price;
+                sellFormProductCategory.value = productToEdit.category;
+                sellFormProductCondition.value = productToEdit.condition;
+                sellFormProductNegotiable.value = String(productToEdit.negotiable); // Convert boolean to string
+                sellFormProductLocation.value = productToEdit.location;
+                sellFormProductPaymentOption.value = productToEdit.paymentOption;
+                sellFormSellerWhatsApp.value = productToEdit.sellerWhatsApp;
+                currentImageBase64 = productToEdit.imageUrl;
+                if (currentImageBase64) {
+                    imagePreview.innerHTML = `<img src="${currentImageBase64}" alt="Image Preview">`;
+                }
+                sellProductForm.querySelector('button[type="submit"]').textContent = 'Update Product';
+                showMessage(`Editing product "${productToEdit.name}"`, 'info');
+            } else {
+                sellProductForm.removeAttribute('data-editing-id'); // Clear editing state
+                sellProductForm.querySelector('button[type="submit"]').textContent = 'List Product';
+            }
+            setActiveMenuLink('sellProductSection');
+        }
+
+        async function showMyProducts() {
+            hideAllSections();
+            myProductsSection.classList.remove('hidden');
+            categoriesBar.classList.add('hidden'); // Hide categories when on my products
+            closeSideNav();
+            
+            // Request my products from server if WebSocket is open
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                console.log(`Requesting my products for sellerId: ${CLIENT_ID}`);
+                ws.send(JSON.stringify({ type: 'GET_MY_PRODUCTS', payload: { sellerId: CLIENT_ID } }));
+                // The 'MY_PRODUCTS_LIST' message from server will call renderMyProducts
+            } else {
+                console.warn('WebSocket not connected. Showing my products from local cache.');
+                renderMyProducts(products.filter(p => p.sellerId === CLIENT_ID));
+                showMessage('Showing your products from local cache. Not synced with server.', 'info');
+            }
+            setActiveMenuLink('myProductsSection');
+        }
+
+        function closeSideNav() {
+            sideNav.style.width = "0";
+            hamburgerMenu.classList.remove('active');
+        }
+
+        // --- Category Bar Functions ---
+        function renderCategories() {
+            const categoriesForBar = CATEGORIES;
+            categoriesBar.innerHTML = categoriesForBar.map(category => `
+                <span class="category-item ${category === currentCategory ? 'active' : ''} ${category === 'All' ? 'all' : ''}" data-category="${category}">
+                    ${category}
+                </span>
+            `).join('');
+
+            document.querySelectorAll('.category-item').forEach(item => {
+                item.addEventListener('click', () => {
+                    currentCategory = item.dataset.category;
+                    renderCategories(); // Re-render to update active state
+                    applyFiltersAndSearch(); // Re-apply filters including new category
+                });
+            });
+        }
+
+        function populateSellFormCategories() {
+            sellFormProductCategory.innerHTML = '<option value="">Select a Category</option>';
+            // Exclude "All" from the sell form categories
+            CATEGORIES.filter(c => c !== 'All').forEach(category => {
+                const option = document.createElement('option');
+                option.value = category;
+                option.textContent = category;
+                sellFormProductCategory.appendChild(option);
+            });
+        }
+
+        // --- Search and Filter Functions ---
+        function applyFiltersAndSearch() {
+            const searchTerm = searchInput.value.toLowerCase().trim();
+            const minPrice = parseFloat(minPriceInput.value);
+            const maxPrice = parseFloat(maxPriceInput.value);
+
+            currentCategoryTitle.textContent = currentCategory === 'All' ? '' : `(${currentCategory})`;
+
+            // Filter all products first
+            filteredProducts = products.filter(product => {
+                const matchesCategory = currentCategory === 'All' || product.category === currentCategory;
+                const matchesSearch = searchTerm === '' ||
+                                      product.name.toLowerCase().includes(searchTerm) ||
+                                      product.description.toLowerCase().includes(searchTerm);
+                const matchesMinPrice = isNaN(minPrice) || product.price >= minPrice;
+                const matchesMaxPrice = isNaN(maxPrice) || product.price <= maxPrice;
+
+                return matchesCategory && matchesSearch && matchesMinPrice && matchesMaxPrice;
+            });
+
+            updateProductDisplay(); // This function now always displays all filtered products
+            updateClearSearchButtonVisibility();
+        }
+
+        function clearFilters() {
+            searchInput.value = '';
+            minPriceInput.value = '';
+            maxPriceInput.value = '';
+            currentCategory = 'All'; // Reset category
+            renderCategories(); // Re-render categories to highlight 'All'
+            applyFiltersAndSearch();
+            showMessage('Filters cleared.', 'info');
+            // Hide filter controls after clearing them
+            priceFilterControls.classList.add('hidden-filters');
+            toggleFiltersBtn.textContent = 'Show Filters';
+            toggleFiltersBtn.prepend(document.createElement('i')).classList.add('fas', 'fa-filter', 'mr-2');
+        }
+
+        function updateClearSearchButtonVisibility() {
+            clearSearchBtn.style.display = searchInput.value.trim() !== '' ? 'flex' : 'none';
+        }
+
+        // --- Event Listeners for Search & Filters ---
+        searchInput.addEventListener('input', applyFiltersAndSearch);
+        clearSearchBtn.addEventListener('click', () => {
+            searchInput.value = '';
+            applyFiltersAndSearch();
+        });
+        applyFiltersBtn.addEventListener('click', applyFiltersAndSearch);
+        clearFiltersBtn.addEventListener('click', clearFilters);
+
+        // Toggle filters visibility
+        toggleFiltersBtn.addEventListener('click', () => {
+            priceFilterControls.classList.toggle('hidden-filters');
+            if (priceFilterControls.classList.contains('hidden-filters')) {
+                toggleFiltersBtn.textContent = 'Show Filters';
+                toggleFiltersBtn.prepend(document.createElement('i')).classList.add('fas', 'fa-filter', 'mr-2');
+            } else {
+                toggleFiltersBtn.textContent = 'Hide Filters';
+                toggleFiltersBtn.prepend(document.createElement('i')).classList.add('fas', 'fa-filter-slash', 'mr-2');
+            }
+        });
+
+
+        // --- Event Delegation for Product Card Clicks ---
+        productsContainer.addEventListener('click', (event) => {
+            const productItem = event.target.closest('.product-item');
+            if (!productItem) return; // Not a product item click
+
+            const productId = productItem.dataset.productId; // IDs are strings now
+
+            // Check if the click was on the WhatsApp button
+            if (event.target.closest('.whatsapp-btn')) {
+                redirectToWhatsApp(productId);
+            } else {
+                // Otherwise, open product details
+                openProductDetails(productId);
+            }
+        });
+
+        // --- Sell Product Form Logic ---
+        sellProductBtn.addEventListener('click', () => showSellProductForm(null)); // Pass null for new product
+        cancelSellProductBtn.addEventListener('click', showBuyerMarketplace);
+        closeModalBtn.addEventListener('click', closeProductDetails); // Make sure modal close button works
+
+        productImageUpload.addEventListener('change', (event) => {
+            const file = event.target.files[0];
+            if (file) {
+                if (!file.type.startsWith('image/')) {
+                    showMessage('Please upload an image file (e.g., JPG, PNG, GIF).', 'error');
+                    productImageUpload.value = ''; // Clear selected file
+                    imagePreview.innerHTML = `<span class="placeholder">Image Preview</span>`;
+                    currentImageBase64 = null;
+                    return;
+                }
+
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    currentImageBase64 = e.target.result; // Store Base64 string
+                    imagePreview.innerHTML = `<img src="${currentImageBase64}" alt="Image Preview">`;
+                };
+                reader.onerror = () => {
+                    showMessage('Error reading file.', 'error');
+                    currentImageBase64 = null;
+                    imagePreview.innerHTML = `<span class="placeholder">Error loading image</span>`;
+                };
+                reader.readAsDataURL(file); // Read file as Base64 data URL
+            } else {
+                currentImageBase64 = null;
+                imagePreview.innerHTML = `<span class="placeholder">Image Preview</span>`;
+            }
+        });
+
+        sellProductForm.addEventListener('submit', async function(event) {
+            event.preventDefault();
+
+            const isEditing = sellProductForm.dataset.editingId;
+            const productId = isEditing || `client_${Date.now()}`; // Use existing ID or generate new client-side ID
+
+            const productData = {
+                id: productId, // Use generated or existing ID
+                name: sellFormProductName.value,
+                description: sellFormProductDescription.value,
+                price: parseFloat(sellFormProductPrice.value),
+                category: sellFormProductCategory.value,
+                condition: sellFormProductCondition.value,
+                negotiable: sellFormProductNegotiable.value === 'true', // Ensure boolean
+                location: sellFormProductLocation.value,
+                paymentOption: sellFormProductPaymentOption.value,
+                sellerWhatsApp: sellFormSellerWhatsApp.value,
+                imageUrl: currentImageBase64 || 'https://placehold.co/400x300/E0E0E0/666666?text=No+Image', // Use uploaded image or placeholder
+                timestamp: Date.now(), // Always update timestamp on submission/edit
+                sellerId: CLIENT_ID // Assign this client's ID as seller ID
+            };
+
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                if (isEditing) {
+                    console.log('Sending UPDATE_PRODUCT to server:', productData.id);
+                    ws.send(JSON.stringify({ type: 'UPDATE_PRODUCT', payload: productData }));
+                } else {
+                    console.log('Sending ADD_PRODUCT to server:', productData.id);
+                    ws.send(JSON.stringify({ type: 'ADD_PRODUCT', payload: productData }));
+                }
+                // The onmessage handler will receive SUCCESS/ERROR or the broadcast and update UI
+            } else {
+                showMessage('No server connection. Listing product locally.', 'info');
+                try {
+                    // Update local 'products' array
+                    if (isEditing) {
+                        const index = products.findIndex(p => p.id === productId);
+                        if (index !== -1) {
+                            products[index] = productData;
+                        }
+                    } else {
+                        products.unshift(productData); // Add new product
+                    }
+                    await addOrUpdateProduct(productData); // Save to IndexedDB
+                    sellProductForm.reset();
+                    imagePreview.innerHTML = `<span class="placeholder">Image Preview</span>`;
+                    currentImageBase64 = null;
+                    showMessage('Product listed/updated successfully locally!', 'success');
+                    showBuyerMarketplace();
+                } catch (error) {
+                    console.error('Error listing/updating product locally:', error);
+                    showMessage('Failed to list/update product locally.', 'error');
+                }
+            }
+        });
+
+
+        // --- My Products Logic ---
+        function renderMyProducts(myProductsData = null) {
+            // If data is provided (from WS 'MY_PRODUCTS_LIST'), use it.
+            // Otherwise, filter from the global 'products' array (local cache).
+            const productsToRender = myProductsData || products.filter(p => p.sellerId === CLIENT_ID);
+            const sortedMyProducts = [...productsToRender].sort((a, b) => b.timestamp - a.timestamp);
+
+            if (sortedMyProducts.length === 0) {
+                myProductsList.innerHTML = '';
+                noMyProductsMessage.classList.remove('hidden');
+            } else {
+                noMyProductsMessage.classList.add('hidden');
+                myProductsList.innerHTML = sortedMyProducts.map(product => {
+                    const formattedPrice = product.price.toLocaleString('en-NG', { style: 'currency', currency: 'NGN' });
+                    const imageUrl = product.imageUrl && (product.imageUrl.startsWith('data:image/') || product.imageUrl.startsWith('http')) ? product.imageUrl : 'https://placehold.co/80x80/E0E0E0/666666?text=Image';
+
+                    return `
+                        <div class="product-management-card" data-product-id="${product.id}">
+                            <img src="${imageUrl}" alt="${product.name}" onerror="this.onerror=null;this.src='https://placehold.co/80x80/E0E0E0/666666?text=Image';">
+                            <div class="info">
+                                <h3>${product.name}</h3>
+                                <p class="text-gray-500 text-sm">${formattedPrice} | ${product.location} | ${product.condition}</p>
+                            </div>
+                            <div class="actions">
+                                <button class="bg-yellow-500 text-white px-3 py-1 rounded-md text-sm hover:bg-yellow-600 edit-btn" data-product-id="${product.id}">Edit</button>
+                                <button class="bg-red-500 text-white px-3 py-1 rounded-md text-sm hover:bg-red-600 delete-btn" data-product-id="${product.id}">Delete</button>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+
+                // Add event listeners for edit/delete buttons
+                myProductsList.querySelectorAll('.edit-btn').forEach(button => {
+                    button.addEventListener('click', (event) => {
+                        const productId = event.target.dataset.productId;
+                        const productToEdit = products.find(p => p.id === productId);
+                        if (productToEdit) {
+                            showSellProductForm(productToEdit); // Pass product object for editing
+                        }
+                    });
+                });
+
+                myProductsList.querySelectorAll('.delete-btn').forEach(button => {
+                    button.addEventListener('click', async (event) => {
+                        const productId = event.target.dataset.productId;
+                        if (confirm('Are you sure you want to delete this product listing?')) {
+                            if (ws && ws.readyState === WebSocket.OPEN) {
+                                console.log('Sending DELETE_PRODUCT to server:', productId);
+                                ws.send(JSON.stringify({ type: 'DELETE_PRODUCT', payload: { id: productId } }));
+                                // UI update will be handled by the 'PRODUCT_DELETED' broadcast
+                            } else {
+                                showMessage('No server connection. Deleting product locally.', 'info');
+                                try {
+                                    products = products.filter(p => p.id !== productId); // Remove from in-memory array
+                                    await deleteProductFromDB(productId); // Remove from IndexedDB
+                                    showMessage('Product deleted successfully locally.', 'success');
+                                    renderMyProducts(); // Re-render the list
+                                    applyFiltersAndSearch(); // Update main marketplace view
+                                } catch (error) {
+                                    console.error('Error deleting product locally:', error);
+                                    showMessage('Failed to delete product locally.', 'error');
+                                }
+                            }
+                        }
+                    });
+                });
+            }
+        }
+
+
+        // --- Initial Setup ---
+        window.onload = async () => {
+            // Set initial active menu link
+            setActiveMenuLink('buyerMarketplaceSection');
+
+            await openDatabase(); // Open IndexedDB first
+
+            // Load products from IndexedDB, or use demo data if DB is empty and WS not connected
+            await loadProductsFromIndexedDB();
+
+            // Connect WebSocket (will connect or attempt to reconnect)
+            connectWebSocket();
+
+            startRotatingFooterMessages();
+            renderCategories(); // Initialize category bar
+
+            // Populate categories for the sell form
+            populateSellFormCategories();
+
+            // Ensure correct view is shown on load
+            showBuyerMarketplace();
+        };
+
+        // --- Hamburger Menu and Side Nav Toggle ---
+        hamburgerMenu.addEventListener('click', () => {
+            if (sideNav.style.width === "250px") {
+                sideNav.style.width = "0";
+                hamburgerMenu.classList.remove('active');
+            } else {
+                sideNav.style.width = "250px";
+                hamburgerMenu.classList.add('active');
+            }
+        });
+
+        closeNavBtn.addEventListener('click', closeSideNav);
+
+        // Function to set the active menu link
+        function setActiveMenuLink(activeSectionId) {
+            document.querySelectorAll('#mySidenav a').forEach(link => {
+                link.classList.remove('active-menu-link'); // Remove from all
+            });
+
+            let targetLink;
+            if (activeSectionId === 'buyerMarketplaceSection') {
+                targetLink = document.querySelector('#mySidenav a[onclick*="showBuyerMarketplace"]');
+            } else if (activeSectionId === 'myProductsSection') {
+                targetLink = document.querySelector('#mySidenav a[onclick*="showMyProducts"]');
+            } else if (activeSectionId === 'sellProductSection') {
+                targetLink = document.querySelector('#mySidenav a[onclick*="showSellProductForm"]');
+            }
+            
+            if (targetLink) {
+                targetLink.classList.add('active-menu-link'); // Add to the active one
+            }
+        }
+
+    </script>
+</body>
+</html>

@@ -1,0 +1,1447 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bio 101 Quiz</title>
+    <style>
+        /* CSS Styling */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(to right, lightblue, purple); /* Gradient background */
+            color: #333;
+            flex-direction: column; /* For profile section below quiz */
+            padding: 20px; /* Add some padding for overall content */
+            box-sizing: border-box;
+        }
+
+        .quiz-container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+            width: 90%;
+            max-width: 600px;
+            text-align: center;
+            margin-bottom: 40px; /* Space between quiz and profile */
+            position: relative; /* Needed for absolute positioning of next button */
+            min-height: 400px; /* Ensure enough space for the button at the bottom */
+        }
+
+        .start-screen h1 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        .start-button, .option-button, .action-button, .next-button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1.1em;
+            margin: 10px 5px;
+            transition: background-color 0.3s ease;
+        }
+
+        .start-button:hover, .option-button:not(.selected):hover, .action-button:hover, .next-button:hover {
+            background-color: #0056b3;
+        }
+
+        .quiz-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+
+        .timer {
+            color: orangered;
+        }
+
+        .question-text {
+            font-size: 1.4em;
+            margin-bottom: 25px;
+            color: #444;
+        }
+
+        .options-container {
+            display: flex;
+            flex-direction: column;
+            gap: 12px; /* Slightly reduced gap for smaller options */
+            margin-bottom: 70px; /* More space for the next button below */
+        }
+
+        .option-button {
+            background-color: #f0f0f0;
+            color: #333;
+            border: 1px solid #ddd;
+            width: 100%;
+            text-align: left;
+            padding: 10px 18px; /* Reduced padding for smaller size */
+            font-size: 1em; /* Slightly smaller font size */
+        }
+
+        .option-button.selected {
+            background-color: green; /* Turn green when picked */
+            color: white;
+            border-color: green;
+        }
+
+        .next-button {
+            position: absolute; /* Position relative to .quiz-container */
+            bottom: 20px;
+            right: 30px;
+            background-color: #28a745; /* Green color */
+            padding: 10px 20px; /* Reduced padding for smaller size */
+            font-size: 1em; /* Reduced font size for smaller size */
+        }
+
+        .next-button:hover {
+            background-color: #218838; /* Darker green on hover */
+        }
+
+        .results-screen h2 {
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .results-screen p {
+            font-size: 1.2em;
+            margin-bottom: 15px;
+        }
+
+        .results-buttons {
+            margin-top: 30px;
+        }
+
+        .profile-container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            width: 90%;
+            max-width: 600px;
+            text-align: center;
+        }
+
+        .profile-container h2 {
+            color: #333;
+            margin-bottom: 25px;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 10px;
+        }
+
+        .quiz-history-item {
+            border: 1px solid #eee;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            background-color: #f9f9f9;
+            text-align: left;
+        }
+
+        .quiz-history-item p {
+            margin: 5px 0;
+            font-size: 0.95em;
+        }
+
+        .clear-history-button {
+            background-color: #dc3545; /* Red color for clear history */
+            margin-top: 20px;
+        }
+
+        .clear-history-button:hover {
+            background-color: #c82333;
+        }
+
+        /* Hidden states */
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="quiz-container">
+        <div id="start-screen" class="start-screen">
+            <h1>Welcome to the Bio 101 Quiz!</h1>
+            <p>Test your knowledge with 50 random questions.</p>
+            <button id="start-quiz-button" class="start-button">Start Quiz</button>
+        </div>
+
+        <div id="quiz-screen" class="hidden">
+            <div class="quiz-header">
+                <span id="question-counter">Question 1/50</span>
+                <span id="timer" class="timer">20s</span>
+            </div>
+            <p id="question-text" class="question-text">Question will appear here...</p>
+            <div id="options-container" class="options-container">
+                </div>
+            <button id="next-question-button" class="next-button">Next Question</button>
+        </div>
+
+        <div id="results-screen" class="hidden">
+            <h2>Quiz Complete!</h2>
+            <p>You scored: <span id="score-display">0</span>/<span id="total-questions-display">50</span></p>
+            <p>Percentage: <span id="percentage-display">0%</span></p>
+            <div class="results-buttons">
+                <button id="show-failed-answers-button" class="action-button">See Failed Answers</button>
+              <a href="exam.html"> <button id="back-to-exam-button" class="action-button">Back to Start</button></a>
+            </div>
+            <div id="failed-answers-container" class="hidden" style="margin-top: 20px; text-align: left;">
+                <h3>Questions You Missed:</h3>
+                <ul id="missed-questions-list" style="list-style-type: none; padding: 0;"></ul>
+            </div>
+        </div>
+    </div>
+
+    <div id="profile-section" class="profile-container hidden">
+        <h2>Quiz History</h2>
+        <div id="quiz-history-display">
+            <p id="no-history-message">No quiz history available yet.</p>
+        </div>
+        <button id="clear-history-button" class="action-button clear-history-button hidden">Clear History</button>
+    </div>
+
+    <script>
+        // JavaScript Logic
+        const startScreen = document.getElementById('start-screen');
+        const quizScreen = document.getElementById('quiz-screen');
+        const resultsScreen = document.getElementById('results-screen');
+        const startQuizButton = document.getElementById('start-quiz-button');
+        const questionText = document.getElementById('question-text');
+        const optionsContainer = document.getElementById('options-container');
+        const questionCounter = document.getElementById('question-counter');
+        const timerDisplay = document.getElementById('timer');
+        const nextQuestionButton = document.getElementById('next-question-button');
+        const scoreDisplay = document.getElementById('score-display');
+        const totalQuestionsDisplay = document.getElementById('total-questions-display');
+        const percentageDisplay = document.getElementById('percentage-display');
+        const showFailedAnswersButton = document.getElementById('show-failed-answers-button');
+        const backToStartButton = document.getElementById('back-to-exam-button'); // Renamed for clarity
+        const failedAnswersContainer = document.getElementById('failed-answers-container');
+        const missedQuestionsList = document.getElementById('missed-questions-list');
+
+        // Profile elements
+        const profileSection = document.getElementById('profile-section');
+        const quizHistoryDisplay = document.getElementById('quiz-history-display');
+        const clearHistoryButton = document.getElementById('clear-history-button');
+        const noHistoryMessage = document.getElementById('no-history-message');
+
+        let questions = []; // All 150 questions
+        let currentQuizQuestions = []; // The 50 questions for the current quiz
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let timeLeft = 20;
+        let timerInterval;
+        let startTime; // To track total time spent on the quiz
+        let userAnswers = []; // To store user's answers and track correct/incorrect details
+        let currentSelectedOptionButton = null; // To track the very last option picked (the button element)
+        let currentSelectedAnswerText = null; // To track the text of the selected answer
+
+        const QUIZ_DURATION_PER_QUESTION = 20;
+        const NUM_QUESTIONS_TO_ASK = 50;
+        const COURSE_NAME = "Bio 101 Quiz"; // Standardized to Bio 101
+
+        // Generate 150 Bio 101 Objective Questions
+        function generateBio101Questions() {
+            return [
+                {
+                    question: "What is the main component of the cell membrane?",
+                    options: ["A) Proteins", "B) Lipids", "C) Carbohydrates", "D) Nucleic acids"],
+                    correctAnswer: "B) Lipids"
+                },
+                {
+                    question: "Which organelle is responsible for protein synthesis?",
+                    options: ["A) Mitochondria", "B) Ribosome", "C) Lysosome", "D) Golgi apparatus"],
+                    correctAnswer: "B) Ribosome"
+                },
+                {
+                    question: "What is the function of the nucleus?",
+                    options: ["A) Protein synthesis", "B) DNA replication", "C) Cell signaling", "D) Energy production"],
+                    correctAnswer: "B) DNA replication"
+                },
+                {
+                    question: "Which organelle is involved in cellular digestion?",
+                    options: ["A) Lysosome", "B) Mitochondria", "C) Golgi apparatus", "D) Endoplasmic reticulum"],
+                    correctAnswer: "A) Lysosome"
+                },
+                {
+                    question: "What is the primary function of the mitochondria?",
+                    options: ["A) Energy production", "B) Protein synthesis", "C) DNA replication", "D) Cell signaling"],
+                    correctAnswer: "A) Energy production"
+                },
+                {
+                    question: "Which structure is found in plant cells but not animal cells?",
+                    options: ["A) Cell wall", "B) Mitochondria", "C) Lysosome", "D) Golgi apparatus"],
+                    correctAnswer: "A) Cell wall"
+                },
+                {
+                    question: "What is the function of the endoplasmic reticulum?",
+                    options: ["A) Protein synthesis", "B) Lipid synthesis", "C) DNA replication", "D) Cell signaling"],
+                    correctAnswer: "B) Lipid synthesis"
+                },
+                {
+                    question: "Which organelle is responsible for sorting and packaging proteins?",
+                    options: ["A) Golgi apparatus", "B) Lysosome", "C) Mitochondria", "D) Endoplasmic reticulum"],
+                    correctAnswer: "A) Golgi apparatus"
+                },
+                {
+                    question: "What is the main function of the cytoskeleton?",
+                    options: ["A) Cell shape and support", "B) Protein synthesis", "C) DNA replication", "D) Energy production"],
+                    correctAnswer: "A) Cell shape and support"
+                },
+                {
+                    question: "Which organelle is involved in photosynthesis?",
+                    options: ["A) Chloroplast", "B) Mitochondria", "C) Lysosome", "D) Golgi apparatus"],
+                    correctAnswer: "A) Chloroplast"
+                },
+                {
+                    question: "What is the basic unit of heredity?",
+                    options: ["A) Gene", "B) Chromosome", "C) DNA", "D) Protein"],
+                    correctAnswer: "A) Gene"
+                },
+                {
+                    question: "Which genetic principle states that each pair of alleles separates during gamete formation?",
+                    options: ["A) Law of segregation", "B) Law of independent assortment", "C) Law of dominance", "D) Law of incomplete dominance"],
+                    correctAnswer: "A) Law of segregation"
+                },
+                {
+                    question: "What is the term for the physical appearance of a trait?",
+                    options: ["A) Genotype", "B) Phenotype", "C) Dominant", "D) Recessive"],
+                    correctAnswer: "B) Phenotype"
+                },
+                {
+                    question: "Which type of inheritance involves multiple genes influencing a single trait?",
+                    options: ["A) Polygenic inheritance", "B) Monogenic inheritance", "C) Autosomal dominant", "D) Autosomal recessive"],
+                    correctAnswer: "A) Polygenic inheritance"
+                },
+                {
+                    question: "What is the term for a genetic mutation that occurs in a single gene?",
+                    options: ["A) Point mutation", "B) Frameshift mutation", "C) Chromosomal mutation", "D) Gene duplication"],
+                    correctAnswer: "A) Point mutation"
+                },
+                {
+                    question: "Which genetic disorder is caused by an extra copy of chromosome 21?",
+                    options: ["A) Down syndrome", "B) Sickle cell anemia", "C) Cystic fibrosis", "D) Huntington's disease"],
+                    correctAnswer: "A) Down syndrome"
+                },
+                {
+                    question: "What is the process by which genetic information is passed from DNA to RNA?",
+                    options: ["A) Transcription", "B) Translation", "C) Replication", "D) Mutation"],
+                    correctAnswer: "A) Transcription"
+                },
+                {
+                    question: "Which type of genetic variation involves a change in the number of chromosomes?",
+                    options: ["A) Aneuploidy", "B) Polyploidy", "C) Mutation", "D) Gene duplication"],
+                    correctAnswer: "A) Aneuploidy"
+                },
+                {
+                    question: "What is the term for the genetic makeup of an individual?",
+                    options: ["A) Genotype", "B) Phenotype", "C) Dominant", "D) Recessive"],
+                    correctAnswer: "A) Genotype"
+                },
+                {
+                    question: "Which genetic principle states that genes for different traits are sorted independently of each other during gamete formation?",
+                    options: ["A) Law of segregation", "B) Law of independent assortment", "C) Law of dominance", "D) Law of incomplete dominance"],
+                    correctAnswer: "B) Law of independent assortment"
+                },
+                {
+                    question: "What is the term for the process by which species change over time?",
+                    options: ["A) Evolution", "B) Natural selection", "C) Adaptation", "D) Mutation"],
+                    correctAnswer: "A) Evolution"
+                },
+                {
+                    question: "Which scientist is credited with the theory of evolution through natural selection?",
+                    options: ["A) Charles Darwin", "B) Gregor Mendel", "C) Louis Pasteur", "D) Albert Einstein"],
+                    correctAnswer: "A) Charles Darwin"
+                },
+                {
+                    question: "What is the term for the ability of an organism to survive and reproduce in its environment?",
+                    options: ["A) Fitness", "B) Adaptation", "C) Evolution", "D) Natural selection"],
+                    correctAnswer: "A) Fitness"
+                },
+                {
+                    question: "Which type of evolution occurs when two or more species evolve together?",
+                    options: ["A) Coevolution", "B) Convergent evolution", "C) Divergent evolution", "D) Parallel evolution"],
+                    correctAnswer: "A) Coevolution"
+                },
+                {
+                    question: "What is the term for the fossil record of a particular group of organisms?",
+                    options: ["A) Phylogeny", "B) Ontogeny", "C) Paleontology", "D) Evolutionary history"],
+                    correctAnswer: "C) Paleontology"
+                },
+                {
+                    question: "Which type of evidence for evolution comes from the study of the structure of living organisms?",
+                    options: ["A) Comparative anatomy", "B) Comparative embryology", "C) Molecular biology", "D) Fossil record"],
+                    correctAnswer: "A) Comparative anatomy"
+                },
+                {
+                    question: "What is the term for the process by which a single species splits into two or more distinct species?",
+                    options: ["A) Speciation", "B) Adaptation", "C) Evolution", "D) Natural selection"],
+                    correctAnswer: "A) Speciation"
+                },
+                 {
+                    question: "What is the term for the study of the interactions between organisms and their environment?",
+                    options: ["A) Ecology", "B) Evolution", "C) Genetics", "D) Botany"],
+                    correctAnswer: "A) Ecology"
+                },
+                {
+                    question: "Which level of ecological organization includes all the living and non-living components of an ecosystem?",
+                    options: ["A) Community", "B) Ecosystem", "C) Population", "D) Biosphere"],
+                    correctAnswer: "B) Ecosystem"
+                },
+                {
+                    question: "What is the term for the process by which plants convert sunlight into energy?",
+                    options: ["A) Photosynthesis", "B) Respiration", "C) Decomposition", "D) Fermentation"],
+                    correctAnswer: "A) Photosynthesis"
+                },
+                {
+                    question: "Which type of ecological relationship involves one organism benefiting and the other being harmed?",
+                    options: ["A) Symbiosis", "B) Mutualism", "C) Commensalism", "D) Parasitism"],
+                    correctAnswer: "D) Parasitism"
+                },
+                {
+                    question: "What is the term for the variety of different species in an ecosystem?",
+                    options: ["A) Species richness", "B) Species diversity", "C) Ecosystem diversity", "D) Genetic diversity"],
+                    correctAnswer: "B) Species diversity"
+                },
+                {
+                    question: "Which ecosystem is characterized by high temperatures and high levels of rainfall?",
+                    options: ["A) Desert", "B) Tropical rainforest", "C) Temperate forest", "D) Coral reef"],
+                    correctAnswer: "B) Tropical rainforest"
+                },
+                {
+                    question: "What is the term for the movement of energy through an ecosystem?",
+                    options: ["A) Energy flow", "B) Nutrient cycling", "C) Decomposition", "D) Primary production"],
+                    correctAnswer: "A) Energy flow"
+                },
+                {
+                    question: "Which type of ecological pyramid shows the number of individuals at each trophic level?",
+                    options: ["A) Pyramid of numbers", "B) Pyramid of biomass", "C) Pyramid of energy", "D) Pyramid of productivity"],
+                    correctAnswer: "A) Pyramid of numbers"
+                },
+                {
+                    question: "What is the term for the process by which nutrients are converted from one form to another in an ecosystem?",
+                    options: ["A) Nutrient cycling", "B) Energy flow", "C) Decomposition", "D) Primary production"],
+                    correctAnswer: "A) Nutrient cycling"
+                },
+                {
+                    question: "Which ecosystem is characterized by low levels of rainfall and limited vegetation?",
+                    options: ["A) Desert", "B) Grassland", "C) Temperate forest", "D) Tropical rainforest"],
+                    correctAnswer: "A) Desert"
+                },
+                {
+                    question: "Which system is responsible for transporting oxygen and nutrients to cells?",
+                    options: ["A) Circulatory system", "B) Respiratory system", "C) Digestive system", "D) Nervous system"],
+                    correctAnswer: "A) Circulatory system"
+                },
+                {
+                    question: "What is the term for the process by which the body breaks down food into nutrients?",
+                    options: ["A) Digestion", "B) Absorption", "C) Assimilation", "D) Excretion"],
+                    correctAnswer: "A) Digestion"
+                },
+                {
+                    question: "Which organ is responsible for filtering waste and excess fluids from the blood?",
+                    options: ["A) Kidneys", "B) Liver", "C) Lungs", "D) Heart"],
+                    correctAnswer: "A) Kidneys"
+                },
+                {
+                    question: "What is the term for the system that produces hormones that regulate various bodily functions?",
+                    options: ["A) Endocrine system", "B) Nervous system", "C) Circulatory system", "D) Digestive system"],
+                    correctAnswer: "A) Endocrine system"
+                },
+                {
+                    question: "Which system is responsible for protecting the body against pathogens?",
+                    options: ["A) Immune system", "B) Circulatory system", "C) Respiratory system", "D) Digestive system"],
+                    correctAnswer: "A) Immune system"
+                },
+                {
+                    question: "What is the term for the process by which the body responds to stimuli?",
+                    options: ["A) Reflex", "B) Response", "C) Stimulation", "D) Sensation"],
+                    correctAnswer: "A) Reflex"
+                },
+                {
+                    question: "Which organ is responsible for exchanging oxygen and carbon dioxide through breathing?",
+                    options: ["A) Lungs", "B) Heart", "C) Liver", "D) Kidneys"],
+                    correctAnswer: "A) Lungs"
+                },
+                {
+                    question: "What is the term for the system that transmits nerve impulses throughout the body?",
+                    options: ["A) Nervous system", "B) Circulatory system", "C) Digestive system", "D) Endocrine system"],
+                    correctAnswer: "A) Nervous system"
+                },
+                {
+                    question: "Which system is responsible for removing waste products from the body?",
+                    options: ["A) Excretory system", "B) Digestive system", "C) Circulatory system", "D) Respiratory system"],
+                    correctAnswer: "A) Excretory system"
+                },
+                {
+                    question: "What is the term for the process by which the body maintains a stable internal environment?",
+                    options: ["A) Homeostasis", "B) Metabolism", "C) Growth", "D) Development"],
+                    correctAnswer: "A) Homeostasis"
+                },
+                {
+                    question: "What is the term for the process by which cells generate energy from glucose?",
+                    options: ["A) Cellular respiration", "B) Photosynthesis", "C) Fermentation", "D) Glycolysis"],
+                    correctAnswer: "A) Cellular respiration"
+                },
+                {
+                    question: "Which stage of cellular respiration produces the most ATP molecules?",
+                    options: ["A) Glycolysis", "B) Pyruvate oxidation", "C) Krebs cycle", "D) Oxidative phosphorylation"],
+                    correctAnswer: "D) Oxidative phosphorylation"
+                },
+                {
+                    question: "What is the term for the electron carrier molecule that plays a critical role in cellular respiration?",
+                    options: ["A) NADH", "B) FADH2", "C) ATP", "D) NADPH"],
+                    correctAnswer: "A) NADH"
+                },
+                {
+                    question: "Which type of cellular respiration occurs in the absence of oxygen?",
+                    options: ["A) Aerobic respiration", "B) Anaerobic respiration", "C) Fermentation", "D) Glycolysis"],
+                    correctAnswer: "B) Anaerobic respiration"
+                },
+                {
+                    question: "What is the term for the process by which cells generate energy from fatty acids?",
+                    options: ["A) Beta-oxidation", "B) Glycolysis", "C) Krebs cycle", "D) Oxidative phosphorylation"],
+                    correctAnswer: "A) Beta-oxidation"
+                },
+                {
+                    question: "Which molecule is the final electron acceptor in the electron transport chain?",
+                    options: ["A) Oxygen", "B) Water", "C) Carbon dioxide", "D) ATP"],
+                    correctAnswer: "A) Oxygen"
+                },
+                {
+                    question: "What is the term for the energy yield from the complete breakdown of one glucose molecule?",
+                    options: ["A) 2 ATP", "B) 4 ATP", "C) 36-38 ATP", "D) 6 ATP"],
+                    correctAnswer: "C) 36-38 ATP"
+                },
+                {
+                    question: "Which stage of cellular respiration produces NADH and FADH2?",
+                    options: ["A) Glycolysis", "B) Pyruvate oxidation", "C) Krebs cycle", "D) Oxidative phosphorylation"],
+                    correctAnswer: "C) Krebs cycle"
+                },
+                {
+                    question: "What is the term for the process by which cells generate energy from amino acids?",
+                    options: ["A) Protein synthesis", "B) Protein degradation", "C) Amino acid metabolism", "D) Glycolysis"],
+                    correctAnswer: "C) Amino acid metabolism"
+                },
+                {
+                    question: "Which type of cellular respiration is more efficient?",
+                    options: ["A) Aerobic respiration", "B) Anaerobic respiration", "C) Fermentation", "D) Glycolysis"],
+                    correctAnswer: "A) Aerobic respiration"
+                },
+                {
+                    question: "What is the term for the study of the inheritance of traits?",
+                    options: ["A) Genetics", "B) Genomics", "C) Epigenetics", "D) Heredity"],
+                    correctAnswer: "A) Genetics"
+                },
+                {
+                    question: "Which genetic principle states that each pair of alleles separates during gamete formation?",
+                    options: ["A) Law of segregation", "B) Law of independent assortment", "C) Law of dominance", "D) Law of incomplete dominance"],
+                    correctAnswer: "A) Law of segregation"
+                },
+                {
+                    question: "What is the term for a genetic trait that is influenced by multiple genes?",
+                    options: ["A) Polygenic trait", "B) Monogenic trait", "C) Dominant trait", "D) Recessive trait"],
+                    correctAnswer: "A) Polygenic trait"
+                },
+                {
+                    question: "Which type of genetic variation involves a change in the number of chromosomes?",
+                    options: ["A) Aneuploidy", "B) Polyploidy", "C) Mutation", "D) Gene duplication"],
+                    correctAnswer: "A) Aneuploidy"
+                },
+                {
+                    question: "What is the term for the genetic makeup of an individual?",
+                    options: ["A) Genotype", "B) Phenotype", "C) Dominant", "D) Recessive"],
+                    correctAnswer: "A) Genotype"
+                },
+                {
+                    question: "Which genetic disorder is caused by an extra copy of chromosome 21?",
+                    options: ["A) Down syndrome", "B) Sickle cell anemia", "C) Cystic fibrosis", "D) Huntington's disease"],
+                    correctAnswer: "A) Down syndrome"
+                },
+                {
+                    question: "What is the process by which genetic information is passed from DNA to RNA?",
+                    options: ["A) Transcription", "B) Translation", "C) Replication", "D) Mutation"],
+                    correctAnswer: "A) Transcription"
+                },
+                {
+                    question: "Which type of genetic variation involves a change in the DNA sequence?",
+                    options: ["A) Mutation", "B) Gene duplication", "C) Deletion", "D) Insertion"],
+                    correctAnswer: "A) Mutation"
+                },
+                {
+                    question: "What is the term for the study of the structure and function of genes?",
+                    options: ["A) Genomics", "B) Genetics", "C) Epigenetics", "D) Molecular biology"],
+                    correctAnswer: "A) Genomics"
+                },
+                {
+                    question: "Which genetic principle states that genes for different traits are sorted independently of each other during gamete formation?",
+                    options: ["A) Law of segregation", "B) Law of independent assortment", "C) Law of dominance", "D) Law of incomplete dominance"],
+                    correctAnswer: "B) Law of independent assortment"
+                },
+                {
+                    question: "What is the term for the process by which species change over time?",
+                    options: ["A) Evolution", "B) Natural selection", "C) Adaptation", "D) Mutation"],
+                    correctAnswer: "A) Evolution"
+                },
+                {
+                    question: "Which scientist is credited with the theory of evolution through natural selection?",
+                    options: ["A) Charles Darwin", "B) Gregor Mendel", "C) Louis Pasteur", "D) Albert Einstein"],
+                    correctAnswer: "A) Charles Darwin"
+                },
+                {
+                    question: "What is the term for the ability of an organism to survive and reproduce in its environment?",
+                    options: ["A) Fitness", "B) Adaptation", "C) Evolution", "D) Natural selection"],
+                    correctAnswer: "A) Fitness"
+                },
+                {
+                    question: "Which type of ecological relationship involves one organism benefiting and the other being harmed?",
+                    options: ["A) Symbiosis", "B) Mutualism", "C) Commensalism", "D) Parasitism"],
+                    correctAnswer: "D) Parasitism"
+                },
+                {
+                    question: "What is the term for the variety of different species in an ecosystem?",
+                    options: ["A) Species richness", "B) Species diversity", "C) Ecosystem diversity", "D) Genetic diversity"],
+                    correctAnswer: "B) Species diversity"
+                },
+                {
+                    question: "Which ecosystem is characterized by high temperatures and high levels of rainfall?",
+                    options: ["A) Desert", "B) Tropical rainforest", "C) Temperate forest", "D) Coral reef"],
+                    correctAnswer: "B) Tropical rainforest"
+                },
+                {
+                    question: "What is the term for the movement of energy through an ecosystem?",
+                    options: ["A) Energy flow", "B) Nutrient cycling", "C) Decomposition", "D) Primary production"],
+                    correctAnswer: "A) Energy flow"
+                },
+                {
+                    question: "Which type of ecological pyramid shows the number of individuals at each trophic level?",
+                    options: ["A) Pyramid of numbers", "B) Pyramid of biomass", "C) Pyramid of energy", "D) Pyramid of productivity"],
+                    correctAnswer: "A) Pyramid of numbers"
+                },
+                {
+                    question: "What is the term for the process by which nutrients are converted from one form to another in an ecosystem?",
+                    options: ["A) Nutrient cycling", "B) Energy flow", "C) Decomposition", "D) Primary production"],
+                    correctAnswer: "A) Nutrient cycling"
+                },
+                {
+                    question: "Which ecosystem is characterized by low levels of rainfall and limited vegetation?",
+                    options: ["A) Desert", "B) Grassland", "C) Temperate forest", "D) Tropical rainforest"],
+                    correctAnswer: "A) Desert"
+                },
+                {
+                    question: "What is the term for the study of the causes and mechanisms of disease?",
+                    options: ["A) Pathology", "B) Epidemiology", "C) Immunology", "D) Microbiology"],
+                    correctAnswer: "A) Pathology"
+                },
+                {
+                    question: "Which type of disease is caused by a pathogen?",
+                    options: ["A) Infectious disease", "B) Non-infectious disease", "C) Genetic disorder", "D) Autoimmune disease"],
+                    correctAnswer: "A) Infectious disease"
+                },
+                {
+                    question: "What is the term for the body's defense against pathogens?",
+                    options: ["A) Immune system", "B) Circulatory system", "C) Respiratory system", "D) Digestive system"],
+                    correctAnswer: "A) Immune system"
+                },
+                {
+                    question: "Which type of immune response is specific to a particular pathogen?",
+                    options: ["A) Innate immunity", "B) Adaptive immunity", "C) Active immunity", "D) Passive immunity"],
+                    correctAnswer: "B) Adaptive immunity"
+                },
+                {
+                    question: "What is the term for the process by which the body becomes resistant to a particular disease?",
+                    options: ["A) Immunity", "B) Vaccination", "C) Infection", "D) Inflammation"],
+                    correctAnswer: "A) Immunity"
+                },
+                {
+                    question: "Which type of disease is caused by a genetic mutation?",
+                    options: ["A) Genetic disorder", "B) Infectious disease", "C) Autoimmune disease", "D) Cancer"],
+                    correctAnswer: "A) Genetic disorder"
+                },
+                {
+                    question: "What is the term for the study of the distribution and determinants of disease in populations?",
+                    options: ["A) Epidemiology", "B) Pathology", "C) Immunology", "D) Microbiology"],
+                    correctAnswer: "A) Epidemiology"
+                },
+                {
+                    question: "Which type of vaccine provides long-term immunity against a particular disease?",
+                    options: ["A) Inactivated vaccine", "B) Live attenuated vaccine", "C) Subunit vaccine", "D) Conjugate vaccine"],
+                    correctAnswer: "B) Live attenuated vaccine"
+                },
+                {
+                    question: "What is the term for the process by which a disease spreads from one person to another?",
+                    options: ["A) Transmission", "B) Infection", "C) Contagion", "D) Outbreak"],
+                    correctAnswer: "A) Transmission"
+                },
+                {
+                    question: "Which type of disease is caused by a malfunction of the immune system?",
+                    options: ["A) Autoimmune disease", "B) Infectious disease", "C) Genetic disorder", "D) Cancer"],
+                    correctAnswer: "A) Autoimmune disease"
+                },
+                {
+                    question: "What is the term for the study of the structure and function of the human body?",
+                    options: ["A) Anatomy", "B) Physiology", "C) Biology", "D) Medicine"],
+                    correctAnswer: "A) Anatomy"
+                },
+                {
+                    question: "Which type of cell is responsible for transmitting nerve impulses?",
+                    options: ["A) Neuron", "B) Muscle cell", "C) Epithelial cell", "D) Connective tissue cell"],
+                    correctAnswer: "A) Neuron"
+                },
+                {
+                    question: "What is the term for the process by which the body maintains a stable internal environment?",
+                    options: ["A) Homeostasis", "B) Metabolism", "C) Growth", "D) Development"],
+                    correctAnswer: "A) Homeostasis"
+                },
+                {
+                    question: "Which type of tissue provides support and structure to the body?",
+                    options: ["A) Connective tissue", "B) Epithelial tissue", "C) Muscle tissue", "D) Nervous tissue"],
+                    correctAnswer: "A) Connective tissue"
+                },
+                {
+                    question: "What is the term for the study of the functions of the human body?",
+                    options: ["A) Physiology", "B) Anatomy", "C) Biology", "D) Medicine"],
+                    correctAnswer: "A) Physiology"
+                },
+                {
+                    question: "Which system is responsible for transporting oxygen and nutrients to cells?",
+                    options: ["A) Circulatory system", "B) Respiratory system", "C) Digestive system", "D) Nervous system"],
+                    correctAnswer: "A) Circulatory system"
+                },
+                {
+                    question: "What is the term for the process by which the body breaks down food into nutrients?",
+                    options: ["A) Digestion", "B) Absorption", "C) Assimilation", "D) Excretion"],
+                    correctAnswer: "A) Digestion"
+                },
+                {
+                    question: "Which organ is responsible for filtering waste and excess fluids from the blood?",
+                    options: ["A) Kidneys", "B) Liver", "C) Lungs", "D) Heart"],
+                    correctAnswer: "A) Kidneys"
+                },
+                {
+                    question: "What is the term for the system that produces hormones that regulate various bodily functions?",
+                    options: ["A) Endocrine system", "B) Nervous system", "C) Circulatory system", "D) Digestive system"],
+                    correctAnswer: "A) Endocrine system"
+                },
+                {
+                    question: "Which system is responsible for protecting the body against pathogens?",
+                    options: ["A) Immune system", "B) Circulatory system", "C) Respiratory system", "D) Digestive system"],
+                    correctAnswer: "A) Immune system"
+                },
+                {
+                    question: "What is the term for the process by which the body responds to stimuli?",
+                    options: ["A) Reflex", "B) Response", "C) Stimulation", "D) Sensation"],
+                    correctAnswer: "A) Reflex"
+                },
+                {
+                    question: "Which organ is responsible for exchanging oxygen and carbon dioxide through breathing?",
+                    options: ["A) Lungs", "B) Heart", "C) Liver", "D) Kidneys"],
+                    correctAnswer: "A) Lungs"
+                },
+                {
+                    question: "What is the term for the system that transmits nerve impulses throughout the body?",
+                    options: ["A) Nervous system", "B) Circulatory system", "C) Digestive system", "D) Endocrine system"],
+                    correctAnswer: "A) Nervous system"
+                },
+                {
+                    question: "Which system is responsible for removing waste products from the body?",
+                    options: ["A) Excretory system", "B) Digestive system", "C) Circulatory system", "D) Respiratory system"],
+                    correctAnswer: "A) Excretory system"
+                },
+                {
+                    question: "What is the term for the basic unit of life?",
+                    options: ["A) Atom", "B) Cell", "C) Tissue", "D) Organ"],
+                    correctAnswer: "B) Cell"
+                },
+                {
+                    question: "Which kingdom do viruses belong to?",
+                    options: ["A) Plantae", "B) Animalia", "C) Protista", "D) None of the above"],
+                    correctAnswer: "D) None of the above"
+                },
+                {
+                    question: "Which organelle is responsible for energy production?",
+                    options: ["A) Ribosome", "B) Nucleus", "C) Mitochondrion", "D) Lysosome"],
+                    correctAnswer: "C) Mitochondrion"
+                },
+                {
+                    question: "Which of the following is a prokaryote?",
+                    options: ["A) Amoeba", "B) Paramecium", "C) E. coli", "D) Yeast"],
+                    correctAnswer: "C) E. coli"
+                },
+                {
+                    question: "The hereditary material in organisms is:",
+                    options: ["A) RNA", "B) Enzyme", "C) DNA", "D) Protein"],
+                    correctAnswer: "C) DNA"
+                },
+                {
+                    question: "The movement of water across a selectively permeable membrane is called:",
+                    options: ["A) Diffusion", "B) Osmosis", "C) Active transport", "D) Filtration"],
+                    correctAnswer: "B) Osmosis"
+                },
+                {
+                    question: "Photosynthesis occurs in which part of the plant cell?",
+                    options: ["A) Nucleus", "B) Cytoplasm", "C) Chloroplast", "D) Ribosome"],
+                    correctAnswer: "C) Chloroplast"
+                },
+                {
+                    question: "Which of these is not a macromolecule?",
+                    options: ["A) Protein", "B) Lipid", "C) Water", "D) Nucleic acid"],
+                    correctAnswer: "C) Water"
+                },
+                {
+                    question: "Which scientist proposed the cell theory?",
+                    options: ["A) Mendel", "B) Schleiden and Schwann", "C) Darwin", "D) Watson and Crick"],
+                    correctAnswer: "B) Schleiden and Schwann"
+                },
+                {
+                    question: "Which of the following is found in plant cells but not in animal cells?",
+                    options: ["A) Mitochondria", "B) Cell membrane", "C) Chloroplast", "D) Ribosome"],
+                    correctAnswer: "C) Chloroplast"
+                },
+                {
+                    question: "An organism that makes its own food is called a:",
+                    options: ["A) Heterotroph", "B) Saprophyte", "C) Autotroph", "D) Parasite"],
+                    correctAnswer: "C) Autotroph"
+                },
+                {
+                    question: "The functional unit of the kidney is the:",
+                    options: ["A) Alveolus", "B) Nephron", "C) Neuron", "D) Glomerulus"],
+                    correctAnswer: "B) Nephron"
+                },
+                {
+                    question: "Which blood cells are responsible for fighting infection?",
+                    options: ["A) Red blood cells", "B) Platelets", "C) White blood cells", "D) Plasma"],
+                    correctAnswer: "C) White blood cells"
+                },
+                {
+                    question: "The largest part of the human brain is the:",
+                    options: ["A) Cerebrum", "B) Cerebellum", "C) Medulla", "D) Thalamus"],
+                    correctAnswer: "A) Cerebrum"
+                },
+                {
+                    question: "In genetics, the physical appearance of an organism is its:",
+                    options: ["A) Genotype", "B) Phenotype", "C) Allele", "D) Trait"],
+                    correctAnswer: "B) Phenotype"
+                },
+                {
+                    question: "Which part of the flower becomes the fruit?",
+                    options: ["A) Stigma", "B) Style", "C) Ovary", "D) Anther"],
+                    correctAnswer: "C) Ovary"
+                },
+                {
+                    question: "Which vitamin is synthesized in the skin when exposed to sunlight?",
+                    options: ["A) Vitamin A", "B) Vitamin C", "C) Vitamin D", "D) Vitamin K"],
+                    correctAnswer: "C) Vitamin D"
+                },
+                {
+                    question: "Which blood group is a universal donor?",
+                    options: ["A) AB+", "B) O+", "C) O–", "D) AB–"],
+                    correctAnswer: "C) O–"
+                },
+                {
+                    question: "The exchange of gases in the lungs occurs in the:",
+                    options: ["A) Bronchi", "B) Alveoli", "C) Trachea", "D) Diaphragm"],
+                    correctAnswer: "B) Alveoli"
+                },
+                {
+                    question: "The process by which green plants make their own food is called:",
+                    options: ["A) Respiration", "B) Germination", "C) Photosynthesis", "D) Transpiration"],
+                    correctAnswer: "C) Photosynthesis"
+                },
+                {
+                    question: "The smallest bone in the human body is found in the:",
+                    options: ["A) Ear", "B) Hand", "C) Foot", "D) Nose"],
+                    correctAnswer: "A) Ear"
+                },
+                {
+                    question: "Mendel is known for his work on:",
+                    options: ["A) Evolution", "B) Heredity", "C) Ecology", "D) Anatomy"],
+                    correctAnswer: "B) Heredity"
+                },
+                {
+                    question: "An animal that feeds on both plants and animals is called:",
+                    options: ["A) Herbivore", "B) Carnivore", "C) Omnivore", "D) Insectivore"],
+                    correctAnswer: "C) Omnivore"
+                },
+                {
+                    question: "Which of the following is an example of an excretory organ?",
+                    options: ["A) Liver", "B) Kidney", "C) Stomach", "D) Pancreas"],
+                    correctAnswer: "B) Kidney"
+                },
+                {
+                    question: "Which of the following processes does not require energy?",
+                    options: ["A) Active transport", "B) Diffusion", "C) Endocytosis", "D) Exocytosis"],
+                    correctAnswer: "B) Diffusion"
+                },
+                {
+                    question: "What is the structural and functional unit of the nervous system?",
+                    options: ["A) Nephron", "B) Neuron", "C) Alveolus", "D) Sarcomere"],
+                    correctAnswer: "B) Neuron"
+                },
+                {
+                    question: "Which part of the brain controls voluntary movements?",
+                    options: ["A) Cerebellum", "B) Medulla oblongata", "C) Cerebrum", "D) Brainstem"],
+                    correctAnswer: "C) Cerebrum"
+                },
+                {
+                    question: "Which hormone regulates blood sugar levels?",
+                    options: ["A) Insulin", "B) Adrenaline", "C) Thyroxine", "D) Estrogen"],
+                    correctAnswer: "A) Insulin"
+                },
+                {
+                    question: "What is the main function of red blood cells?",
+                    options: ["A) Fight infection", "B) Clot blood", "C) Transport oxygen", "D) Produce antibodies"],
+                    correctAnswer: "C) Transport oxygen"
+                },
+                {
+                    question: "Which type of muscle is found in the walls of internal organs and is involuntary?",
+                    options: ["A) Skeletal muscle", "B) Cardiac muscle", "C) Smooth muscle", "D) Voluntary muscle"],
+                    correctAnswer: "C) Smooth muscle"
+                },
+                {
+                    question: "The process of maintaining a stable internal environment in an organism is called:",
+                    options: ["A) Metabolism", "B) Homeostasis", "C) Respiration", "D) Digestion"],
+                    correctAnswer: "B) Homeostasis"
+                },
+                {
+                    question: "Which gas is produced during photosynthesis?",
+                    options: ["A) Carbon dioxide", "B) Oxygen", "C) Nitrogen", "D) Methane"],
+                    correctAnswer: "B) Oxygen"
+                },
+                {
+                    question: "What are the building blocks of proteins?",
+                    options: ["A) Monosaccharides", "B) Fatty acids", "C) Nucleotides", "D) Amino acids"],
+                    correctAnswer: "D) Amino acids"
+                },
+                {
+                    question: "Which part of a plant absorbs water and nutrients from the soil?",
+                    options: ["A) Leaves", "B) Stem", "C) Roots", "D) Flowers"],
+                    correctAnswer: "C) Roots"
+                },
+                {
+                    question: "What is the process by which an organism grows and develops?",
+                    options: ["A) Reproduction", "B) Evolution", "C) Metabolism", "D) Development"],
+                    correctAnswer: "D) Development"
+                },
+                {
+                    question: "Which of the following is a characteristic of living organisms?",
+                    options: ["A) Ability to photosynthesize", "B) Composed of cells", "C) Sessile lifestyle", "D) Impermeable to water"],
+                    correctAnswer: "B) Composed of cells"
+                },
+                {
+                    question: "The backbone of DNA is composed of:",
+                    options: ["A) Amino acids", "B) Sugars and phosphates", "C) Fatty acids", "D) Nitrogenous bases"],
+                    correctAnswer: "B) Sugars and phosphates"
+                },
+                {
+                    question: "Which type of reproduction involves two parents and produces genetically diverse offspring?",
+                    options: ["A) Asexual reproduction", "B) Binary fission", "C) Sexual reproduction", "D) Budding"],
+                    correctAnswer: "C) Sexual reproduction"
+                },
+                {
+                    question: "What is the term for the total sum of all chemical reactions that occur in an organism?",
+                    options: ["A) Digestion", "B) Excretion", "C) Metabolism", "D) Homeostasis"],
+                    correctAnswer: "C) Metabolism"
+                },
+                {
+                    question: "Which of these is an example of a carbohydrate?",
+                    options: ["A) Enzyme", "B) Glucose", "C) Antibody", "D) Steroid"],
+                    correctAnswer: "B) Glucose"
+                },
+                {
+                    question: "The primary site of nutrient absorption in the human body is the:",
+                    options: ["A) Stomach", "B) Large intestine", "C) Small intestine", "D) Esophagus"],
+                    correctAnswer: "C) Small intestine"
+                },
+                {
+                    question: "What is the process of breaking down food into smaller molecules?",
+                    options: ["A) Absorption", "B) Digestion", "C) Excretion", "D) Metabolism"],
+                    correctAnswer: "B) Digestion"
+                },
+                {
+                    question: "Which type of cell lacks a true nucleus and membrane-bound organelles?",
+                    options: ["A) Eukaryotic cell", "B) Plant cell", "C) Prokaryotic cell", "D) Animal cell"],
+                    correctAnswer: "C) Prokaryotic cell"
+                },
+                {
+                    question: "Which of the following is a reactant in photosynthesis?",
+                    options: ["A) Oxygen", "B) Glucose", "C) Carbon dioxide", "D) Water and Glucose"],
+                    correctAnswer: "C) Carbon dioxide"
+                },
+                {
+                    question: "The scientific name of an organism consists of its:",
+                    options: ["A) Kingdom and Phylum", "B) Family and Genus", "C) Genus and Species", "D) Class and Order"],
+                    correctAnswer: "C) Genus and Species"
+                },
+                {
+                    question: "Which organ produces bile to aid in fat digestion?",
+                    options: ["A) Pancreas", "B) Gallbladder", "C) Liver", "D) Spleen"],
+                    correctAnswer: "C) Liver"
+                },
+                {
+                    question: "The process of cell division that results in two identical daughter cells is called:",
+                    options: ["A) Meiosis", "B) Mitosis", "C) Fertilization", "D) Transcription"],
+                    correctAnswer: "B) Mitosis"
+                },
+                {
+                    question: "Which of the following is an abiotic factor in an ecosystem?",
+                    options: ["A) Bacteria", "B) Temperature", "C) Fungi", "D) Plants"],
+                    correctAnswer: "B) Temperature"
+                },
+                {
+                    question: "What is the main function of the circulatory system?",
+                    options: ["A) Gas exchange", "B) Nutrient absorption", "C) Transport of substances", "D) Waste removal"],
+                    correctAnswer: "C) Transport of substances"
+                },
+                {
+                    question: "Which of these is a major source of energy for most living organisms?",
+                    options: ["A) Water", "B) Minerals", "C) Glucose", "D) Vitamins"],
+                    correctAnswer: "C) Glucose"
+                },
+                {
+                    question: "The outer protective layer of a plant cell is the:",
+                    options: ["A) Cell membrane", "B) Cytoplasm", "C) Cell wall", "D) Nucleus"],
+                    correctAnswer: "C) Cell wall"
+                },
+                {
+                    question: "Which of the following is responsible for storing genetic information?",
+                    options: ["A) RNA", "B) Protein", "C) Lipid", "D) DNA"],
+                    correctAnswer: "D) DNA"
+                },
+                {
+                    question: "The process of gas exchange in the lungs occurs between the alveoli and the:",
+                    options: ["A) Bronchioles", "B) Trachea", "C) Capillaries", "D) Pleura"],
+                    correctAnswer: "C) Capillaries"
+                },
+                {
+                    question: "Which organ is responsible for detoxification and metabolism of drugs?",
+                    options: ["A) Kidney", "B) Pancreas", "C) Liver", "D) Spleen"],
+                    correctAnswer: "C) Liver"
+                },
+                {
+                    question: "What is the term for a group of similar cells that perform a specific function?",
+                    options: ["A) Organ", "B) System", "C) Tissue", "D) Organism"],
+                    correctAnswer: "C) Tissue"
+                },
+                {
+                    question: "Which part of the eye contains photoreceptor cells (rods and cones)?",
+                    options: ["A) Cornea", "B) Lens", "C) Retina", "D) Iris"],
+                    correctAnswer: "C) Retina"
+                },
+                {
+                    question: "The movement of molecules from an area of high concentration to an area of low concentration is called:",
+                    options: ["A) Active transport", "B) Osmosis", "C) Diffusion", "D) Facilitated diffusion"],
+                    correctAnswer: "C) Diffusion"
+                },
+                {
+                    question: "Which of the following is a product of cellular respiration?",
+                    options: ["A) Oxygen", "B) Glucose", "C) Carbon dioxide", "D) Sunlight"],
+                    correctAnswer: "C) Carbon dioxide"
+                },
+                {
+                    question: "What is the primary function of the skeletal system?",
+                    options: ["A) Movement", "B) Support and protection", "C) Digestion", "D) Hormone production"],
+                    correctAnswer: "B) Support and protection"
+                },
+                {
+                    question: "Which type of organism obtains energy by consuming other organisms?",
+                    options: ["A) Producer", "B) Autotroph", "C) Heterotroph", "D) Decomposer"],
+                    correctAnswer: "C) Heterotroph"
+                },
+                {
+                    question: "The liquid part of blood that contains proteins, glucose, and hormones is:",
+                    options: ["A) Red blood cells", "B) White blood cells", "C) Platelets", "D) Plasma"],
+                    correctAnswer: "D) Plasma"
+                },
+                {
+                    question: "Which of the following is an example of a symbiotic relationship where both organisms benefit?",
+                    options: ["A) Predation", "B) Parasitism", "C) Mutualism", "D) Commensalism"],
+                    correctAnswer: "C) Mutualism"
+                },
+                {
+                    question: "What is the largest organ in the human body?",
+                    options: ["A) Liver", "B) Brain", "C) Skin", "D) Heart"],
+                    correctAnswer: "C) Skin"
+                },
+                {
+                    question: "Which of the following is a component of a nucleotide?",
+                    options: ["A) Amino acid", "B) Fatty acid", "C) Phosphate group", "D) Glucose"],
+                    correctAnswer: "C) Phosphate group"
+                },
+                {
+                    question: "The process by which plants release water vapor into the atmosphere is called:",
+                    options: ["A) Photosynthesis", "B) Respiration", "C) Transpiration", "D) Evaporation"],
+                    correctAnswer: "C) Transpiration"
+                },
+                {
+                    question: "Which part of the digestive system is responsible for absorbing most nutrients?",
+                    options: ["A) Stomach", "B) Large intestine", "C) Small intestine", "D) Esophagus"],
+                    correctAnswer: "C) Small intestine"
+                },
+                {
+                    question: "What is the main function of white blood cells?",
+                    options: ["A) Transport oxygen", "B) Clot blood", "C) Fight infection", "D) Transport carbon dioxide"],
+                    correctAnswer: "C) Fight infection"
+                },
+                {
+                    question: "Which organ system is responsible for communication and coordination in the body?",
+                    options: ["A) Endocrine system", "B) Nervous system", "C) Circulatory system", "D) Muscular system"],
+                    correctAnswer: "B) Nervous system"
+                },
+                {
+                    question: "The process of converting light energy into chemical energy is called:",
+                    options: ["A) Cellular respiration", "B) Fermentation", "C) Photosynthesis", "D) Chemosynthesis"],
+                    correctAnswer: "C) Photosynthesis"
+                },
+                {
+                    question: "Which of the following is an example of a lipid?",
+                    options: ["A) Starch", "B) Enzyme", "C) Cholesterol", "D) DNA"],
+                    correctAnswer: "C) Cholesterol"
+                },
+                {
+                    question: "What is the function of enzymes in biological reactions?",
+                    options: ["A) Store energy", "B) Speed up reactions", "C) Provide structural support", "D) Transmit genetic information"],
+                    correctAnswer: "B) Speed up reactions"
+                },
+                {
+                    question: "Which of these is a biotic factor in an ecosystem?",
+                    options: ["A) Sunlight", "B) Water", "C) Soil pH", "D) Animals"],
+                    correctAnswer: "D) Animals"
+                },
+                {
+                    question: "The site of cellular respiration in eukaryotic cells is the:",
+                    options: ["A) Chloroplast", "B) Nucleus", "C) Ribosome", "D) Mitochondrion"],
+                    correctAnswer: "D) Mitochondrion"
+                },
+                {
+                    question: "Which of the following is a universal solvent?",
+                    options: ["A) Oil", "B) Alcohol", "C) Water", "D) Benzene"],
+                    correctAnswer: "C) Water"
+                },
+                {
+                    question: "The process of cell division that produces gametes (sex cells) is called:",
+                    options: ["A) Mitosis", "B) Meiosis", "C) Fertilization", "D) Cytokinesis"],
+                    correctAnswer: "B) Meiosis"
+                },
+                {
+                    question: "What are the two main types of nucleic acids?",
+                    options: ["A) DNA and Protein", "B) RNA and Lipid", "C) DNA and RNA", "D) Protein and Carbohydrate"],
+                    correctAnswer: "C) DNA and RNA"
+                },
+                {
+                    question: "Which organ produces insulin and glucagon?",
+                    options: ["A) Liver", "B) Kidney", "C) Pancreas", "D) Spleen"],
+                    correctAnswer: "C) Pancreas"
+                },
+                {
+                    question: "The smallest unit of an element that retains the properties of that element is a(n):",
+                    options: ["A) Molecule", "B) Cell", "C) Atom", "D) Compound"],
+                    correctAnswer: "C) Atom"
+                },
+                {
+                    question: "Which of the following is an example of a producer in an ecosystem?",
+                    options: ["A) Fungi", "B) Algae", "C) Bacteria", "D) Worms"],
+                    correctAnswer: "B) Algae"
+                },
+                {
+                    question: "What is the main function of the integumentary system?",
+                    options: ["A) Support", "B) Protection", "C) Digestion", "D) Circulation"],
+                    correctAnswer: "B) Protection"
+                },
+                {
+                    question: "The movement of substances against their concentration gradient, requiring energy, is called:",
+                    options: ["A) Diffusion", "B) Osmosis", "C) Active transport", "D) Facilitated diffusion"],
+                    correctAnswer: "C) Active transport"
+                },
+                {
+                    question: "Which of these is a characteristic of all living organisms?",
+                    options: ["A) Photosynthesis", "B) Sexual reproduction", "C) Homeostasis", "D) Presence of a cell wall"],
+                    correctAnswer: "C) Homeostasis"
+                },
+                {
+                    question: "What is the primary site of gas exchange in plants?",
+                    options: ["A) Roots", "B) Stems", "C) Leaves", "D) Flowers"],
+                    correctAnswer: "C) Leaves"
+                },
+                {
+                    question: "Which type of bond involves the sharing of electrons between atoms?",
+                    options: ["A) Ionic bond", "B) Covalent bond", "C) Hydrogen bond", "D) Metallic bond"],
+                    correctAnswer: "B) Covalent bond"
+                },
+
+
+            ];
+        }
+        questions = generateBio101Questions();
+
+        // Shuffle function to randomize questions
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
+
+        function startQuiz() {
+            startScreen.classList.add('hidden');
+            quizScreen.classList.remove('hidden');
+            profileSection.classList.add('hidden'); // Hide profile when quiz starts
+
+            shuffleArray(questions);
+            currentQuizQuestions = questions.slice(0, NUM_QUESTIONS_TO_ASK); // Select the first 50 random questions
+            currentQuestionIndex = 0;
+            score = 0;
+            userAnswers = Array(NUM_QUESTIONS_TO_ASK).fill(null); // Initialize userAnswers with nulls
+            startTime = Date.now(); // Record start time
+
+            displayQuestion();
+            startTimer();
+            // nextQuestionButton.style.display = 'block'; // Next button always visible by default
+            updateNextButtonText(); // Set initial text
+        }
+
+        function displayQuestion() {
+            if (currentQuestionIndex < currentQuizQuestions.length) {
+                const question = currentQuizQuestions[currentQuestionIndex];
+                questionText.textContent = question.question;
+                optionsContainer.innerHTML = '';
+                currentSelectedOptionButton = null; // Reset selected option button for new question
+                currentSelectedAnswerText = null; // Reset selected answer text for new question
+
+                question.options.forEach(option => {
+                    const button = document.createElement('button');
+                    button.classList.add('option-button');
+                    button.textContent = option;
+                    button.addEventListener('click', () => selectOption(button, option));
+                    optionsContainer.appendChild(button);
+                });
+
+                questionCounter.textContent = `Question ${currentQuestionIndex + 1}/${NUM_QUESTIONS_TO_ASK}`;
+                timeLeft = QUIZ_DURATION_PER_QUESTION; // Reset timer for each question
+                timerDisplay.textContent = `${timeLeft}s`;
+                updateNextButtonText(); // Update button text for current question
+            } else {
+                endQuiz();
+            }
+        }
+
+        function selectOption(button, selectedAnswer) {
+            // Remove 'selected' class from previously selected option, if any
+            if (currentSelectedOptionButton) {
+                currentSelectedOptionButton.classList.remove('selected');
+            }
+
+            // Add 'selected' class to the newly selected option
+            button.classList.add('selected');
+            currentSelectedOptionButton = button;
+            currentSelectedAnswerText = selectedAnswer; // Store the text of the selected answer
+        }
+
+        function updateNextButtonText() {
+            if (currentQuestionIndex === NUM_QUESTIONS_TO_ASK - 1) {
+                nextQuestionButton.textContent = "Submit";
+            } else {
+                nextQuestionButton.textContent = "Next Question";
+            }
+        }
+
+        function nextQuestion() {
+            if (currentSelectedAnswerText !== null) { // Only proceed if an option was selected
+                checkAnswer();
+                currentQuestionIndex++;
+                displayQuestion();
+                startTimer(); // Restart timer for the next question
+            } else {
+                alert("Please select an answer before proceeding to the next question.");
+            }
+        }
+
+        function checkAnswer() {
+            const question = currentQuizQuestions[currentQuestionIndex];
+            const isCorrect = (currentSelectedAnswerText === question.correctAnswer);
+
+            userAnswers[currentQuestionIndex] = {
+                question: question.question,
+                userAnswer: currentSelectedAnswerText,
+                correctAnswer: question.correctAnswer,
+                isCorrect: isCorrect
+            };
+
+            if (isCorrect) {
+                score++;
+            }
+        }
+
+        function startTimer() {
+            clearInterval(timerInterval); // Clear any existing timer
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                timerDisplay.textContent = `${timeLeft}s`;
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    // Automatically move to the next question if time runs out
+                    // and mark as incorrect if no answer was selected
+                    if (currentSelectedAnswerText === null) { // If user didn't select any option
+                        const question = currentQuizQuestions[currentQuestionIndex];
+                        userAnswers[currentQuestionIndex] = {
+                            question: question.question,
+                            userAnswer: "No answer selected (Time out)",
+                            correctAnswer: question.correctAnswer,
+                            isCorrect: false
+                        };
+                    }
+                    nextQuestion();
+                }
+            }, 1000);
+        }
+
+        function endQuiz() {
+            clearInterval(timerInterval); // Stop the timer
+            quizScreen.classList.add('hidden');
+            resultsScreen.classList.remove('hidden');
+            profileSection.classList.remove('hidden'); // Show profile after quiz ends
+
+            const totalQuestions = NUM_QUESTIONS_TO_ASK;
+            scoreDisplay.textContent = score;
+            totalQuestionsDisplay.textContent = totalQuestions;
+            const percentage = (score / totalQuestions) * 100;
+            percentageDisplay.textContent = `${percentage.toFixed(2)}%`;
+
+            // Save quiz history
+            saveQuizHistory(score, totalQuestions, percentage.toFixed(2), userAnswers);
+            displayQuizHistory();
+
+            // Clear missed answers list
+            missedQuestionsList.innerHTML = '';
+            failedAnswersContainer.classList.add('hidden'); // Hide failed answers by default
+        }
+
+        function saveQuizHistory(score, totalQuestions, percentage, answers) {
+            let history = JSON.parse(localStorage.getItem('quizHistory')) || [];
+            const endTime = Date.now();
+            const totalTimeSeconds = ((endTime - startTime) / 1000); // Time in seconds
+            const timeTakenMinutes = (totalTimeSeconds / 60).toFixed(2); // Time in minutes
+
+            history.push({
+                date: new Date().toLocaleString(),
+                score: score,
+                total: totalQuestions,
+                percentage: percentage,
+                timeTaken: timeTakenMinutes, // Storing in minutes
+                allAnswers: answers // Store all answer objects for full review capability
+            });
+            localStorage.setItem('quizHistory', JSON.stringify(history));
+        }
+
+        function displayQuizHistory() {
+            const history = JSON.parse(localStorage.getItem('quizHistory')) || [];
+            quizHistoryDisplay.innerHTML = ''; // Clear previous history
+
+            if (history.length === 0) {
+                noHistoryMessage.classList.remove('hidden');
+                clearHistoryButton.classList.add('hidden');
+            } else {
+                noHistoryMessage.classList.add('hidden');
+                clearHistoryButton.classList.remove('hidden');
+                history.forEach((entry, index) => {
+                    const historyItem = document.createElement('div');
+                    historyItem.classList.add('quiz-history-item');
+                    historyItem.innerHTML = `
+                        <p><strong>Quiz ${index + 1}:</strong> ${entry.date}</p>
+                        <p>Score: ${entry.score}/${entry.total} (${entry.percentage}%)</p>
+                        <p>Time Taken: ${entry.timeTaken} minutes</p>
+                        <button class="action-button" onclick="showSpecificFailedAnswers(${index})">Review Missed</button>
+                    `;
+                    quizHistoryDisplay.appendChild(historyItem);
+                });
+            }
+        }
+
+        function showSpecificFailedAnswers(historyIndex) {
+            const history = JSON.parse(localStorage.getItem('quizHistory')) || [];
+            const entry = history[historyIndex];
+
+            missedQuestionsList.innerHTML = ''; // Clear previous list
+            failedAnswersContainer.classList.remove('hidden'); // Always show container
+
+            if (entry && entry.allAnswers && entry.allAnswers.length > 0) {
+                const missed = entry.allAnswers.filter(answer => !answer.isCorrect);
+
+                if (missed.length > 0) {
+                    missed.forEach(missedAnswer => {
+                        const listItem = document.createElement('li');
+                        listItem.innerHTML = `
+                            <p><strong>Question:</strong> ${missedAnswer.question}</p>
+                            <p style="color: red;"><strong>Your Answer:</strong> ${missedAnswer.userAnswer}</p>
+                            <p style="color: green;"><strong>Correct Answer:</strong> ${missedAnswer.correctAnswer}</p>
+                            <hr>
+                        `;
+                        missedQuestionsList.appendChild(listItem);
+                    });
+                } else {
+                    missedQuestionsList.innerHTML = '<li>Great job! You answered all questions correctly in this quiz.</li>';
+                }
+            } else {
+                missedQuestionsList.innerHTML = '<li>No answer data available for this quiz.</li>';
+            }
+        }
+
+        function clearQuizHistory() {
+            if (confirm("Are you sure you want to clear all quiz history?")) {
+                localStorage.removeItem('quizHistory');
+                displayQuizHistory(); // Refresh display
+            }
+        }
+
+        // Event Listeners
+        startQuizButton.addEventListener('click', startQuiz);
+        nextQuestionButton.addEventListener('click', nextQuestion);
+        backToStartButton.addEventListener('click', () => { // Renamed variable
+            resultsScreen.classList.add('hidden');
+            startScreen.classList.remove('hidden');
+            failedAnswersContainer.classList.add('hidden'); // Hide failed answers when going back to start
+            profileSection.classList.add('hidden'); // Keep profile hidden until after the next quiz
+        });
+        showFailedAnswersButton.addEventListener('click', () => {
+            missedQuestionsList.innerHTML = ''; // Clear previous list
+            failedAnswersContainer.classList.remove('hidden'); // Always show container
+
+            const missedQuestions = userAnswers.filter(answer => answer && !answer.isCorrect);
+
+            if (missedQuestions.length > 0) {
+                missedQuestions.forEach(missedAnswer => {
+                    const listItem = document.createElement('li');
+                    listItem.innerHTML = `
+                        <p><strong>Question:</strong> ${missedAnswer.question}</p>
+                        <p style="color: red;"><strong>Your Answer:</strong> ${missedAnswer.userAnswer}</p>
+                        <p style="color: green;"><strong>Correct Answer:</strong> ${missedAnswer.correctAnswer}</p>
+                        <hr>
+                    `;
+                    missedQuestionsList.appendChild(listItem);
+                });
+            } else {
+                missedQuestionsList.innerHTML = '<li>Congratulations! You answered all questions correctly.</li>';
+            }
+        });
+        clearHistoryButton.addEventListener('click', clearQuizHistory);
+
+        // Initial setup on page load
+        // Hide profile section initially, it will be displayed after quiz completion
+        profileSection.classList.add('hidden');
+        // displayQuizHistory(); // No need to display on load if hidden
+    </script>
+
+</body>
+</html>
+

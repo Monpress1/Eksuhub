@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>100 Level Courses</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 20px;
+            background-color: #f4f4f4;
+            color: #333;
+        }
+        .container {
+            max-width: 800px;
+            margin: auto;
+            background: #fff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1, h2 {
+            color: #0056b3;
+            text-align: center;
+        }
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        li {
+            background: #e9e9e9;
+            margin-bottom: 8px;
+            padding: 10px 15px;
+            border-radius: 4px;
+        }
+        #facultyNameDisplay {
+            font-size: 1.2em;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 20px;
+            color: #007bff;
+        }
+        #loadingMessage {
+            text-align: center;
+            color: #555;
+            font-style: italic;
+        }
+        #errorMessage {
+            text-align: center;
+            color: red;
+            font-weight: bold;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Welcome to 100 Level!</h1>
+        <p id="loadingMessage">Loading your faculty courses...</p>
+        <div id="contentDisplay" style="display: none;">
+            <h2 id="facultyNameDisplay"></h2>
+            <h3>Common 100-Level Courses:</h3>
+            <ul id="courseList">
+                </ul>
+        </div>
+        <p id="errorMessage" style="display: none;"></p>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const loadingMessage = document.getElementById('loadingMessage');
+            const contentDisplay = document.getElementById('contentDisplay');
+            const facultyNameDisplay = document.getElementById('facultyNameDisplay');
+            const courseList = document.getElementById('courseList');
+            const errorMessage = document.getElementById('errorMessage');
+
+            // 1. Retrieve the faculty from localStorage
+            const userFaculty = localStorage.getItem('faculty');
+            console.log("User's Faculty from localStorage:", userFaculty); // For debugging
+
+            // Define the course data
+            // It's best to keep this data structured and readable.
+            // Using a Map or a plain object is good.
+            const facultyCourses = {
+                "Faculty of Agricultural Sciences": [
+                    "BIO 101: General Biology I",
+                    "BIO 102: General Biology II",
+                    "CHM 101: General Chemistry I",
+                    "CHM 102: General Chemistry II",
+                    "PHY 101: General Physics I",
+                    "MTH 101: General Mathematics I",
+                    "MTH 102: General Mathematics II",
+                    "GST 111: Use of English I",
+                    "GST 112: Logic, Philosophy and Human Existence",
+                    "GST 113: Nigerian Peoples and Culture",
+                    "GST 116: Use of Library, Study Skills and Information Technology"
+                ],
+                "Faculty of Arts": [
+                    "ENG 101: Introduction to English Language",
+                    "LIT 101: Introduction to Literature",
+                    "PHL 101: Introduction to Philosophy",
+                    "HIS 101: Introduction to History I",
+                    "HIS 102: Introduction to History II",
+                    "GST 111: Use of English I",
+                    "GST 112: Logic, Philosophy and Human Existence",
+                    "GST 113: Nigerian Peoples and Culture",
+                    "GST 116: Use of Library, Study Skills and Information Technology",
+                    "GST 118: Peace and Conflict Resolution"
+                ],
+                "Faculty of Basic Medical Sciences": [
+                    "BIO 101: General Biology I",
+                    "BIO 102: General Biology II",
+                    "CHM 101: General Chemistry I",
+                    "CHM 102: General Chemistry II",
+                    "PHY 101: General Physics I",
+                    "PHY 102: General Physics II",
+                    "MTH 101: General Mathematics I",
+                    "MTH 102: General Mathematics II",
+                    "GST 111: Use of English I",
+                    "GST 112: Logic, Philosophy and Human Existence",
+                    "GST 113: Nigerian Peoples and Culture",
+                    "GST 116: Use of Library, Study Skills and Information Technology"
+                ],
+                "Faculty of Clinical Sciences": [
+                    "BIO 101: General Biology I",
+                    "BIO 102: General Biology II",
+                    "CHM 101: General Chemistry I",
+                    "CHM 102: General Chemistry II",
+                    "PHY 101: General Physics I",
+                    "PHY 102: General Physics II",
+                    "MTH 101: General Mathematics I",
+                    "MTH 102: General Mathematics II",
+                    "GST 111: Use of English I",
+                    "GST 112: Logic, Philosophy and Human Existence",
+                    "GST 113: Nigerian Peoples and Culture",
+                    "GST 116: Use of Library, Study Skills and Information Technology"
+                ],
+                "Faculty of Education": [
+                    "EDU 101: Introduction to Education",
+                    "EDU 102: Foundations of Education",
+                    "EDU 103: Educational Psychology",
+                    "EDU 104: Sociology of Education",
+                    "GST 111: Use of English I",
+                    "GST 112: Logic, Philosophy and Human Existence",
+                    "GST 113: Nigerian Peoples and Culture",
+                    "GST 116: Use of Library, Study Skills and Information Technology",
+                    "GST 118: Peace and Conflict Resolution"
+                ],
+                "Faculty of Engineering": [
+                    "MTH 101: General Mathematics I",
+                    "MTH 102: General Mathematics II",
+                    "PHY 101: General Physics I",
+                    "PHY 102: General Physics II",
+                    "CHM 101: General Chemistry I",
+                    "CHM 102: General Chemistry II",
+                    "ENG 101: Introduction to Engineering", // Assuming ENG here means Engineering basics
+                    "GST 111: Use of English I",
+                    "GST 112: Logic, Philosophy and Human Existence",
+                    "GST 113: Nigerian Peoples and Culture",
+                    "GST 116: Use of Library, Study Skills and Information Technology"
+                ],
+                "Faculty of Environmental Sciences": [
+                    "MTH 101: General Mathematics I",
+                    "MTH 102: General Mathematics II",
+                    "PHY 101: General Physics I",
+                    "PHY 102: General Physics II",
+                    "CHM 101: General Chemistry I",
+                    "CHM 102: General Chemistry II",
+                    "GST 111: Use of English I",
+                    "GST 112: Logic, Philosophy and Human Existence",
+                    "GST 113: Nigerian Peoples and Culture",
+                    "GST 116: Use of Library, Study Skills and Information Technology"
+                ],
+                "Faculty of Law": [
+                    "LAW 101: Introduction to Law I",
+                    "LAW 102: Introduction to Law II",
+                    "LAW 103: Legal Methods I",
+                    "LAW 104: Legal Methods II",
+                    "GST 111: Use of English I",
+                    "GST 112: Logic, Philosophy and Human Existence",
+                    "GST 113: Nigerian Peoples and Culture",
+                    "GST 116: Use of Library, Study Skills and Information Technology"
+                ],
+                "Faculty of Management Sciences": [
+                    "ACC 101: Principles of Accounting I",
+                    "ACC 102: Principles of Accounting II",
+                    "BUS 101: Introduction to Business I",
+                    "BUS 102: Introduction to Business II",
+                    "ECO 101: Principles of Economics I",
+                    "ECO 102: Principles of Economics II",
+                    "MTH 101: General Mathematics I",
+                    "MTH 102: General Mathematics II",
+                    "GST 111: Use of English I",
+                    "GST 112: Logic, Philosophy and Human Existence",
+                    "GST 113: Nigerian Peoples and Culture",
+                    "GST 116: Use of Library, Study Skills and Information Technology",
+                    "GST 118: Peace and Conflict Resolution"
+                ],
+                "Faculty of Science": [
+                    "BIO 101: General Biology I",
+                    "BIO 102: General Biology II",
+                    "CHM 101: General Chemistry I",
+                    "CHM 102: General Chemistry II",
+                    "PHY 101: General Physics I",
+                    "PHY 102: General Physics II",
+                    "MTH 101: General Mathematics I",
+                    "MTH 102: General Mathematics II",
+                    "GST 111: Use of English I",
+                    "GST 112: Logic, Philosophy and Human Existence",
+                    "GST 113: Nigerian Peoples and Culture",
+                    "GST 116: Use of Library, Study Skills and Information Technology"
+                ],
+                "Faculty of Social Sciences": [
+                    "ECO 101: Principles of Economics I",
+                    "ECO 102: Principles of Economics II",
+                    "POL 101: Introduction to Political Science", // You stopped here, I'll add common GSTs.
+                    "SOC 101: Introduction to Sociology", // Example, add if applicable
+                    "PSY 101: Introduction to Psychology", // Example, add if applicable
+                    "GST 111: Use of English I",
+                    "GST 112: Logic, Philosophy and Human Existence",
+                    "GST 113: Nigerian Peoples and Culture",
+                    "GST 116: Use of Library, Study Skills and Information Technology",
+                    "GST 118: Peace and Conflict Resolution" // Assuming GST 118 is common for this faculty too
+                ]
+            };
+
+            if (userFaculty && facultyCourses[userFaculty]) {
+                // If faculty is found and exists in our data
+                loadingMessage.style.display = 'none'; // Hide loading message
+                contentDisplay.style.display = 'block'; // Show content
+
+                facultyNameDisplay.textContent = userFaculty;
+                const courses = facultyCourses[userFaculty];
+
+                // Populate the course list
+                courses.forEach(course => {
+                    const listItem = document.createElement('li');
+                    listItem.textContent = course;
+                    courseList.appendChild(listItem);
+                });
+            } else {
+                // If faculty is not found or not set
+                loadingMessage.style.display = 'none'; // Hide loading message
+                errorMessage.style.display = 'block'; // Show error message
+                if (!userFaculty) {
+                    errorMessage.textContent = "Error: Your faculty was not found in localStorage. Please ensure it's set correctly.";
+                    console.error("Faculty not found in localStorage.");
+                } else {
+                    errorMessage.textContent = `Error: No course data available for "${userFaculty}". Please check the faculty name or data.`;
+                    console.error(`No course data found for faculty: ${userFaculty}`);
+                }
+            }
+        });
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome to the University Portal</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background-color: #e0f2f7;
+            color: #333;
+            text-align: center;
+        }
+        .message-box {
+            background: #fff;
+            padding: 30px 40px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            max-width: 400px;
+        }
+        h1 {
+            color: #007bff;
+            margin-bottom: 20px;
+        }
+        p {
+            font-size: 1.1em;
+            color: #555;
+        }
+        #countdown {
+            font-size: 1.8em;
+            font-weight: bold;
+            color: #dc3545;
+            margin-top: 15px;
+        }
+        .error-message {
+            color: red;
+            font-weight: bold;
+            margin-top: 20px;
+        }
+        .btn {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 15px;
+            font-size: 1em;
+            transition: background-color 0.3s ease;
+        }
+        .btn:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="message-box">
+        <h1>Loading Your level...</h1>
+        <p id="statusMessage">Please wait while we determine your current academic level.</p>
+        <p id="levelDisplay" style="font-size: 1.2em; font-weight: bold; color: #007bff;"></p>
+        <p id="countdown"></p>
+        <div id="errorSection" class="error-message" style="display:none;"></div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const statusMessage = document.getElementById('statusMessage');
+            const levelDisplay = document.getElementById('levelDisplay');
+            const countdownDisplay = document.getElementById('countdown');
+            const errorSection = document.getElementById('errorSection');
+
+            let countdownValue = 3;
+
+            const userLevel = localStorage.getItem('level');
+            console.log("Checking user level from localStorage:", userLevel);
+
+            if (userLevel) {
+                statusMessage.textContent = `. `;
+                levelDisplay.textContent = `Level: ${userLevel}`; // Display the level
+                countdownDisplay.textContent = countdownValue;
+
+                const timer = setInterval(() => {
+                    countdownValue--;
+                    countdownDisplay.textContent = countdownValue;
+
+                    if (countdownValue <= 0) {
+                        clearInterval(timer);
+                        const targetPage = `${userLevel}lvl.html`;
+                        console.log(`Redirecting to: ${targetPage}`);
+                        window.location.href = targetPage;
+                    }
+                }, 1000);
+
+            } else {
+                statusMessage.textContent = "Welcome!";
+                levelDisplay.style.display = 'none'; // Hide level display if not available
+                countdownDisplay.style.display = 'none';
+                errorSection.style.display = 'block';
+                errorSection.innerHTML = `It looks like your level isn't set. Please proceed to the setup page.
+                                        <button class="btn" onclick="window.location.href='setup.html'">Set My Level</button>`;
+                console.warn("User level not found in localStorage.");
+            }
+        });
+    </script>
+
+</body>
+</html>
