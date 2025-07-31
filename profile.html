@@ -321,7 +321,7 @@
         listItem.classList.add('quiz-history-item');
 
         const date = record.date || new Date().toLocaleString(); // Use stored date or current date
-        const quizName = record.quizName || 'Unnamed Quiz';
+        const quizName = record.quizName || 'Prevous Exam';
         const score = record.score !== undefined ? record.score : 'N/A';
         const total = record.total !== undefined ? record.total : 'N/A';
         const percentage = record.percentage !== undefined ? record.percentage : 'N/A';

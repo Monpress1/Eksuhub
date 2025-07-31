@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CBT - 100 Level Quiz</title>
+    <style>
+        /* CSS Styling - Identical to the first code's design */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(to right, lightblue, purple); /* Gradient background */
+            color: #333;
+            flex-direction: column; /* For profile section below quiz */
+            padding: 20px; /* Add some padding for overall content */
+            box-sizing: border-box;
+        }
+
+        .quiz-container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+            width: 90%;
+            max-width: 600px;
+            text-align: center;
+            margin-bottom: 40px; /* Space between quiz and profile */
+            position: relative; /* Needed for absolute positioning of next button */
+            min-height: 400px; /* Ensure enough space for the button at the bottom */
+        }
+
+        .start-screen h1 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        .start-button, .option-button, .action-button, .next-button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1.1em;
+            margin: 10px 5px;
+            transition: background-color 0.3s ease;
+        }
+
+        .start-button:hover, .option-button:not(.selected):hover, .action-button:hover, .next-button:hover {
+            background-color: #0056b3;
+        }
+
+        .quiz-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+
+        .timer {
+            color: orangered;
+        }
+
+        .question-text {
+            font-size: 1.4em;
+            margin-bottom: 25px;
+            color: #444;
+        }
+
+        .options-container {
+            display: flex;
+            flex-direction: column;
+            gap: 12px; /* Slightly reduced gap for smaller options */
+            margin-bottom: 70px; /* More space for the next button below */
+        }
+
+        .option-button {
+            background-color: #f0f0f0;
+            color: #333;
+            border: 1px solid #ddd;
+            width: 100%;
+            text-align: left;
+            padding: 10px 18px; /* Reduced padding for smaller size */
+            font-size: 1em; /* Slightly smaller font size */
+        }
+
+        .option-button.selected {
+            background-color: green; /* Turn green when picked */
+            color: white;
+            border-color: green;
+        }
+
+        .next-button {
+            position: absolute; /* Position relative to .quiz-container */
+            bottom: 20px;
+            right: 30px;
+            background-color: #28a745; /* Green color */
+            padding: 10px 20px; /* Reduced padding for smaller size */
+            font-size: 1em; /* Reduced font size for smaller size */
+        }
+
+        .next-button:hover {
+            background-color: #218838; /* Darker green on hover */
+        }
+
+        .results-screen h2 {
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .results-screen p {
+            font-size: 1.2em;
+            margin-bottom: 15px;
+        }
+
+        .results-buttons {
+            margin-top: 30px;
+        }
+
+        .profile-container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            width: 90%;
+            max-width: 600px;
+            text-align: center;
+        }
+
+        .profile-container h2 {
+            color: #333;
+            margin-bottom: 25px;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 10px;
+        }
+
+        .quiz-history-item {
+            border: 1px solid #eee;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            background-color: #f9f9f9;
+            text-align: left;
+        }
+
+        .quiz-history-item p {
+            margin: 5px 0;
+            font-size: 0.95em;
+        }
+
+        .clear-history-button {
+            background-color: #dc3545; /* Red color for clear history */
+            margin-top: 20px;
+        }
+
+        .clear-history-button:hover {
+            background-color: #c82333;
+        }
+
+        /* Hidden states */
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="quiz-container">
+        <div id="start-screen" class="start-screen">
+            <h1 id="start-subject-title">Loading Quiz...</h1>
+            <p>GOOD LUCK.</p>
+            <button id="start-quiz-button" class="start-button hidden">Start Quiz</button>
+        </div>
+
+        <div id="quiz-screen" class="hidden">
+            <div class="quiz-header">
+                <span id="question-counter">Question 1/X</span>
+                <span id="timer" class="timer">20s</span>
+            </div>
+            <p id="question-text" class="question-text">Question will appear here...</p>
+            <div id="options-container" class="options-container">
+            </div>
+            <button id="next-question-button" class="next-button">Next Question</button>
+        </div>
+
+        <div id="results-screen" class="hidden">
+            <h2>Quiz Complete!</h2>
+            <p>You scored: <span id="score-display">0</span>/<span id="total-questions-display">0</span></p>
+            <p>Percentage: <span id="percentage-display">0%</span></p>
+            <div class="results-buttons">
+                <button id="show-failed-answers-button" class="action-button">See Failed Answers</button>
+                <a href="exam.html"><button id="back-to-exam-button" class="action-button">Back to Subject Selection</button></a>
+            </div>
+            <div id="failed-answers-container" class="hidden" style="margin-top: 20px; text-align: left;">
+                <h3>Questions You Missed:</h3>
+                <ul id="missed-questions-list" style="list-style-type: none; padding: 0;"></ul>
+            </div>
+        </div>
+    </div>
+
+    <div id="profile-section" class="profile-container hidden">
+        <h2>Quiz History</h2>
+        <div id="quiz-history-display">
+            <p id="no-history-message">No quiz history available yet.</p>
+        </div>
+        <button id="clear-history-button" class="action-button clear-history-button hidden">Clear History</button>
+    </div>
+
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const rawSubject = urlParams.get("subject");
+        const subject = rawSubject ? rawSubject.toUpperCase() : null;
+
+        // Elements from the first code (design)
+        const startScreen = document.getElementById('start-screen');
+        const quizScreen = document.getElementById('quiz-screen');
+        const resultsScreen = document.getElementById('results-screen');
+        const startQuizButton = document.getElementById('start-quiz-button');
+        const questionText = document.getElementById('question-text');
+        const optionsContainer = document.getElementById('options-container');
+        const questionCounter = document.getElementById('question-counter');
+        const timerDisplay = document.getElementById('timer');
+        const nextQuestionButton = document.getElementById('next-question-button');
+        const scoreDisplay = document.getElementById('score-display');
+        const totalQuestionsDisplay = document.getElementById('total-questions-display');
+        const percentageDisplay = document.getElementById('percentage-display');
+        const showFailedAnswersButton = document.getElementById('show-failed-answers-button');
+        const backToExamButton = document.getElementById('back-to-exam-button'); // Corrected ID usage
+        const failedAnswersContainer = document.getElementById('failed-answers-container');
+        const missedQuestionsList = document.getElementById('missed-questions-list');
+        const startSubjectTitle = document.getElementById('start-subject-title');
+
+        // Profile elements
+        const profileSection = document.getElementById('profile-section');
+        const quizHistoryDisplay = document.getElementById('quiz-history-display');
+        const clearHistoryButton = document.getElementById('clear-history-button');
+        const noHistoryMessage = document.getElementById('no-history-message');
+
+        // Variables for quiz state (from both codes)
+        let allQuestionsData = {}; // Stores all subjects' questions from JSON
+        let currentQuizQuestions = []; // Questions for the current subject
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let timeLeft = 20;
+        let timerInterval;
+        let startTime; // To track total time spent on the quiz
+        let userAnswers = []; // To store user's answers and track correct/incorrect details
+        let currentSelectedOptionButton = null; // To track the very last option picked (the button element)
+        let currentSelectedAnswerText = null; // To track the text of the selected answer
+
+        const QUIZ_DURATION_PER_QUESTION = 20;
+        const NUM_QUESTIONS_TO_ASK = 25; // We'll still aim for 50 questions if available
+
+        // --- Question Loading Logic (from second code, adapted) ---
+        if (!subject) {
+            startSubjectTitle.textContent = "No subject selected. Please go back to exam.html.";
+        } else {
+            startSubjectTitle.textContent = `${subject} CBT `;
+            fetch("100lvl.json") // Assuming 100lvl.json is in the same directory
+                .then(res => {
+                    if (!res.ok) {
+                        throw new Error(`HTTP error! status: ${res.status}`);
+                    }
+                    return res.json();
+                })
+                .then(data => {
+                    allQuestionsData = data;
+                    if (!allQuestionsData[subject]) {
+                        startSubjectTitle.textContent = ` "${subject}" Coming Zoon.`;
+                    } else {
+                        // Shuffle and select up to NUM_QUESTIONS_TO_ASK questions for the current subject
+                        const subjectQuestions = allQuestionsData[subject];
+                        shuffleArray(subjectQuestions);
+                        currentQuizQuestions = subjectQuestions.slice(0, NUM_QUESTIONS_TO_ASK);
+                        startQuizButton.classList.remove('hidden'); // Show start button once questions are loaded
+                    }
+                })
+                .catch(err => {
+                    startSubjectTitle.textContent = "Failed to load questions. Check console for details.";
+                    console.error("Error fetching questions:", err);
+                });
+        }
+        // --- End Question Loading Logic ---
+
+
+        // Shuffle function to randomize questions (from first code)
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
+
+        function startQuiz() {
+            startScreen.classList.add('hidden');
+            quizScreen.classList.remove('hidden');
+            profileSection.classList.add('hidden'); // Hide profile when quiz starts
+
+            currentQuestionIndex = 0;
+            score = 0;
+            userAnswers = Array(currentQuizQuestions.length).fill(null); // Initialize userAnswers with nulls
+            startTime = Date.now(); // Record start time
+
+            displayQuestion();
+            startTimer();
+            updateNextButtonText(); // Set initial text
+        }
+
+        function displayQuestion() {
+            if (currentQuestionIndex < currentQuizQuestions.length) {
+                const question = currentQuizQuestions[currentQuestionIndex];
+                questionText.textContent = `Q${currentQuestionIndex + 1}. ${question.question}`; // Added Q index
+                optionsContainer.innerHTML = '';
+                currentSelectedOptionButton = null; // Reset selected option button for new question
+                currentSelectedAnswerText = null; // Reset selected answer text for new question
+
+                // Make sure options are always presented as A), B), C), D) for consistency
+                const optionLabels = ['A', 'B', 'C', 'D'];
+                question.options.forEach((option, index) => {
+                    const button = document.createElement('button');
+                    button.classList.add('option-button');
+                    button.textContent = `${optionLabels[index]}) ${option}`; // Prepend A), B), C), D)
+                    button.addEventListener('click', () => selectOption(button, option)); // Pass raw option text
+                    optionsContainer.appendChild(button);
+                });
+
+                questionCounter.textContent = `Question ${currentQuestionIndex + 1}/${currentQuizQuestions.length}`;
+                timeLeft = QUIZ_DURATION_PER_QUESTION; // Reset timer for each question
+                timerDisplay.textContent = `${timeLeft}s`;
+                updateNextButtonText(); // Update button text for current question
+                nextQuestionButton.disabled = true; // Disable next button until an option is selected
+            } else {
+                endQuiz();
+            }
+        }
+
+        function selectOption(button, selectedAnswer) {
+            // Remove 'selected' class from previously selected option, if any
+            if (currentSelectedOptionButton) {
+                currentSelectedOptionButton.classList.remove('selected');
+            }
+
+            // Add 'selected' class to the newly selected option
+            button.classList.add('selected');
+            currentSelectedOptionButton = button;
+            currentSelectedAnswerText = selectedAnswer; // Store the raw text of the selected answer
+            nextQuestionButton.disabled = false; // Enable next button
+        }
+
+        function updateNextButtonText() {
+            if (currentQuestionIndex === currentQuizQuestions.length - 1) {
+                nextQuestionButton.textContent = "Submit";
+            } else {
+                nextQuestionButton.textContent = "Next Question";
+            }
+        }
+
+        function nextQuestion() {
+            // Check if selectedOption has a value. This prevents proceeding without an answer.
+            // If the timer runs out, selectedOption might still be null, so we handle that in startTimer
+            if (currentSelectedAnswerText === null) {
+                alert("Please select an answer before proceeding.");
+                return; // Stop the function if no answer is selected
+            }
+            checkAnswer();
+            currentQuestionIndex++;
+            displayQuestion();
+            startTimer(); // Restart timer for the next question
+        }
+
+        function checkAnswer() {
+            const question = currentQuizQuestions[currentQuestionIndex];
+            // Compare the raw selected answer text with the raw correct answer from JSON
+            const isCorrect = (currentSelectedAnswerText === question.answer); // 'answer' from JSON
+
+            userAnswers[currentQuestionIndex] = {
+                question: question.question,
+                userAnswer: currentSelectedAnswerText || "No answer selected (Time out)", // Handle time out case
+                correctAnswer: question.answer, // 'answer' from JSON
+                isCorrect: isCorrect
+            };
+
+            if (isCorrect) {
+                score++;
+            }
+        }
+
+        function startTimer() {
+            clearInterval(timerInterval); // Clear any existing timer
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                timerDisplay.textContent = `${timeLeft}s`;
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    // Automatically move to the next question if time runs out
+                    // and mark as incorrect if no answer was selected
+                    if (currentSelectedAnswerText === null) { // If user didn't select any option
+                        const question = currentQuizQuestions[currentQuestionIndex];
+                        userAnswers[currentQuestionIndex] = {
+                            question: question.question,
+                            userAnswer: "No answer selected (Time out)",
+                            correctAnswer: question.answer, // 'answer' from JSON
+                            isCorrect: false
+                        };
+                    }
+                    nextQuestion();
+                }
+            }, 1000);
+        }
+
+        function endQuiz() {
+            clearInterval(timerInterval); // Stop the timer
+            quizScreen.classList.add('hidden');
+            resultsScreen.classList.remove('hidden');
+            profileSection.classList.remove('hidden'); // Show profile after quiz ends
+
+            const totalQuestions = currentQuizQuestions.length;
+            scoreDisplay.textContent = score;
+            totalQuestionsDisplay.textContent = totalQuestions;
+            const percentage = (score / totalQuestions) * 100;
+            percentageDisplay.textContent = `${percentage.toFixed(2)}%`;
+
+            // Save quiz history
+            saveQuizHistory(subject, score, totalQuestions, percentage.toFixed(2), userAnswers);
+            displayQuizHistory();
+
+            // Clear missed answers list
+            missedQuestionsList.innerHTML = '';
+            failedAnswersContainer.classList.add('hidden'); // Hide failed answers by default
+        }
+
+        function saveQuizHistory(subjectName, score, totalQuestions, percentage, answers) {
+            let history = JSON.parse(localStorage.getItem('quizHistory')) || [];
+            const endTime = Date.now();
+            const totalTimeSeconds = ((endTime - startTime) / 1000); // Time in seconds
+            const timeTakenMinutes = (totalTimeSeconds / 60).toFixed(2); // Time in minutes
+
+            history.push({
+                course: subjectName, // Store the subject name
+                date: new Date().toLocaleString(),
+                score: score,
+                total: totalQuestions,
+                percentage: percentage,
+                timeTaken: timeTakenMinutes, // Storing in minutes
+                allAnswers: answers // Store all answer objects for full review capability
+            });
+            localStorage.setItem('quizHistory', JSON.stringify(history));
+        }
+
+        function displayQuizHistory() {
+            const history = JSON.parse(localStorage.getItem('quizHistory')) || [];
+            quizHistoryDisplay.innerHTML = ''; // Clear previous history
+
+            if (history.length === 0) {
+                noHistoryMessage.classList.remove('hidden');
+                clearHistoryButton.classList.add('hidden');
+            } else {
+                noHistoryMessage.classList.add('hidden');
+                clearHistoryButton.classList.remove('hidden');
+                history.forEach((entry, index) => {
+                    const historyItem = document.createElement('div');
+                    historyItem.classList.add('quiz-history-item');
+                    historyItem.innerHTML = `
+                        <p><strong>Subject:</strong> ${entry.course}</p>
+                        <p><strong>Quiz ${index + 1}:</strong> ${entry.date}</p>
+                        <p>Score: ${entry.score}/${entry.total} (${entry.percentage}%)</p>
+                        <p>Time Taken: ${entry.timeTaken} minutes</p>
+                        <button class="action-button" onclick="showSpecificFailedAnswers(${index})">Review Missed</button>
+                    `;
+                    quizHistoryDisplay.appendChild(historyItem);
+                });
+            }
+        }
+
+        function showSpecificFailedAnswers(historyIndex) {
+            const history = JSON.parse(localStorage.getItem('quizHistory')) || [];
+            const entry = history[historyIndex];
+
+            missedQuestionsList.innerHTML = ''; // Clear previous list
+            failedAnswersContainer.classList.remove('hidden'); // Always show container
+
+            if (entry && entry.allAnswers && entry.allAnswers.length > 0) {
+                const missed = entry.allAnswers.filter(answer => !answer.isCorrect);
+
+                if (missed.length > 0) {
+                    missed.forEach(missedAnswer => {
+                        const listItem = document.createElement('li');
+                        // Prepend A), B), C), D) to options in missed answers list if needed for clarity
+                        // This assumes the stored correctAnswer and userAnswer are the raw values.
+                        const correctOptionWithLabel = currentQuizQuestions.find(q => q.question === missedAnswer.question)?.options.findIndex(opt => opt === missedAnswer.correctAnswer);
+                        const userOptionWithLabel = currentQuizQuestions.find(q => q.question === missedAnswer.question)?.options.findIndex(opt => opt === missedAnswer.userAnswer);
+
+                        const optionLabels = ['A', 'B', 'C', 'D'];
+                        const displayUserAnswer = userOptionWithLabel !== -1 && userOptionWithLabel !== undefined ? `${optionLabels[userOptionWithLabel]}) ${missedAnswer.userAnswer}` : missedAnswer.userAnswer;
+                        const displayCorrectAnswer = correctOptionWithLabel !== -1 && correctOptionWithLabel !== undefined ? `${optionLabels[correctOptionWithLabel]}) ${missedAnswer.correctAnswer}` : missedAnswer.correctAnswer;
+
+                        listItem.innerHTML = `
+                            <p><strong>Question:</strong> ${missedAnswer.question}</p>
+                            <p style="color: red;"><strong>Your Answer:</strong> ${displayUserAnswer}</p>
+                            <p style="color: green;"><strong>Correct Answer:</strong> ${displayCorrectAnswer}</p>
+                            <hr>
+                        `;
+                        missedQuestionsList.appendChild(listItem);
+                    });
+                } else {
+                    missedQuestionsList.innerHTML = '<li>Great job! You answered all questions correctly in this quiz.</li>';
+                }
+            } else {
+                missedQuestionsList.innerHTML = '<li>No answer data available for this quiz.</li>';
+            }
+        }
+
+        function clearQuizHistory() {
+            if (confirm("Are you sure you want to clear all quiz history?")) {
+                localStorage.removeItem('quizHistory');
+                displayQuizHistory(); // Refresh display
+            }
+        }
+
+        // Event Listeners
+        startQuizButton.addEventListener('click', startQuiz);
+        nextQuestionButton.addEventListener('click', nextQuestion);
+        backToExamButton.addEventListener('click', () => {
+            resultsScreen.classList.add('hidden');
+            startScreen.classList.remove('hidden');
+            failedAnswersContainer.classList.add('hidden'); // Hide failed answers when going back to start
+            profileSection.classList.add('hidden'); // Keep profile hidden until after the next quiz
+            // Optionally, reload the page to allow new subject selection or clear current subject info
+            // window.location.href = "exam.html"; // Redirects to the exam selection page
+        });
+        showFailedAnswersButton.addEventListener('click', () => {
+            // This button now specifically reviews the *current* quiz's failed answers
+            // The showSpecificFailedAnswers(index) is for reviewing historical quizzes.
+            missedQuestionsList.innerHTML = ''; // Clear previous list
+            failedAnswersContainer.classList.remove('hidden'); // Always show container
+
+            const missedQuestions = userAnswers.filter(answer => answer && !answer.isCorrect);
+
+            if (missedQuestions.length > 0) {
+                missedQuestions.forEach(missedAnswer => {
+                    const listItem = document.createElement('li');
+                    // Find the original question object to get its options
+                    const originalQuestion = currentQuizQuestions.find(q => q.question === missedAnswer.question);
+                    const optionLabels = ['A', 'B', 'C', 'D'];
+
+                    let displayUserAnswer = missedAnswer.userAnswer;
+                    if (originalQuestion && originalQuestion.options) {
+                        const userOptionIndex = originalQuestion.options.findIndex(opt => opt === missedAnswer.userAnswer);
+                        if (userOptionIndex !== -1) {
+                            displayUserAnswer = `${optionLabels[userOptionIndex]}) ${missedAnswer.userAnswer}`;
+                        }
+                    }
+
+                    let displayCorrectAnswer = missedAnswer.correctAnswer;
+                    if (originalQuestion && originalQuestion.options) {
+                        const correctOptionIndex = originalQuestion.options.findIndex(opt => opt === missedAnswer.correctAnswer);
+                        if (correctOptionIndex !== -1) {
+                            displayCorrectAnswer = `${optionLabels[correctOptionIndex]}) ${missedAnswer.correctAnswer}`;
+                        }
+                    }
+
+                    listItem.innerHTML = `
+                        <p><strong>Question:</strong> ${missedAnswer.question}</p>
+                        <p style="color: red;"><strong>Your Answer:</strong> ${displayUserAnswer}</p>
+                        <p style="color: green;"><strong>Correct Answer:</strong> ${displayCorrectAnswer}</p>
+                        <hr>
+                    `;
+                    missedQuestionsList.appendChild(listItem);
+                });
+            } else {
+                missedQuestionsList.innerHTML = '<li>Congratulations! You answered all questions correctly.</li>';
+            }
+        });
+        clearHistoryButton.addEventListener('click', clearQuizHistory);
+
+        // Initial setup on page load
+        profileSection.classList.add('hidden'); // Keep profile hidden initially
+        // No need to display history on load; it will be displayed after quiz completion
+    </script>
+
+</body>
+</html>
