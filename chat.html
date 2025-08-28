@@ -658,13 +658,15 @@
     </div>
 
     <div id="userProfileDisplayModal" class="modal-overlay hidden">
-        <div class="modal-content profile-modal-content relative">
-            <button class="close-button" id="closeUserProfileModal">&times;</button>
-            <h3 id="displayNickname"></h3>
-            <p><span class="font-semibold">Interest:</span> <span id="displayInterest"></span></p>
-            <p><span class="font-semibold">Gender:</span> <span id="displayGender"></span></p>
-        </div>
+    <div class="modal-content profile-modal-content relative">
+        <button class="close-button" id="closeUserProfileModal">&times;</button>
+        <h3 id="displayNickname"></h3>
+        <p><span class="font-semibold">Interest:</span> <span id="displayInterest"></span></p>
+        <p><span class="font-semibold">Gender:</span> <span id="displayGender"></span></p>
+        <p><span class="font-semibold">Last Seen:</span> <span id="displayLastSeen"></span></p>
     </div>
+</div>
+
 
     <div id="signupModal" class="modal-overlay hidden">
         <div class="modal-content signup-modal-content">
@@ -683,957 +685,1026 @@
         </div>
     </div>
 
-    <script>
-        const chatMessages = document.getElementById('chatMessages');
-        const messageInput = document.getElementById('messageInput');
-        const sendButton = document.getElementById('sendButton');
-        const imageUpload = document.getElementById('imageUpload');
-        const loadingMessagesIndicator = document.getElementById('loadingMessages');
+    
+        <script>
+    const chatMessages = document.getElementById('chatMessages');
+    const messageInput = document.getElementById('messageInput');
+    const sendButton = document.getElementById('sendButton');
+    const imageUpload = document.getElementById('imageUpload');
+    const loadingMessagesIndicator = document.getElementById('loadingMessages');
 
-        // Signup modal elements
-        const signupModal = document.getElementById('signupModal');
-        const signupNicknameInput = document.getElementById('signupNickname');
-        const signupInterestInput = document.getElementById('signupInterest');
-        const signupGenderSelect = document.getElementById('signupGender');
-        const signupButton = document.getElementById('signupButton');
+    // Signup modal elements
+    const signupModal = document.getElementById('signupModal');
+    const signupNicknameInput = document.getElementById('signupNickname');
+    const signupInterestInput = document.getElementById('signupInterest');
+    const signupGenderSelect = document.getElementById('signupGender');
+    const signupButton = document.getElementById('signupButton');
 
-        // Profile display modal elements
-        const userProfileDisplayModal = document.getElementById('userProfileDisplayModal');
-        const closeUserProfileModalButton = document.getElementById('closeUserProfileModal');
-        const displayNickname = document.getElementById('displayNickname');
-        const displayInterest = document.getElementById('displayInterest');
-        const displayGender = document.getElementById('displayGender');
+    // Profile display modal elements
+    const userProfileDisplayModal = document.getElementById('userProfileDisplayModal');
+    const closeUserProfileModalButton = document.getElementById('closeUserProfileModal');
+    const displayNickname = document.getElementById('displayNickname');
+    const displayInterest = document.getElementById('displayInterest');
+    const displayGender = document.getElementById('displayGender');
+    // NEW: Element for last seen status
+    const displayLastSeen = document.getElementById('displayLastSeen');
 
-        // New elements
-        const emojiButton = document.getElementById('emojiButton');
-        const emojiPicker = document.getElementById('emojiPicker');
-        const newMessagesIndicator = document.getElementById('newMessagesIndicator');
-        const themeToggleButton = document.getElementById('themeToggleButton');
-        const menuButton = document.getElementById('menuButton');
-        const sidebar = document.getElementById('sidebar');
-        const sidebarCloseButton = document.getElementById('sidebarCloseButton');
-        const sidebarOverlay = document.getElementById('sidebarOverlay');
+    // New elements
+    const emojiButton = document.getElementById('emojiButton');
+    const emojiPicker = document.getElementById('emojiPicker');
+    const newMessagesIndicator = document.getElementById('newMessagesIndicator');
+    const themeToggleButton = document.getElementById('themeToggleButton');
+    const menuButton = document.getElementById('menuButton');
+    const sidebar = document.getElementById('sidebar');
+    const sidebarCloseButton = document.getElementById('sidebarCloseButton');
+    const sidebarOverlay = document.getElementById('sidebarOverlay');
 
 
-        let ws;
-        let persistentUserId = localStorage.getItem('chatPersistentUserId');
-        let userProfile = JSON.parse(localStorage.getItem('chatUserProfile')) || {};
+    let ws;
+    let persistentUserId = localStorage.getItem('chatPersistentUserId');
+    let userProfile = JSON.parse(localStorage.getItem('chatUserProfile')) || {};
+    // NEW: Map to store the status of online users
+    let onlineUsers = new Map();
 
-        // --- IMPORTANT: YOUR DEPLOYED RAILWAY.APP URL ---
-        const WEBSOCKET_SERVER_URL = 'wss://eksuhubserver-production-2f17.up.railway.app';
-        // -----------------------------------------------------------------
+    // --- IMPORTANT: YOUR DEPLOYED RENDER.COM URL ---
+    const WEBSOCKET_SERVER_URL = 'wss://websocket-server-6jct.onrender.com';
 
-        // --- IndexedDB Constants ---
-        const DB_NAME = 'EksuChatDB';
-        const DB_VERSION = 1;
-        const STORE_NAME = 'messages';
-        const THREE_DAYS_MS = 2 * 24 * 60 * 60 * 1000; // Milliseconds in 3 days
-        // -----------------------------
+    // -----------------------------------------------------------------
 
-        let db; // Variable to hold the IndexedDB instance
-        let allDisplayedMessages = []; // In-memory array to store current messages, including loaded ones
-        let lastDisplayedDate = null; // For day divider logic
-        let isScrolledToBottom = true; // Track scroll position for new messages indicator
+    // --- IndexedDB Constants ---
+    const DB_NAME = 'EksuChatDB';
+    const DB_VERSION = 1;
+    const STORE_NAME = 'messages';
+    const TWO_DAYS_MS = 2 * 24 * 60 * 60 * 1000; // Milliseconds in 2 days
+    // -----------------------------
 
-        // --- THEME TOGGLE LOGIC (MAINTAINED) ---
-        const currentTheme = localStorage.getItem('theme') || 'light';
-        document.body.classList.add(currentTheme + '-mode');
+    let db; // Variable to hold the IndexedDB instance
+    let allDisplayedMessages = []; // In-memory array to store current messages, including loaded ones
+    let lastDisplayedDate = null; // For day divider logic
+    let isScrolledToBottom = true; // Track scroll position for new messages indicator
 
-        themeToggleButton.addEventListener('click', () => {
-            if (document.body.classList.contains('light-mode')) {
-                document.body.classList.remove('light-mode');
-                document.body.classList.add('dark-mode');
-                localStorage.setItem('theme', 'dark');
-            } else {
-                document.body.classList.remove('dark-mode');
-                document.body.classList.add('light-mode');
-                localStorage.setItem('theme', 'light');
-            }
-        });
-        // --- END THEME TOGGLE LOGIC ---
+    // --- THEME TOGGLE LOGIC (MAINTAINED) ---
+    const currentTheme = localStorage.getItem('theme') || 'light';
+    document.body.classList.add(currentTheme + '-mode');
 
-        // If no persistent user ID, generate one and store it
-        if (!persistentUserId) {
-            persistentUserId = crypto.randomUUID();
-            localStorage.setItem('chatPersistentUserId', persistentUserId);
-            console.log('Generated new persistent user ID:', persistentUserId);
+    themeToggleButton.addEventListener('click', () => {
+        if (document.body.classList.contains('light-mode')) {
+            document.body.classList.remove('light-mode');
+            document.body.classList.add('dark-mode');
+            localStorage.setItem('theme', 'dark');
         } else {
-            console.log('Found existing persistent user ID:', persistentUserId);
+            document.body.classList.remove('dark-mode');
+            document.body.classList.add('light-mode');
+            localStorage.setItem('theme', 'light');
         }
+    });
+    // --- END THEME TOGGLE LOGIC ---
 
-        // --- IndexedDB Functions ---
+    // If no persistent user ID, generate one and store it
+    if (!persistentUserId) {
+        persistentUserId = crypto.randomUUID();
+        localStorage.setItem('chatPersistentUserId', persistentUserId);
+        console.log('Generated new persistent user ID:', persistentUserId);
+    } else {
+        console.log('Found existing persistent user ID:', persistentUserId);
+    }
 
-        /**
-         * Opens the IndexedDB database.
-         * Creates or upgrades the 'messages' object store with 'id' as primary key and 'timestamp' as an index.
-         * @returns {Promise<IDBDatabase>} A promise that resolves with the database instance.
-         */
-        function openDb() {
-            return new Promise((resolve, reject) => {
-                const request = indexedDB.open(DB_NAME, DB_VERSION);
+    // --- IndexedDB Functions ---
 
-                request.onupgradeneeded = (event) => {
-                    db = event.target.result;
-                    if (!db.objectStoreNames.contains(STORE_NAME)) {
-                        const objectStore = db.createObjectStore(STORE_NAME, { keyPath: 'id' });
-                        objectStore.createIndex('timestamp', 'timestamp', { unique: false });
-                        console.log(`IndexedDB: Object store '${STORE_NAME}' created.`);
-                    }
-                };
+    /**
+     * Opens the IndexedDB database.
+     * Creates or upgrades the 'messages' object store with 'id' as primary key and 'timestamp' as an index.
+     * @returns {Promise<IDBDatabase>} A promise that resolves with the database instance.
+     */
+    function openDb() {
+        return new Promise((resolve, reject) => {
+            const request = indexedDB.open(DB_NAME, DB_VERSION);
 
-                request.onsuccess = (event) => {
-                    db = event.target.result;
-                    console.log('IndexedDB: Database opened successfully.');
-                    resolve(db);
-                };
-
-                request.onerror = (event) => {
-                    console.error('IndexedDB: Database error:', event.target.errorCode, event.target.error);
-                    reject(event.target.error);
-                };
-            });
-        }
-
-        /**
-         * Adds a message to the IndexedDB.
-         * @param {Object} message - The message object to add.
-         * @returns {Promise<void>} A promise that resolves when the message is added.
-         */
-        function addMessageToDb(message) {
-            return new Promise((resolve, reject) => {
-                if (!db) {
-                    console.warn('IndexedDB not open yet for addMessageToDb. Trying to open...');
-                    openDb().then(() => addMessageToDb(message).then(resolve).catch(reject)).catch(reject);
-                    return;
+            request.onupgradeneeded = (event) => {
+                db = event.target.result;
+                if (!db.objectStoreNames.contains(STORE_NAME)) {
+                    const objectStore = db.createObjectStore(STORE_NAME, { keyPath: 'id' });
+                    objectStore.createIndex('timestamp', 'timestamp', { unique: false });
+                    console.log(`IndexedDB: Object store '${STORE_NAME}' created.`);
                 }
-                const transaction = db.transaction([STORE_NAME], 'readwrite');
-                const objectStore = transaction.objectStore(STORE_NAME);
-                const request = objectStore.put(message); // Use put to overwrite if ID exists
-
-                request.onsuccess = () => {
-                    // console.log('IndexedDB: Message added/updated successfully:', message.id);
-                    resolve();
-                };
-
-                request.onerror = (event) => {
-                    const error = event.target.error;
-                    console.error('IndexedDB: Error adding message:', error.name, error.message, 'Message data:', message);
-                    reject(error);
-                };
-            });
-        }
-
-        /**
-         * Retrieves all messages from IndexedDB, sorted by timestamp.
-         * @returns {Promise<Array<Object>>} A promise that resolves with an array of messages.
-         */
-        function getMessagesFromDb() {
-            return new Promise((resolve, reject) => {
-                if (!db) {
-                    console.warn('IndexedDB not open yet for getMessagesFromDb. Trying to open...');
-                    openDb().then(() => getMessagesFromDb().then(resolve).catch(reject)).catch(reject);
-                    return;
-                }
-
-                const transaction = db.transaction([STORE_NAME], 'readonly');
-                const objectStore = transaction.objectStore(STORE_NAME);
-                const messages = [];
-
-                // Use the 'timestamp' index to retrieve messages in order
-                const index = objectStore.index('timestamp');
-                const request = index.openCursor();
-
-                request.onsuccess = (event) => {
-                    const cursor = event.target.result;
-                    if (cursor) {
-                        messages.push(cursor.value);
-                        cursor.continue();
-                    } else {
-                        // console.log('IndexedDB: All messages retrieved.');
-                        resolve(messages);
-                    }
-                };
-
-                request.onerror = (event) => {
-                    console.error('IndexedDB: Error retrieving messages:', event.target.error);
-                    reject(event.target.error);
-                };
-            });
-        }
-
-        /**
-         * Deletes old messages from IndexedDB based on the 3-day rolling window.
-         * @returns {Promise<void>} A promise that resolves when cleanup is complete.
-         */
-        function cleanOldMessages() {
-            return new Promise((resolve, reject) => {
-                if (!db) {
-                     console.warn('IndexedDB not open for cleanup. Trying to open...');
-                    openDb().then(() => cleanOldMessages().then(resolve).catch(reject)).catch(reject);
-                    return;
-                }
-
-                const threeDaysAgo = Date.now() - THREE_DAYS_MS;
-                const transaction = db.transaction([STORE_NAME], 'readwrite');
-                const objectStore = transaction.objectStore(STORE_NAME);
-                const index = objectStore.index('timestamp');
-                
-                // Create a range for timestamps less than or equal to threeDaysAgo
-                const range = IDBKeyRange.upperBound(threeDaysAgo);
-
-                const request = index.openCursor(range);
-                let deletedCount = 0;
-
-                request.onsuccess = (event) => {
-                    const cursor = event.target.result;
-                    if (cursor) {
-                        objectStore.delete(cursor.primaryKey);
-                        deletedCount++;
-                        cursor.continue();
-                    } else {
-                        console.log(`IndexedDB: Cleaned up ${deletedCount} old messages.`);
-                        resolve();
-                    }
-                };
-
-                request.onerror = (event) => {
-                    console.error('IndexedDB: Error cleaning old messages:', event.target.error);
-                    reject(event.target.error);
-                };
-            });
-        }
-
-        /**
-         * Deletes a specific message by its ID from IndexedDB.
-         * @param {string} messageId - The ID of the message to delete.
-         * @returns {Promise<void>} A promise that resolves when the message is deleted.
-         */
-        function deleteMessageFromDb(messageId) {
-            return new Promise((resolve, reject) => {
-                if (!db) {
-                     console.warn('IndexedDB not open for deletion. Trying to open...');
-                    openDb().then(() => deleteMessageFromDb(messageId).then(resolve).catch(reject)).catch(reject);
-                    return;
-                }
-                const transaction = db.transaction([STORE_NAME], 'readwrite');
-                const objectStore = transaction.objectStore(STORE_NAME);
-                const request = objectStore.delete(messageId);
-
-                request.onsuccess = () => {
-                    console.log(`IndexedDB: Message ID ${messageId} deleted.`);
-                    resolve();
-                };
-
-                request.onerror = (event) => {
-                    console.error('IndexedDB: Error deleting message:', event.target.error);
-                    reject(event.target.error);
-                };
-            });
-        }
-        // --- End IndexedDB Functions ---
-
-        // Initial setup for messages area:
-        loadingMessagesIndicator.classList.remove('hidden');
-        loadingMessagesIndicator.textContent = 'Initializing chat...';
-
-        // Initialize IndexedDB and load messages
-        openDb().then(() => {
-            return cleanOldMessages(); // Clean up old messages first
-        }).then(() => {
-            return getMessagesFromDb(); // Then load current messages
-        }).then(messages => {
-            allDisplayedMessages = messages;
-            chatMessages.innerHTML = ''; // Clear initial loading indicator
-            lastDisplayedDate = null; // Reset for fresh render of initial DB messages
-            
-            // Render messages from IndexedDB - NO ANIMATIONS on initial load
-            allDisplayedMessages.forEach(msg => addMessageToUI(msg, false)); 
-            
-            chatMessages.scrollTop = chatMessages.scrollHeight; // Scroll to bottom of initial load
-            loadingMessagesIndicator.classList.add('hidden');
-            console.log(`Loaded ${allDisplayedMessages.length} messages from IndexedDB.`);
-
-            // After loading local messages, proceed with WebSocket connection
-            if (!userProfile.nickname || !userProfile.gender) {
-                signupModal.classList.remove('hidden');
-            } else {
-                connectWebSocket();
-            }
-        }).catch(error => {
-            console.error('Failed to initialize IndexedDB or load messages:', error);
-            loadingMessagesIndicator.textContent = 'Error loading messages. Please refresh.';
-            // Proceed without cached messages if IndexedDB fails, but alert user
-            if (!userProfile.nickname || !userProfile.gender) {
-                signupModal.classList.remove('hidden');
-            } else {
-                connectWebSocket();
-            }
-        });
-
-
-        signupButton.addEventListener('click', () => {
-            const nickname = signupNicknameInput.value.trim();
-            const interest = signupInterestInput.value.trim();
-            const gender = signupGenderSelect.value;
-
-            if (nickname && gender) {
-                userProfile = { nickname, interest, gender };
-                localStorage.setItem('chatUserProfile', JSON.stringify(userProfile)); // Store user profile
-                signupModal.classList.add('hidden');
-                connectWebSocket();
-            } else {
-                alert('Please enter your nickname and select a gender.');
-            }
-        });
-
-        closeUserProfileModalButton.addEventListener('click', () => {
-            userProfileDisplayModal.classList.add('hidden');
-        });
-
-
-        function connectWebSocket() {
-            ws = new WebSocket(WEBSOCKET_SERVER_URL);
-
-            ws.onopen = () => {
-                console.log('Connected to WebSocket server');
-                ws.send(JSON.stringify({
-                    type: 'initialUserData',
-                    payload: {
-                        persistentUserId: persistentUserId,
-                        nickname: userProfile.nickname,
-                        interest: userProfile.interest,
-                        gender: userProfile.gender
-                    }
-                }));
-
-                // Determine lastFetchTimestamp based on the latest message in `allDisplayedMessages`
-                // This array now contains messages from IndexedDB (if any)
-                let lastFetchTimestamp = 0;
-                if (allDisplayedMessages.length > 0) {
-                    // Ensure allDisplayedMessages is sorted before picking the last one
-                    allDisplayedMessages.sort((a, b) => a.timestamp - b.timestamp); 
-                    lastFetchTimestamp = allDisplayedMessages[allDisplayedMessages.length - 1].timestamp;
-                    console.log(`Requesting new messages since ${new Date(lastFetchTimestamp).toLocaleString()}`);
-                } else {
-                    console.log('No local history. Requesting all messages from server.');
-                }
-                loadingMessagesIndicator.classList.remove('hidden');
-                loadingMessagesIndicator.textContent = 'Fetching new messages...';
-
-                ws.send(JSON.stringify({
-                    type: 'requestInitialData',
-                    payload: {
-                        lastFetchTimestamp: lastFetchTimestamp
-                    }
-                }));
             };
 
-            ws.onmessage = (event) => {
-                const data = JSON.parse(event.data);
+            request.onsuccess = (event) => {
+                db = event.target.result;
+                console.log('IndexedDB: Database opened successfully.');
+                resolve(db);
+            };
 
-                switch (data.type) {
-                    case 'initialData':
-                        loadingMessagesIndicator.classList.add('hidden');
-                        const newMessagesFromServer = data.payload.messages; // These are messages *from the server*
-                        
-                        let shouldScrollToBottomAfterInitial = isScrolledToBottom;
-                        
-                        const messagesToAppendToUI = []; // Collect only truly new messages for appending
-                        
-                        // Process messages from server, adding only truly new ones to allDisplayedMessages and DB
-                        newMessagesFromServer.forEach(newMessage => {
-                            // Check if message ID already exists in our in-memory array
-                            const existingMessageIndex = allDisplayedMessages.findIndex(msg => msg.id === newMessage.id);
-                            if (existingMessageIndex === -1) {
-                                // It's a new message, add to our in-memory array
-                                allDisplayedMessages.push(newMessage);
-                                messagesToAppendToUI.push(newMessage); // Also collect for UI appending
-                                // Add to IndexedDB (asynchronously, don't wait for it)
-                                addMessageToDb(newMessage).catch(e => {
-                                    console.error('IndexedDB: Error adding new message from initialData:', e);
-                                });
-                            } else {
-                                // Message already exists in allDisplayedMessages.
-                                // If the server sends ALL messages, this prevents re-adding.
-                                // If server only sends NEW messages, this branch won't be hit often.
-                            }
-                        });
-                        
-                        // Sort the entire in-memory array to maintain chronological order
-                        // This is crucial for correct day dividers and lastFetchTimestamp
-                        allDisplayedMessages.sort((a, b) => a.timestamp - b.timestamp);
+            request.onerror = (event) => {
+                console.error('IndexedDB: Database error:', event.target.errorCode, event.target.error);
+                reject(event.target.error);
+            };
+        });
+    }
 
-                        // If there are messages to append, add them to the UI
-                        if (messagesToAppendToUI.length > 0) {
-                            // Render new messages from server data - NO ANIMATIONS
-                            messagesToAppendToUI.forEach(msg => addMessageToUI(msg, false)); 
-                        }
-                        
-                        // Handle scrolling and new messages indicator based on collected new messages
-                        if (shouldScrollToBottomAfterInitial || messagesToAppendToUI.length > 0) {
-                            chatMessages.scrollTop = chatMessages.scrollHeight;
-                            newMessagesIndicator.classList.add('hidden');
+    /**
+     * Adds a message to the IndexedDB.
+     * @param {Object} message - The message object to add.
+     * @returns {Promise<void>} A promise that resolves when the message is added.
+     */
+    function addMessageToDb(message) {
+        return new Promise((resolve, reject) => {
+            if (!db) {
+                console.warn('IndexedDB not open yet for addMessageToDb. Trying to open...');
+                openDb().then(() => addMessageToDb(message).then(resolve).catch(reject)).catch(reject);
+                return;
+            }
+            const transaction = db.transaction([STORE_NAME], 'readwrite');
+            const objectStore = transaction.objectStore(STORE_NAME);
+            const request = objectStore.put(message); // Use put to overwrite if ID exists
+
+            request.onsuccess = () => {
+                // console.log('IndexedDB: Message added/updated successfully:', message.id);
+                resolve();
+            };
+
+            request.onerror = (event) => {
+                const error = event.target.error;
+                console.error('IndexedDB: Error adding message:', error.name, error.message, 'Message data:', message);
+                reject(error);
+            };
+        });
+    }
+
+    /**
+     * Retrieves all messages from IndexedDB, sorted by timestamp.
+     * @returns {Promise<Array<Object>>} A promise that resolves with an array of messages.
+     */
+    function getMessagesFromDb() {
+        return new Promise((resolve, reject) => {
+            if (!db) {
+                console.warn('IndexedDB not open yet for getMessagesFromDb. Trying to open...');
+                openDb().then(() => getMessagesFromDb().then(resolve).catch(reject)).catch(reject);
+                return;
+            }
+
+            const transaction = db.transaction([STORE_NAME], 'readonly');
+            const objectStore = transaction.objectStore(STORE_NAME);
+            const messages = [];
+
+            // Use the 'timestamp' index to retrieve messages in order
+            const index = objectStore.index('timestamp');
+            const request = index.openCursor();
+
+            request.onsuccess = (event) => {
+                const cursor = event.target.result;
+                if (cursor) {
+                    messages.push(cursor.value);
+                    cursor.continue();
+                } else {
+                    // console.log('IndexedDB: All messages retrieved.');
+                    resolve(messages);
+                }
+            };
+
+            request.onerror = (event) => {
+                console.error('IndexedDB: Error retrieving messages:', event.target.error);
+                reject(event.target.error);
+            };
+        });
+    }
+
+    /**
+     * Deletes old messages from IndexedDB based on the 2-day rolling window.
+     * @returns {Promise<void>} A promise that resolves when cleanup is complete.
+     */
+    function cleanOldMessages() {
+        return new Promise((resolve, reject) => {
+            if (!db) {
+                 console.warn('IndexedDB not open for cleanup. Trying to open...');
+                openDb().then(() => cleanOldMessages().then(resolve).catch(reject)).catch(reject);
+                return;
+            }
+
+            const twoDaysAgo = Date.now() - TWO_DAYS_MS;
+            const transaction = db.transaction([STORE_NAME], 'readwrite');
+            const objectStore = transaction.objectStore(STORE_NAME);
+            const index = objectStore.index('timestamp');
+            
+            // Create a range for timestamps less than or equal to twoDaysAgo
+            const range = IDBKeyRange.upperBound(twoDaysAgo);
+
+            const request = index.openCursor(range);
+            let deletedCount = 0;
+
+            request.onsuccess = (event) => {
+                const cursor = event.target.result;
+                if (cursor) {
+                    objectStore.delete(cursor.primaryKey);
+                    deletedCount++;
+                    cursor.continue();
+                } else {
+                    console.log(`IndexedDB: Cleaned up ${deletedCount} old messages.`);
+                    resolve();
+                }
+            };
+
+            request.onerror = (event) => {
+                console.error('IndexedDB: Error cleaning old messages:', event.target.error);
+                reject(event.target.error);
+            };
+        });
+    }
+
+    /**
+     * Deletes a specific message by its ID from IndexedDB.
+     * @param {string} messageId - The ID of the message to delete.
+     * @returns {Promise<void>} A promise that resolves when the message is deleted.
+     */
+    function deleteMessageFromDb(messageId) {
+        return new Promise((resolve, reject) => {
+            if (!db) {
+                 console.warn('IndexedDB not open for deletion. Trying to open...');
+                openDb().then(() => deleteMessageFromDb(messageId).then(resolve).catch(reject)).catch(reject);
+                return;
+            }
+            const transaction = db.transaction([STORE_NAME], 'readwrite');
+            const objectStore = transaction.objectStore(STORE_NAME);
+            const request = objectStore.delete(messageId);
+
+            request.onsuccess = () => {
+                console.log(`IndexedDB: Message ID ${messageId} deleted.`);
+                resolve();
+            };
+
+            request.onerror = (event) => {
+                console.error('IndexedDB: Error deleting message:', event.target.error);
+                reject(event.target.error);
+            };
+        });
+    }
+    // --- End IndexedDB Functions ---
+
+    // Initial setup for messages area:
+    loadingMessagesIndicator.classList.remove('hidden');
+    loadingMessagesIndicator.textContent = 'Initializing chat...';
+
+    // Initialize IndexedDB and load messages
+    openDb().then(() => {
+        return cleanOldMessages(); // Clean up old messages first
+    }).then(() => {
+        return getMessagesFromDb(); // Then load current messages
+    }).then(messages => {
+        allDisplayedMessages = messages;
+        chatMessages.innerHTML = ''; // Clear initial loading indicator
+        lastDisplayedDate = null; // Reset for fresh render of initial DB messages
+        
+        // Render messages from IndexedDB - NO ANIMATIONS on initial load
+        allDisplayedMessages.forEach(msg => addMessageToUI(msg, false)); 
+        
+        chatMessages.scrollTop = chatMessages.scrollHeight; // Scroll to bottom of initial load
+        loadingMessagesIndicator.classList.add('hidden');
+        console.log(`Loaded ${allDisplayedMessages.length} messages from IndexedDB.`);
+
+        // After loading local messages, proceed with WebSocket connection
+        if (!userProfile.nickname || !userProfile.gender) {
+            signupModal.classList.remove('hidden');
+        } else {
+            connectWebSocket();
+        }
+    }).catch(error => {
+        console.error('Failed to initialize IndexedDB or load messages:', error);
+        loadingMessagesIndicator.textContent = 'Error loading messages. Please refresh.';
+        // Proceed without cached messages if IndexedDB fails, but alert user
+        if (!userProfile.nickname || !userProfile.gender) {
+            signupModal.classList.remove('hidden');
+        } else {
+            connectWebSocket();
+        }
+    });
+
+
+    signupButton.addEventListener('click', () => {
+        const nickname = signupNicknameInput.value.trim();
+        const interest = signupInterestInput.value.trim();
+        const gender = signupGenderSelect.value;
+
+        if (nickname && gender) {
+            userProfile = { nickname, interest, gender };
+            localStorage.setItem('chatUserProfile', JSON.stringify(userProfile)); // Store user profile
+            signupModal.classList.add('hidden');
+            connectWebSocket();
+        } else {
+            alert('Please enter your nickname and select a gender.');
+        }
+    });
+
+    closeUserProfileModalButton.addEventListener('click', () => {
+        userProfileDisplayModal.classList.add('hidden');
+    });
+
+    // NEW: Add display element for last seen
+    const userProfileModalContent = userProfileDisplayModal.querySelector('.modal-content');
+    const lastSeenP = document.createElement('p');
+    lastSeenP.innerHTML = '<span class="font-semibold">Last Seen:</span> <span id="displayLastSeen"></span>';
+    userProfileModalContent.appendChild(lastSeenP);
+    
+    function connectWebSocket() {
+        ws = new WebSocket(WEBSOCKET_SERVER_URL);
+
+        ws.onopen = () => {
+            console.log('Connected to WebSocket server');
+            ws.send(JSON.stringify({
+                type: 'initialUserData',
+                payload: {
+                    persistentUserId: persistentUserId,
+                    nickname: userProfile.nickname,
+                    interest: userProfile.interest,
+                    gender: userProfile.gender
+                }
+            }));
+
+            // Determine lastFetchTimestamp based on the latest message in `allDisplayedMessages`
+            // This array now contains messages from IndexedDB (if any)
+            let lastFetchTimestamp = 0;
+            if (allDisplayedMessages.length > 0) {
+                // Ensure allDisplayedMessages is sorted before picking the last one
+                allDisplayedMessages.sort((a, b) => a.timestamp - b.timestamp); 
+                lastFetchTimestamp = allDisplayedMessages[allDisplayedMessages.length - 1].timestamp;
+                console.log(`Requesting new messages since ${new Date(lastFetchTimestamp).toLocaleString()}`);
+            } else {
+                console.log('No local history. Requesting all messages from server.');
+            }
+            loadingMessagesIndicator.classList.remove('hidden');
+            loadingMessagesIndicator.textContent = 'Fetching new messages...';
+
+            ws.send(JSON.stringify({
+                type: 'requestInitialData',
+                payload: {
+                    lastFetchTimestamp: lastFetchTimestamp
+                }
+            }));
+        };
+
+        ws.onmessage = (event) => {
+            const data = JSON.parse(event.data);
+
+            switch (data.type) {
+                case 'initialData':
+                    loadingMessagesIndicator.classList.add('hidden');
+                    const newMessagesFromServer = data.payload.messages; // These are messages *from the server*
+                    
+                    let shouldScrollToBottomAfterInitial = isScrolledToBottom;
+                    
+                    const messagesToAppendToUI = []; // Collect only truly new messages for appending
+                    
+                    // Process messages from server, adding only truly new ones to allDisplayedMessages and DB
+                    newMessagesFromServer.forEach(newMessage => {
+                        // Check if message ID already exists in our in-memory array
+                        const existingMessageIndex = allDisplayedMessages.findIndex(msg => msg.id === newMessage.id);
+                        if (existingMessageIndex === -1) {
+                            // It's a new message, add to our in-memory array
+                            allDisplayedMessages.push(newMessage);
+                            messagesToAppendToUI.push(newMessage); // Also collect for UI appending
+                            // Add to IndexedDB (asynchronously, don't wait for it)
+                            addMessageToDb(newMessage).catch(e => {
+                                console.error('IndexedDB: Error adding new message from initialData:', e);
+                            });
                         } else {
-                            // Only show indicator if not scrolled to bottom AND new messages arrived
-                            if (messagesToAppendToUI.length > 0) {
-                                newMessagesIndicator.classList.remove('hidden');
-                            }
+                            // Message already exists in allDisplayedMessages.
+                            // If the server sends ALL messages, this prevents re-adding.
+                            // If server only sends NEW messages, this branch won't be hit often.
                         }
-                        console.log(`Processed ${newMessagesFromServer.length} messages from server. Added ${messagesToAppendToUI.length} new messages to UI/DB. Total displayed: ${allDisplayedMessages.length} messages.`);
-                        break;
+                    });
+                    
+                    // Sort the entire in-memory array to maintain chronological order
+                    // This is crucial for correct day dividers and lastFetchTimestamp
+                    allDisplayedMessages.sort((a, b) => a.timestamp - b.timestamp);
 
-                    case 'chatMessage':
-                    case 'systemAnnouncement':
-                    case 'userStatusUpdate':
-                        // Add real-time message to in-memory array and IndexedDB
-                        if (!allDisplayedMessages.some(msg => msg.id === data.payload.id)) {
-                            allDisplayedMessages.push(data.payload);
-                            addMessageToDb(data.payload)
-                                .then(() => console.log(`IndexedDB: Added real-time message ${data.payload.id}`))
-                                .catch(e => console.error('IndexedDB: Error adding real-time message:', e));
-                            addMessageToUI(data.payload, true); // Auto-scroll for new real-time messages
-                            
-                            // --- TRIGGER ANIMATIONS ONLY FOR REAL-TIME INCOMING MESSAGES ---
-                            if (data.payload.text) { // Only check text messages for now
+                    // If there are messages to append, add them to the UI
+                    if (messagesToAppendToUI.length > 0) {
+                        // Render new messages from server data - NO ANIMATIONS
+                        messagesToAppendToUI.forEach(msg => addMessageToUI(msg, false)); 
+                    }
+                    
+                    // Handle scrolling and new messages indicator based on collected new messages
+                    if (shouldScrollToBottomAfterInitial || messagesToAppendToUI.length > 0) {
+                        chatMessages.scrollTop = chatMessages.scrollHeight;
+                        newMessagesIndicator.classList.add('hidden');
+                    } else {
+                        // Only show indicator if not scrolled to bottom AND new messages arrived
+                        if (messagesToAppendToUI.length > 0) {
+                            newMessagesIndicator.classList.remove('hidden');
+                        }
+                    }
+                    console.log(`Processed ${newMessagesFromServer.length} messages from server. Added ${messagesToAppendToUI.length} new messages to UI/DB. Total displayed: ${allDisplayedMessages.length} messages.`);
+                    
+                    // NEW: Update online status indicators after initial data load
+                    updateOnlineStatusIndicators();
+                    break;
+
+                // NEW: Handle real-time user list updates
+                case 'userListUpdate':
+                    onlineUsers.clear();
+                    data.payload.forEach(user => {
+                        onlineUsers.set(user.persistentId, user);
+                    });
+                    console.log('Updated online users list:', onlineUsers);
+                    updateOnlineStatusIndicators();
+                    break;
+                    
+                case 'chatMessage':
+                case 'systemAnnouncement':
+                case 'userStatusUpdate':
+                    // Add real-time message to in-memory array and IndexedDB
+                    if (!allDisplayedMessages.some(msg => msg.id === data.payload.id)) {
+                        allDisplayedMessages.push(data.payload);
+                        addMessageToDb(data.payload)
+                            .then(() => console.log(`IndexedDB: Added real-time message ${data.payload.id}`))
+                            .catch(e => console.error('IndexedDB: Error adding real-time message:', e));
+                        addMessageToUI(data.payload, true); // Auto-scroll for new real-time messages
+                        
+                        // --- TRIGGER ANIMATIONS ONLY FOR REAL-TIME INCOMING MESSAGES ---
+                        if (data.payload.text) { // Only check text messages for now
+                            checkAndTriggerAnimations(data.payload.text);
+                        }
+                        // -----------------------------------------------------------------
+                    } else {
+                        // If message already exists (e.g., echo from server), just ensure it's displayed
+                        const existingElement = chatMessages.querySelector(`[data-message-id="${data.payload.id}"]`);
+                        if (!existingElement) {
+                            addMessageToUI(data.payload, true);
+                            if (data.payload.text) {
                                 checkAndTriggerAnimations(data.payload.text);
                             }
-                            // -----------------------------------------------------------------
-                        } else {
-                            // If message already exists (e.g., echo from server), just ensure it's displayed
-                            const existingElement = chatMessages.querySelector(`[data-message-id="${data.payload.id}"]`);
-                            if (!existingElement) {
-                                addMessageToUI(data.payload, true);
-                                if (data.payload.text) {
-                                    checkAndTriggerAnimations(data.payload.text);
-                                }
-                            }
                         }
-                        break;
+                    }
+                    break;
 
-                    case 'messageDeleted':
-                        removeMessage(data.payload.messageId);
-                        // Also remove from in-memory array and IndexedDB
-                        const indexToDelete = allDisplayedMessages.findIndex(msg => msg.id === data.payload.messageId);
-                        if (indexToDelete > -1) {
-                            allDisplayedMessages.splice(indexToDelete, 1);
-                            deleteMessageFromDb(data.payload.messageId)
-                                .then(() => console.log(`IndexedDB: Deleted message ${data.payload.messageId}`))
-                                .catch(e => console.error('IndexedDB: Error deleting message:', e));
-                            console.log(`Message ID ${data.payload.messageId} removed from in-memory display.`);
+                case 'messageDeleted':
+                    removeMessage(data.payload.messageId);
+                    // Also remove from in-memory array and IndexedDB
+                    const indexToDelete = allDisplayedMessages.findIndex(msg => msg.id === data.payload.messageId);
+                    if (indexToDelete > -1) {
+                        allDisplayedMessages.splice(indexToDelete, 1);
+                        deleteMessageFromDb(data.payload.messageId)
+                            .then(() => console.log(`IndexedDB: Deleted message ${data.payload.messageId}`))
+                            .catch(e => console.error('IndexedDB: Error deleting message:', e));
+                        console.log(`Message ID ${data.payload.messageId} removed from in-memory display.`);
+                    }
+                    break;
+                default:
+                    console.warn('Unknown message type:', data.type);
+            }
+        };
+
+        ws.onclose = () => {
+            console.log('Disconnected from WebSocket server');
+            loadingMessagesIndicator.classList.remove('hidden');
+            loadingMessagesIndicator.textContent = 'Disconnected. Reconnecting...';
+            onlineUsers.clear();
+            updateOnlineStatusIndicators();
+            // Messages remain displayed from IndexedDB, new connection will fetch new ones
+            setTimeout(connectWebSocket, 3000);
+        };
+
+        ws.onerror = (error) => {
+            console.error('WebSocket error:', error);
+            loadingMessagesIndicator.classList.remove('hidden');
+            loadingMessagesIndicator.textContent = 'Connection error. Retrying...';
+        };
+    }
+
+    sendButton.addEventListener('click', sendMessage);
+    messageInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            sendMessage();
+        }
+    });
+    messageInput.addEventListener('input', () => {
+        messageInput.style.height = 'auto';
+        messageInput.style.height = messageInput.scrollHeight + 'px';
+    });
+
+    imageUpload.addEventListener('change', (event) => {
+        const file = event.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const base64Image = e.target.result;
+                const messageText = messageInput.value.trim();
+
+                if (ws && ws.readyState === ws.OPEN) {
+                    ws.send(JSON.stringify({
+                        type: 'chatMessage',
+                        payload: {
+                            text: messageText || null,
+                            image: base64Image,
+                            fileName: file.name
                         }
-                        break;
-                    default:
-                        console.warn('Unknown message type:', data.type);
+                    }));
+                    messageInput.value = '';
+                    messageInput.style.height = 'auto';
+                    imageUpload.value = '';
+
+                    // --- TRIGGER ANIMATIONS FOR SENT MESSAGES ---
+                    if (messageText) {
+                        checkAndTriggerAnimations(messageText);
+                    }
+                    // ---------------------------------------------
+                } else {
+                    alert('Not connected to chat server. Please check your internet connection.');
                 }
             };
+            reader.readAsDataURL(file);
+        }
+    });
 
-            ws.onclose = () => {
-                console.log('Disconnected from WebSocket server');
-                loadingMessagesIndicator.classList.remove('hidden');
-                loadingMessagesIndicator.textContent = 'Disconnected. Reconnecting...';
-                // Messages remain displayed from IndexedDB, new connection will fetch new ones
-                setTimeout(connectWebSocket, 3000);
-            };
+    function sendMessage() {
+        const text = messageInput.value.trim();
+        if (text === '') return;
 
-            ws.onerror = (error) => {
-                console.error('WebSocket error:', error);
-                loadingMessagesIndicator.classList.remove('hidden');
-                loadingMessagesIndicator.textContent = 'Connection error. Retrying...';
-            };
+        if (ws && ws.readyState === ws.OPEN) {
+            ws.send(JSON.stringify({
+                type: 'chatMessage',
+                payload: {
+                    text: text
+                }
+            }));
+            messageInput.value = '';
+            messageInput.style.height = 'auto';
+
+            // --- TRIGGER ANIMATIONS FOR SENT MESSAGES ---
+            checkAndTriggerAnimations(text);
+            // ---------------------------------------------
+        } else {
+            alert('Not connected to chat server. Please check your internet connection.');
+        }
+    }
+    
+    // --- UPDATED addMessageToUI function ---
+    function addMessageToUI(msg, autoScroll = true) {
+        // Validate timestamp before proceeding
+        let messageDate;
+        let timestampString;
+        if (msg.timestamp && typeof msg.timestamp === 'number' && !isNaN(msg.timestamp)) {
+            messageDate = new Date(msg.timestamp);
+            timestampString = messageDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        } else {
+            console.warn("Invalid timestamp received for message:", msg);
+            // Option 1: Hide the message entirely if the timestamp is crucial
+            // return; 
+            // Option 2: Provide a fallback text for invalid timestamps
+            timestampString = 'Unknown Time'; 
+            // Create a placeholder date for day divider logic if timestamp is invalid
+            // This ensures day dividers still appear, even if the time is generic.
+            // Using current date as a safe fallback for the *date* part.
+            messageDate = new Date(); 
         }
 
-        sendButton.addEventListener('click', sendMessage);
-        messageInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                sendMessage();
+        // Day Divider Logic
+        const today = new Date();
+        const yesterday = new Date(today);
+        yesterday.setDate(today.getDate() - 1);
+
+        let dateString;
+        if (messageDate) { // Only attempt to format if messageDate is a valid Date object
+            dateString = messageDate.toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+
+            if (messageDate.toDateString() === today.toDateString()) {
+                dateString = 'Today';
+            } else if (messageDate.toDateString() === yesterday.toDateString()) {
+                dateString = 'Yesterday';
+            }
+        } else {
+            dateString = 'Unknown Date'; // Fallback for highly problematic dates
+        }
+
+        // Only add a day divider if the date has changed since the last message displayed
+        // Or if it's the very first message being displayed.
+        if (lastDisplayedDate !== dateString || chatMessages.children.length === 0) {
+            const divider = document.createElement('div');
+            divider.classList.add('day-divider');
+            divider.textContent = dateString;
+            chatMessages.appendChild(divider);
+            lastDisplayedDate = dateString; // Update last displayed date
+        }
+
+        const messageElement = document.createElement('div');
+        if (msg.id) {
+            messageElement.dataset.messageId = msg.id;
+        }
+
+        const messageType = msg.messageType || 'chatMessage';
+        let messageTextContent = msg.text || ''; // Store text content for animation check
+
+        if (messageType === 'systemAnnouncement') {
+            messageElement.classList.add('message-bubble', 'announcement', 'my-2');
+            messageElement.textContent = msg.text;
+        } else if (messageType === 'userStatusUpdate') {
+            messageElement.classList.add('message-bubble', 'status-update', 'my-2');
+            messageElement.textContent = `${msg.nickname || 'Unknown User'} has ${msg.status || 'joined/left'} the chat.`;
+        } else { // Default to chatMessage
+            messageElement.classList.add('message-bubble');
+
+            let senderProfileObj = {};
+            if (msg.senderProfile) {
+                try {
+                    senderProfileObj = typeof msg.senderProfile === 'string' ? JSON.parse(msg.senderProfile) : msg.senderProfile;
+                } catch (e) {
+                    console.error('Error parsing senderProfile:', e, msg.senderProfile);
+                    senderProfileObj = {};
+                }
+            } else if (typeof msg.senderProfile === 'object' && msg.senderProfile !== null) {
+                senderProfileObj = msg.senderProfile;
+            }
+
+            const senderNickname = senderProfileObj.nickname || `User ${msg.senderPersistentId ? msg.senderPersistentId.substring(0,8) + '...' : 'Unknown'}`;
+            
+            let messageContentHTML = '';
+            if (msg.image) {
+                messageContentHTML += `<img src="${msg.image}" class="chat-image" alt="Sent Image" onerror="this.onerror=null;this.src='https://placehold.co/100x100/A0A0A0/FFFFFF?text=Image+Load+Error';">`;
+            }
+            if (msg.text) {
+                messageContentHTML += `<p>${escapeHTML(msg.text)}</p>`;
+            }
+
+            if (msg.senderPersistentId === persistentUserId) {
+                // Sent message
+                messageElement.classList.add('sent');
+                messageElement.innerHTML = `
+                    <div class="flex items-center text-sm text-gray-600 mb-1 justify-end">
+                        <span class="mr-2 text-xs">${timestampString}</span>
+                        <span class="font-semibold text-blue-700 cursor-pointer" data-sender-profile='${JSON.stringify(senderProfileObj)}' data-sender-id="${msg.senderPersistentId}">
+                            You
+                        </span>
+                    </div>
+                    <div class="bubble-content">
+                        ${messageContentHTML}
+                    </div>
+                `;
+            } else {
+                // Received message
+                messageElement.classList.add('received');
+                messageElement.innerHTML = `
+                    <div class="bubble-content">
+                        <div class="flex items-center text-sm text-gray-600 mb-1">
+                             <span class="status-dot"></span>
+                            <span class="font-semibold text-blue-700 cursor-pointer" data-sender-profile='${JSON.stringify(senderProfileObj)}' data-sender-id="${msg.senderPersistentId}">
+                                ${senderNickname}
+                            </span>
+                            <span class="ml-2 text-xs">${timestampString}</span>
+                        </div>
+                        <div>
+                            ${messageContentHTML}
+                        </div>
+                    </div>
+                `;
+            }
+
+            // Apply text color for 'death' word
+            if (messageTextContent.toLowerCase().includes('death')) {
+                const textP = messageElement.querySelector('p');
+                if (textP) { // Ensure <p> element exists before adding class
+                    textP.classList.add('text-red-500', 'font-bold');
+                }
+            }
+            
+            const senderNicknameSpan = messageElement.querySelector('.font-semibold.cursor-pointer');
+            if (senderNicknameSpan) {
+                senderNicknameSpan.addEventListener('click', (e) => {
+                    try {
+                        const profileData = JSON.parse(e.target.dataset.senderProfile);
+                        showUserProfile(profileData);
+                    } catch (error) {
+                        console.error('Error parsing sender profile from data attribute:', error);
+                    }
+                });
+            }
+        }
+
+        // The *previous* hiding logic for "User Unknown" is still good for nicknames,
+        // but for "Invalid Date" it's better handled by providing "Unknown Time" above.
+        // Still keeping the general content check just in case.
+        const renderedContentCheck = messageElement.textContent || messageElement.innerText;
+        if (renderedContentCheck.includes("User Unknown")) {
+            messageElement.style.display = 'none';
+            console.warn('Hidden a message element due to "User Unknown" in its content:', msg);
+            return; 
+        }
+
+        chatMessages.appendChild(messageElement);
+        // Trigger animation for bubble appearance
+        setTimeout(() => messageElement.classList.add('show'), 10);
+
+        // Conditional auto-scroll
+        if (autoScroll) {
+            if (msg.senderPersistentId === persistentUserId || isScrolledToBottom) {
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+                newMessagesIndicator.classList.add('hidden');
+            } else {
+                newMessagesIndicator.classList.remove('hidden');
+            }
+        }
+    }
+    // --- END UPDATED addMessageToUI ---
+
+    // NEW: Function to update online status dots
+    function updateOnlineStatusIndicators() {
+        const receivedMessages = document.querySelectorAll('.message-bubble.received');
+        receivedMessages.forEach(msgEl => {
+            const senderId = msgEl.querySelector('.font-semibold.cursor-pointer').dataset.senderId;
+            const dot = msgEl.querySelector('.status-dot');
+            if (dot) {
+                if (onlineUsers.has(senderId)) {
+                    dot.style.backgroundColor = 'green';
+                    dot.title = 'Online';
+                } else {
+                    dot.style.backgroundColor = 'gray';
+                    dot.title = 'Offline';
+                }
             }
         });
-        messageInput.addEventListener('input', () => {
+    }
+
+    // NEW: Function to format "last seen" time
+    function formatLastSeen(timestamp) {
+        if (!timestamp) return 'N/A';
+        const date = new Date(timestamp);
+        const now = new Date();
+        const diffInMinutes = Math.floor((now - date) / (1000 * 60));
+
+        if (diffInMinutes < 1) return 'Just now';
+        if (diffInMinutes < 60) return `${diffInMinutes} min ago`;
+        if (diffInMinutes < 1440) return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+        const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+        const dayOfWeek = days[date.getDay()];
+        if (diffInMinutes < 2880 && new Date(now.setDate(now.getDate() - 1)).toDateString() === date.toDateString()) {
+            return `Yesterday at ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+        }
+        return `${dayOfWeek}, ${date.toLocaleDateString()}`;
+    }
+
+    function displayGeneralSystemMessage(text) {
+        const systemMessageElement = document.createElement('div');
+        systemMessageElement.classList.add('text-center', 'text-gray-500', 'text-sm', 'my-2');
+        systemMessageElement.textContent = text;
+        chatMessages.appendChild(systemMessageElement);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    function removeMessage(messageId) {
+        const messageElement = chatMessages.querySelector(`[data-message-id="${messageId}"]`);
+        if (messageElement) {
+            messageElement.remove();
+        }
+    }
+
+    function showUserProfile(profile) {
+        displayNickname.textContent = profile.nickname || 'N/A';
+        displayInterest.textContent = profile.interest || 'N/A';
+        displayGender.textContent = profile.gender || 'N/A';
+        // NEW: Display the formatted last seen time
+        displayLastSeen.textContent = formatLastSeen(profile.lastSeen);
+        userProfileDisplayModal.classList.remove('hidden');
+    }
+
+    function escapeHTML(str) {
+        const div = document.createElement('div');
+        div.appendChild(document.createTextNode(str));
+        return div.innerHTML;
+    }
+
+    // --- EMOJI PICKER LOGIC (MAINTAINED) ---
+    const emojis = ['😀', '😃', '😄', '😁', '😆', '😅', '😂', '🤣', '😊', '😇', '🙂', '🙃', '😉', '😌', '😍', '🥰', '😘', '😗', '😙', '😚', '😋', '😛', '😜', '🤪', '😝', '🤑', '🤗', '🤭', '🤫', '🤔', '🤐', '🤨', '😐', '😑', '😶', '😏', '😒', '🙄', '😬', '🤥', '😌', '😔', '😪', '🤤', '😴', '😷', '🤒', '🤕', '🤢', '🤮', '🤧', '🥵', '🥶', '🥴', '😵', '🤯', '🤠', '🥳', '😎', '🤓', '🧐', '😕', '😟', '🙁', '😮', '😯', '😲', '😳', '🥺', '😦', '😧', '😨', '😰', '😥', '😢', '😭', '😱', '😖', '😣', '😩', '😫', '😤', '😡', '😠', '🤬', '😈', '👿', '💀', '💩', '🤡', '👹', '👺', '👻', '👽', '👾', '🤖', '😺', '😸', '😹', '😻', '😼', '😽', '🙀', '😿', '😾'];
+
+    emojis.forEach(emoji => {
+        const button = document.createElement('button');
+        button.textContent = emoji;
+        button.addEventListener('click', () => {
+            messageInput.value += emoji;
+            emojiPicker.classList.add('hidden'); // Hide after selection
+            messageInput.focus(); // Keep focus on input
+            // Adjust textarea height after adding emoji
             messageInput.style.height = 'auto';
             messageInput.style.height = messageInput.scrollHeight + 'px';
         });
+        emojiPicker.appendChild(button);
+    });
 
-        imageUpload.addEventListener('change', (event) => {
-            const file = event.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    const base64Image = e.target.result;
-                    const messageText = messageInput.value.trim();
+    emojiButton.addEventListener('click', (event) => {
+        event.stopPropagation(); // Prevent click from immediately closing it
+        emojiPicker.classList.toggle('hidden');
+    });
 
-                    if (ws && ws.readyState === ws.OPEN) {
-                        ws.send(JSON.stringify({
-                            type: 'chatMessage',
-                            payload: {
-                                text: messageText || null,
-                                image: base64Image,
-                                fileName: file.name
-                            }
-                        }));
-                        messageInput.value = '';
-                        messageInput.style.height = 'auto';
-                        imageUpload.value = '';
-
-                        // --- TRIGGER ANIMATIONS FOR SENT MESSAGES ---
-                        if (messageText) {
-                            checkAndTriggerAnimations(messageText);
-                        }
-                        // ---------------------------------------------
-                    } else {
-                        alert('Not connected to chat server. Please check your internet connection.');
-                    }
-                };
-                reader.readAsDataURL(file);
-            }
-        });
-
-        function sendMessage() {
-            const text = messageInput.value.trim();
-            if (text === '') return;
-
-            if (ws && ws.readyState === ws.OPEN) {
-                ws.send(JSON.stringify({
-                    type: 'chatMessage',
-                    payload: {
-                        text: text
-                    }
-                }));
-                messageInput.value = '';
-                messageInput.style.height = 'auto';
-
-                // --- TRIGGER ANIMATIONS FOR SENT MESSAGES ---
-                checkAndTriggerAnimations(text);
-                // ---------------------------------------------
-            } else {
-                alert('Not connected to chat server. Please check your internet connection.');
-            }
+    // Close emoji picker if clicked outside
+    document.addEventListener('click', (event) => {
+        if (!emojiPicker.contains(event.target) && !emojiButton.contains(event.target)) {
+            emojiPicker.classList.add('hidden');
         }
-        
-        // --- UPDATED addMessageToUI function ---
-        function addMessageToUI(msg, autoScroll = true) {
-            // Validate timestamp before proceeding
-            let messageDate;
-            let timestampString;
-            if (msg.timestamp && typeof msg.timestamp === 'number' && !isNaN(msg.timestamp)) {
-                messageDate = new Date(msg.timestamp);
-                timestampString = messageDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-            } else {
-                console.warn("Invalid timestamp received for message:", msg);
-                // Option 1: Hide the message entirely if the timestamp is crucial
-                // return; 
-                // Option 2: Provide a fallback text for invalid timestamps
-                timestampString = 'Unknown Time'; 
-                // Create a placeholder date for day divider logic if timestamp is invalid
-                // This ensures day dividers still appear, even if the time is generic.
-                // Using current date as a safe fallback for the *date* part.
-                messageDate = new Date(); 
-            }
+    });
+    // --- END EMOJI PICKER LOGIC ---
 
-            // Day Divider Logic
-            const today = new Date();
-            const yesterday = new Date(today);
-            yesterday.setDate(today.getDate() - 1);
-
-            let dateString;
-            if (messageDate) { // Only attempt to format if messageDate is a valid Date object
-                dateString = messageDate.toLocaleDateString('en-US', {
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric'
-                });
-
-                if (messageDate.toDateString() === today.toDateString()) {
-                    dateString = 'Today';
-                } else if (messageDate.toDateString() === yesterday.toDateString()) {
-                    dateString = 'Yesterday';
-                }
-            } else {
-                dateString = 'Unknown Date'; // Fallback for highly problematic dates
-            }
-
-            // Only add a day divider if the date has changed since the last message displayed
-            // Or if it's the very first message being displayed.
-            if (lastDisplayedDate !== dateString || chatMessages.children.length === 0) {
-                const divider = document.createElement('div');
-                divider.classList.add('day-divider');
-                divider.textContent = dateString;
-                chatMessages.appendChild(divider);
-                lastDisplayedDate = dateString; // Update last displayed date
-            }
-
-            const messageElement = document.createElement('div');
-            if (msg.id) {
-                messageElement.dataset.messageId = msg.id;
-            }
-
-            const messageType = msg.messageType || 'chatMessage';
-            let messageTextContent = msg.text || ''; // Store text content for animation check
-
-            if (messageType === 'systemAnnouncement') {
-                messageElement.classList.add('message-bubble', 'announcement', 'my-2');
-                messageElement.textContent = msg.text;
-            } else if (messageType === 'userStatusUpdate') {
-                messageElement.classList.add('message-bubble', 'status-update', 'my-2');
-                messageElement.textContent = `${msg.nickname || 'Unknown User'} has ${msg.status || 'joined/left'} the chat.`;
-            } else { // Default to chatMessage
-                messageElement.classList.add('message-bubble');
-
-                let senderProfileObj = {};
-                if (msg.senderProfile) {
-                    try {
-                        senderProfileObj = typeof msg.senderProfile === 'string' ? JSON.parse(msg.senderProfile) : msg.senderProfile;
-                    } catch (e) {
-                        console.error('Error parsing senderProfile:', e, msg.senderProfile);
-                        senderProfileObj = {};
-                    }
-                } else if (typeof msg.senderProfile === 'object' && msg.senderProfile !== null) {
-                    senderProfileObj = msg.senderProfile;
-                }
-
-                const senderNickname = senderProfileObj.nickname || `User ${msg.senderPersistentId ? msg.senderPersistentId.substring(0,8) + '...' : 'Unknown'}`;
-                
-                let messageContentHTML = '';
-                if (msg.image) {
-                    messageContentHTML += `<img src="${msg.image}" class="chat-image" alt="Sent Image" onerror="this.onerror=null;this.src='https://placehold.co/100x100/A0A0A0/FFFFFF?text=Image+Load+Error';">`;
-                }
-                if (msg.text) {
-                    messageContentHTML += `<p>${escapeHTML(msg.text)}</p>`;
-                }
-
-                if (msg.senderPersistentId === persistentUserId) {
-                    // Sent message
-                    messageElement.classList.add('sent');
-                    messageElement.innerHTML = `
-                        <div class="flex items-center text-sm text-gray-600 mb-1 justify-end">
-                            <span class="mr-2 text-xs">${timestampString}</span>
-                            <span class="font-semibold text-blue-700 cursor-pointer" data-sender-profile='${JSON.stringify(senderProfileObj)}' data-sender-id="${msg.senderPersistentId}">
-                                You
-                            </span>
-                        </div>
-                        <div class="bubble-content">
-                            ${messageContentHTML}
-                        </div>
-                    `;
-                } else {
-                    // Received message
-                    messageElement.classList.add('received');
-                    messageElement.innerHTML = `
-                        <div class="bubble-content">
-                            <div class="flex items-center text-sm text-gray-600 mb-1">
-                                <span class="font-semibold text-blue-700 cursor-pointer" data-sender-profile='${JSON.stringify(senderProfileObj)}' data-sender-id="${msg.senderPersistentId}">
-                                    ${senderNickname}
-                                </span>
-                                <span class="ml-2 text-xs">${timestampString}</span>
-                            </div>
-                            <div>
-                                ${messageContentHTML}
-                            </div>
-                        </div>
-                    `;
-                }
-
-                // Apply text color for 'death' word
-                if (messageTextContent.toLowerCase().includes('death')) {
-                    const textP = messageElement.querySelector('p');
-                    if (textP) { // Ensure <p> element exists before adding class
-                        textP.classList.add('text-red-500', 'font-bold');
-                    }
-                }
-                
-                const senderNicknameSpan = messageElement.querySelector('.font-semibold.cursor-pointer');
-                if (senderNicknameSpan) {
-                    senderNicknameSpan.addEventListener('click', (e) => {
-                        try {
-                            const profileData = JSON.parse(e.target.dataset.senderProfile);
-                            showUserProfile(profileData);
-                        } catch (error) {
-                            console.error('Error parsing sender profile from data attribute:', error);
-                        }
-                    });
-                }
-            }
-
-            // The *previous* hiding logic for "User Unknown" is still good for nicknames,
-            // but for "Invalid Date" it's better handled by providing "Unknown Time" above.
-            // Still keeping the general content check just in case.
-            const renderedContentCheck = messageElement.textContent || messageElement.innerText;
-            if (renderedContentCheck.includes("User Unknown")) {
-                messageElement.style.display = 'none';
-                console.warn('Hidden a message element due to "User Unknown" in its content:', msg);
-                return; 
-            }
-
-            chatMessages.appendChild(messageElement);
-            // Trigger animation for bubble appearance
-            setTimeout(() => messageElement.classList.add('show'), 10);
-
-            // Conditional auto-scroll
-            if (autoScroll) {
-                if (msg.senderPersistentId === persistentUserId || isScrolledToBottom) {
-                    chatMessages.scrollTop = chatMessages.scrollHeight;
-                    newMessagesIndicator.classList.add('hidden');
-                } else {
-                    newMessagesIndicator.classList.remove('hidden');
-                }
-            }
-        }
-        // --- END UPDATED addMessageToUI ---
-
-        function displayGeneralSystemMessage(text) {
-            const systemMessageElement = document.createElement('div');
-            systemMessageElement.classList.add('text-center', 'text-gray-500', 'text-sm', 'my-2');
-            systemMessageElement.textContent = text;
-            chatMessages.appendChild(systemMessageElement);
-            chatMessages.scrollTop = chatMessages.scrollHeight;
-        }
-
-        function removeMessage(messageId) {
-            const messageElement = chatMessages.querySelector(`[data-message-id="${messageId}"]`);
-            if (messageElement) {
-                messageElement.remove();
-            }
-        }
-
-        function showUserProfile(profile) {
-            displayNickname.textContent = profile.nickname || 'N/A';
-            displayInterest.textContent = profile.interest || 'N/A';
-            displayGender.textContent = profile.gender || 'N/A';
-            userProfileDisplayModal.classList.remove('hidden');
-        }
-
-        function escapeHTML(str) {
-            const div = document.createElement('div');
-            div.appendChild(document.createTextNode(str));
-            return div.innerHTML;
-        }
-
-        // --- EMOJI PICKER LOGIC (MAINTAINED) ---
-        const emojis = ['😀', '😃', '😄', '😁', '😆', '😅', '😂', '🤣', '😊', '😇', '🙂', '🙃', '😉', '😌', '😍', '🥰', '😘', '😗', '😙', '😚', '😋', '😛', '😜', '🤪', '😝', '🤑', '🤗', '🤭', '🤫', '🤔', '🤐', '🤨', '😐', '😑', '😶', '😏', '😒', '🙄', '😬', '🤥', '😌', '😔', '😪', '🤤', '😴', '😷', '🤒', '🤕', '🤢', '🤮', '🤧', '🥵', '🥶', '🥴', '😵', '🤯', '🤠', '🥳', '😎', '🤓', '🧐', '😕', '😟', '🙁', '😮', '😯', '😲', '😳', '🥺', '😦', '😧', '😨', '😰', '😥', '😢', '😭', '😱', '😖', '😣', '😩', '😫', '😤', '😡', '😠', '🤬', '😈', '👿', '💀', '💩', '🤡', '👹', '👺', '👻', '👽', '👾', '🤖', '😺', '😸', '😹', '😻', '😼', '😽', '🙀', '😿', '😾'];
-
-        emojis.forEach(emoji => {
-            const button = document.createElement('button');
-            button.textContent = emoji;
-            button.addEventListener('click', () => {
-                messageInput.value += emoji;
-                emojiPicker.classList.add('hidden'); // Hide after selection
-                messageInput.focus(); // Keep focus on input
-                // Adjust textarea height after adding emoji
-                messageInput.style.height = 'auto';
-                messageInput.style.height = messageInput.scrollHeight + 'px';
-            });
-            emojiPicker.appendChild(button);
-        });
-
-        emojiButton.addEventListener('click', (event) => {
-            event.stopPropagation(); // Prevent click from immediately closing it
-            emojiPicker.classList.toggle('hidden');
-        });
-
-        // Close emoji picker if clicked outside
-        document.addEventListener('click', (event) => {
-            if (!emojiPicker.contains(event.target) && !emojiButton.contains(event.target)) {
-                emojiPicker.classList.add('hidden');
-            }
-        });
-        // --- END EMOJI PICKER LOGIC ---
-
-        // --- NEW MESSAGES INDICATOR LOGIC (MAINTAINED) ---
-        chatMessages.addEventListener('scroll', () => {
-            const tolerance = 5;
-            isScrolledToBottom = (chatMessages.scrollHeight - chatMessages.clientHeight) <= (chatMessages.scrollTop + tolerance);
-            if (isScrolledToBottom) {
-                newMessagesIndicator.classList.add('hidden');
-            }
-        });
-
-        newMessagesIndicator.addEventListener('click', () => {
-            chatMessages.scrollTop = chatMessages.scrollHeight;
+    // --- NEW MESSAGES INDICATOR LOGIC (MAINTAINED) ---
+    chatMessages.addEventListener('scroll', () => {
+        const tolerance = 5;
+        isScrolledToBottom = (chatMessages.scrollHeight - chatMessages.clientHeight) <= (chatMessages.scrollTop + tolerance);
+        if (isScrolledToBottom) {
             newMessagesIndicator.classList.add('hidden');
-        });
-        // --- END NEW MESSAGES INDICATOR LOGIC ---
-
-        // --- BASIC BROWSER NOTIFICATION LOGIC (MAINTAINED) ---
-        function requestNotificationPermission() {
-            if (!("Notification" in window)) {
-                console.warn("This browser does not support desktop notification");
-            } else if (Notification.permission === "default") {
-                Notification.requestPermission();
-            }
         }
+    });
 
-        signupButton.addEventListener('click', () => {
-            if (signupNicknameInput.value.trim() && signupGenderSelect.value) {
-                requestNotificationPermission();
-            }
-        });
-        // --- END BASIC BROWSER NOTIFICATION LOGIC ---
+    newMessagesIndicator.addEventListener('click', () => {
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+        newMessagesIndicator.classList.add('hidden');
+    });
+    // --- END NEW MESSAGES INDICATOR LOGIC ---
 
-        // --- WORD-TRIGGERED ANIMATIONS ---
-        const animationTriggers = [
-            { word: 'death', type: 'shake', duration: 2000, color: 'text-red-500' },
-            { word: 'movie', type: 'glitter', count: 15, duration: 4000 },
-            { word: 'love', type: 'love_emojis', count: 20, duration: 4000 },
-            { word: 'happy', type: 'confetti', count: 50, duration: 3000 },
-            { word: 'monpress', type: 'confetti', count: 50, duration: 3000 }, // Assuming positive/impressive
-            { word: 'sad', type: 'droplet', count: 30, duration: 3000 },
-            { word: 'peace', type: 'glitter', count: 15, duration: 4000 },
-            { word: 'fuck', type: 'shake', duration: 2000 }
-        ];
+    // --- BASIC BROWSER NOTIFICATION LOGIC (MAINTAINED) ---
+    function requestNotificationPermission() {
+        if (!("Notification" in window)) {
+            console.warn("This browser does not support desktop notification");
+        } else if (Notification.permission === "default") {
+            Notification.requestPermission();
+        }
+    }
 
-        function checkAndTriggerAnimations(messageText) {
-            const lowerCaseText = messageText.toLowerCase();
-            animationTriggers.forEach(trigger => {
-                if (lowerCaseText.includes(trigger.word)) {
-                    switch (trigger.type) {
-                        case 'shake':
-                            triggerShakeAnimation(trigger.duration);
-                            break;
-                        case 'glitter':
-                            triggerGlitterAnimation(trigger.count, trigger.duration);
-                            break;
-                        case 'love_emojis':
-                            triggerLoveAnimation(trigger.count, trigger.duration);
-                            break;
-                        case 'confetti':
-                            triggerConfettiAnimation(trigger.count, trigger.duration);
-                            break;
-                        case 'droplet':
-                            triggerDropletAnimation(trigger.count, trigger.duration);
-                            break;
-                    }
+    signupButton.addEventListener('click', () => {
+        if (signupNicknameInput.value.trim() && signupGenderSelect.value) {
+            requestNotificationPermission();
+        }
+    });
+    // --- END BASIC BROWSER NOTIFICATION LOGIC ---
+
+    // --- WORD-TRIGGERED ANIMATIONS ---
+    const animationTriggers = [
+        { word: 'death', type: 'shake', duration: 2000, color: 'text-red-500' },
+        { word: 'movie', type: 'glitter', count: 15, duration: 4000 },
+        { word: 'love', type: 'love_emojis', count: 20, duration: 4000 },
+        { word: 'happy', type: 'confetti', count: 50, duration: 3000 },
+        { word: 'monpress', type: 'confetti', count: 50, duration: 3000 }, // Assuming positive/impressive
+        { word: 'sad', type: 'droplet', count: 30, duration: 3000 },
+        { word: 'peace', type: 'glitter', count: 15, duration: 4000 },
+        { word: 'fuck', type: 'shake', duration: 2000 }
+    ];
+
+    function checkAndTriggerAnimations(messageText) {
+        const lowerCaseText = messageText.toLowerCase();
+        animationTriggers.forEach(trigger => {
+            if (lowerCaseText.includes(trigger.word)) {
+                switch (trigger.type) {
+                    case 'shake':
+                        triggerShakeAnimation(trigger.duration);
+                        break;
+                    case 'glitter':
+                        triggerGlitterAnimation(trigger.count, trigger.duration);
+                        break;
+                    case 'love_emojis':
+                        triggerLoveAnimation(trigger.count, trigger.duration);
+                        break;
+                    case 'confetti':
+                        triggerConfettiAnimation(trigger.count, trigger.duration);
+                        break;
+                    case 'droplet':
+                        triggerDropletAnimation(trigger.count, trigger.duration);
+                        break;
                 }
-            });
-        }
+            }
+        });
+    }
 
-        function triggerShakeAnimation(duration) {
-            const body = document.body;
-            body.classList.add('shake-active');
+    function triggerShakeAnimation(duration) {
+        const body = document.body;
+        body.classList.add('shake-active');
+        setTimeout(() => {
+            body.classList.remove('shake-active');
+        }, duration);
+    }
+
+    function triggerGlitterAnimation(count, duration) {
+        const area = document.body;
+        for (let i = 0; i < count; i++) {
+            const star = document.createElement('span');
+            star.textContent = ['⭐',];
+            star.classList.add('glitter-star');
+            star.style.left = `${Math.random() * 150}vw`;
+            star.style.top = `${Math.random() * 100}vh`;
+            star.style.animationDuration = `${duration / 1000}s`;
+            area.appendChild(star);
+
+            star.addEventListener('animationend', () => star.remove());
+        }
+    }
+
+    function triggerLoveAnimation(count, duration) {
+        const area = document.body;
+        for (let i = 0; i < count; i++) {
+            const heart = document.createElement('span');
+            heart.textContent = '❤️';
+            heart.classList.add('love-emoji');
+            heart.style.left = `${Math.random() * 100}vw`;
+            heart.style.animationDuration = `${duration / 1000}s`;
+            heart.style.animationDelay = `${Math.random() * 0.5}s`;
+            area.appendChild(heart);
+
+            heart.addEventListener('animationend', () => heart.remove());
+        }
+    }
+
+    function triggerConfettiAnimation(count, duration) {
+        const colors = ['#f06292', '#81c784', '#64b5f6', '#ffd54f', '#ba68c8', '#ff9800', '#cddc39']; // More colors
+        const area = document.body;
+        for (let i = 0; i < count; i++) {
+            const confetti = document.createElement('div');
+            const size = Math.random() * 8 + 4; // 4-12px
+            confetti.style.width = `${size}px`;
+            confetti.style.height = `${size * 1.5}px`; // Rectangular for variety
+            confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+            confetti.style.position = 'fixed';
+            confetti.style.left = `${Math.random() * 100}vw`;
+            confetti.style.top = `-20px`; // Start above screen
+            confetti.style.opacity = '0'; 
+            confetti.style.transform = `rotate(${Math.random() * 360}deg)`;
+            confetti.style.zIndex = '9999';
+            area.appendChild(confetti);
+
+            const finalX = (Math.random() * 200) - 100; // -100 to 100
+            const finalY = window.innerHeight + (Math.random() * 100) + 50; // Fall off screen
+            const finalDeg = Math.random() * 720 + 360; // More spinning
+
+            confetti.style.setProperty('--x', `${finalX}px`);
+            confetti.style.setProperty('--y', `${finalY}px`);
+            confetti.style.setProperty('--deg', `${finalDeg}deg`);
+            confetti.style.setProperty('--duration', `${duration / 1000}s`);
+
             setTimeout(() => {
-                body.classList.remove('shake-active');
-            }, duration);
+                confetti.classList.add('confetti'); // Add class to trigger animation
+            }, 10);
+
+            confetti.addEventListener('animationend', () => confetti.remove());
         }
+    }
 
-        function triggerGlitterAnimation(count, duration) {
-            const area = document.body;
-            for (let i = 0; i < count; i++) {
-                const star = document.createElement('span');
-                star.textContent = ['⭐',];
-                star.classList.add('glitter-star');
-                star.style.left = `${Math.random() * 150}vw`;
-                star.style.top = `${Math.random() * 100}vh`;
-                star.style.animationDuration = `${duration / 1000}s`;
-                area.appendChild(star);
+    function triggerDropletAnimation(count, duration) {
+        const colors = ['#90caf9', '#64b5f6', '#42a5f5', '#2196f3', '#1976d2']; // Shades of blue
+        const area = document.body;
+        for (let i = 0; i < count; i++) {
+            const droplet = document.createElement('div');
+            droplet.style.width = '5px';
+            droplet.style.height = '10px';
+            droplet.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+            droplet.style.borderRadius = '50% 50% 50% 0'; // Tear drop shape
+            droplet.style.position = 'fixed';
+            droplet.style.left = `${Math.random() * 100}vw`;
+            droplet.style.bottom = `-10px`; // Start just below screen
+            droplet.style.opacity = '0';
+            droplet.style.zIndex = '9999';
+            area.appendChild(droplet);
+            
+            droplet.style.setProperty('--duration', `${duration / 1000}s`);
 
-                star.addEventListener('animationend', () => star.remove());
-            }
+            setTimeout(() => {
+                droplet.classList.add('droplet'); // Add class to trigger animation
+            }, 10);
+
+            droplet.addEventListener('animationend', () => droplet.remove());
         }
+    }
+    // --- END WORD-TRIGGERED ANIMATIONS ---
 
-        function triggerLoveAnimation(count, duration) {
-            const area = document.body;
-            for (let i = 0; i < count; i++) {
-                const heart = document.createElement('span');
-                heart.textContent = '❤️';
-                heart.classList.add('love-emoji');
-                heart.style.left = `${Math.random() * 100}vw`;
-                heart.style.animationDuration = `${duration / 1000}s`;
-                heart.style.animationDelay = `${Math.random() * 0.5}s`;
-                area.appendChild(heart);
+    // --- SIDEBAR MENU LOGIC ---
+    menuButton.addEventListener('click', () => {
+        sidebar.classList.add('open');
+        sidebarOverlay.classList.add('open');
+    });
 
-                heart.addEventListener('animationend', () => heart.remove());
-            }
-        }
+    sidebarCloseButton.addEventListener('click', () => {
+        sidebar.classList.remove('open');
+        sidebarOverlay.classList.remove('open');
+    });
 
-        function triggerConfettiAnimation(count, duration) {
-            const colors = ['#f06292', '#81c784', '#64b5f6', '#ffd54f', '#ba68c8', '#ff9800', '#cddc39']; // More colors
-            const area = document.body;
-            for (let i = 0; i < count; i++) {
-                const confetti = document.createElement('div');
-                const size = Math.random() * 8 + 4; // 4-12px
-                confetti.style.width = `${size}px`;
-                confetti.style.height = `${size * 1.5}px`; // Rectangular for variety
-                confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
-                confetti.style.position = 'fixed';
-                confetti.style.left = `${Math.random() * 100}vw`;
-                confetti.style.top = `-20px`; // Start above screen
-                confetti.style.opacity = '0'; 
-                confetti.style.transform = `rotate(${Math.random() * 360}deg)`;
-                confetti.style.zIndex = '9999';
-                area.appendChild(confetti);
+    sidebarOverlay.addEventListener('click', () => {
+        sidebar.classList.remove('open');
+        sidebarOverlay.classList.remove('open');
+    });
 
-                const finalX = (Math.random() * 200) - 100; // -100 to 100
-                const finalY = window.innerHeight + (Math.random() * 100) + 50; // Fall off screen
-                const finalDeg = Math.random() * 720 + 360; // More spinning
+    // Removed the JavaScript for sidebarItems click listener
+    // The browser will now handle navigation directly via the href attributes.
+    // const sidebarItems = document.querySelectorAll('.sidebar-item');
+    // sidebarItems.forEach(item => {
+    //     item.addEventListener('click', (e) => {
+    //         e.preventDefault(); // This line is now removed
+    //         const action = e.target.dataset.action;
+    //         // alert(`You clicked: ${action.charAt(0).toUpperCase() + action.slice(1)}`);
+    //         sidebar.classList.remove('open');
+    //         sidebarOverlay.classList.remove('open');
+    //     });
+    // });
+    // --- END SIDEBAR MENU LOGIC ---
 
-                confetti.style.setProperty('--x', `${finalX}px`);
-                confetti.style.setProperty('--y', `${finalY}px`);
-                confetti.style.setProperty('--deg', `${finalDeg}deg`);
-                confetti.style.setProperty('--duration', `${duration / 1000}s`);
 
-                setTimeout(() => {
-                    confetti.classList.add('confetti'); // Add class to trigger animation
-                }, 10);
-
-                confetti.addEventListener('animationend', () => confetti.remove());
-            }
-        }
-
-        function triggerDropletAnimation(count, duration) {
-            const colors = ['#90caf9', '#64b5f6', '#42a5f5', '#2196f3', '#1976d2']; // Shades of blue
-            const area = document.body;
-            for (let i = 0; i < count; i++) {
-                const droplet = document.createElement('div');
-                droplet.style.width = '5px';
-                droplet.style.height = '10px';
-                droplet.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
-                droplet.style.borderRadius = '50% 50% 50% 0'; // Tear drop shape
-                droplet.style.position = 'fixed';
-                droplet.style.left = `${Math.random() * 100}vw`;
-                droplet.style.bottom = `-10px`; // Start just below screen
-                droplet.style.opacity = '0';
-                droplet.style.zIndex = '9999';
-                area.appendChild(droplet);
-                
-                droplet.style.setProperty('--duration', `${duration / 1000}s`);
-
-                setTimeout(() => {
-                    droplet.classList.add('droplet'); // Add class to trigger animation
-                }, 10);
-
-                droplet.addEventListener('animationend', () => droplet.remove());
-            }
-        }
-        // --- END WORD-TRIGGERED ANIMATIONS ---
-
-        // --- SIDEBAR MENU LOGIC ---
-        menuButton.addEventListener('click', () => {
-            sidebar.classList.add('open');
-            sidebarOverlay.classList.add('open');
-        });
-
-        sidebarCloseButton.addEventListener('click', () => {
-            sidebar.classList.remove('open');
-            sidebarOverlay.classList.remove('open');
-        });
-
-        sidebarOverlay.addEventListener('click', () => {
-            sidebar.classList.remove('open');
-            sidebarOverlay.classList.remove('open');
-        });
-
-        // Removed the JavaScript for sidebarItems click listener
-        // The browser will now handle navigation directly via the href attributes.
-        // const sidebarItems = document.querySelectorAll('.sidebar-item');
-        // sidebarItems.forEach(item => {
-        //     item.addEventListener('click', (e) => {
-        //         e.preventDefault(); // This line is now removed
-        //         const action = e.target.dataset.action;
-        //         // alert(`You clicked: ${action.charAt(0).toUpperCase() + action.slice(1)}`);
-        //         sidebar.classList.remove('open');
-        //         sidebarOverlay.classList.remove('open');
-        //     });
-        // });
-        // --- END SIDEBAR MENU LOGIC ---
-    </script>
+        
+     </script>
 </body>
 </html>
