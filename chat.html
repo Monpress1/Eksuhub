@@ -11,77 +11,75 @@
         html, body {
             height: 100%;
             margin: 0;
-            overflow: hidden; /* Prevent body scroll, let chatMessages handle it */
+            overflow: hidden;
             font-family: "Inter", sans-serif;
-            background-color: #e0f2fe; /* Light Blue-50 background */
+            background-color: #e0f2fe;
         }
 
         body {
             display: flex;
             flex-direction: column;
-            padding: 0; /* Remove padding for true full screen */
+            padding: 0;
         }
 
-        .chat-container { /* This now acts as the main chat wrapper, filling the screen */
+        .chat-container {
             background-color: #ffffff;
-            flex-grow: 1; /* Allows it to take all available vertical space */
+            flex-grow: 1;
             display: flex;
             flex-direction: column;
-            overflow: hidden; /* Ensure content inside doesn't overflow */
-            border-radius: 0; /* Remove border-radius for full screen */
-            box-shadow: none; /* Remove box-shadow for full screen */
-            width: 100%; /* Ensure it takes full width */
-            max-width: 100%; /* On desktop, can set max-width if desired */
+            overflow: hidden;
+            border-radius: 0;
+            box-shadow: none;
+            width: 100%;
+            max-width: 100%;
         }
 
-        /* Responsive adjustments for larger screens */
-        @media (min-width: 768px) { /* Adjust for larger screens */
+        @media (min-width: 768px) {
             .chat-container {
-                max-width: 800px; /* Example: Max width for desktop */
-                border-radius: 12px; /* Re-add border-radius for larger screens */
-                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); /* Re-add shadow */
+                max-width: 800px;
+                border-radius: 12px;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
             }
             body {
-                padding: 20px; /* Add padding back for desktop centering */
+                padding: 20px;
             }
         }
-
 
         /* Dark Mode Styles */
         body.dark-mode {
-            background-color: #1a202c; /* Dark background */
+            background-color: #1a202c;
         }
         .dark-mode .chat-container {
-            background-color: #2d3748; /* Darker chat background */
-            color: #e2e8f0; /* Light text */
+            background-color: #2d3748;
+            color: #e2e8f0;
         }
         .dark-mode .chat-header {
-            background-color: #4a5568; /* Darker header */
+            background-color: #4a5568;
         }
         .dark-mode .messages-area {
-            background-color: #2d3748; /* Darker message area */
+            background-color: #2d3748;
         }
         .dark-mode .message-bubble.received {
-            background-color: #4a5568; /* Darker received bubble */
-            color: #e2e8f0; /* Light text */
+            background-color: #4a5568;
+            color: #e2e8f0;
         }
         .dark-mode .message-bubble.sent {
-            background-color: #fdba74; /* Darker orange for dark mode */
-            color: #1a202c; /* Dark text on orange */
+            background-color: #fdba74;
+            color: #1a202c;
         }
         .dark-mode .message-bubble.announcement {
-            background-color: #cc3700; /* Darker orange */
+            background-color: #cc3700;
         }
         .dark-mode .message-bubble.status-update {
             background-color: #6b7280;
             color: #cbd5e0;
         }
         .dark-mode .message-input-area {
-            background-color: #2d3748; /* Darker input area */
+            background-color: #2d3748;
             border-top-color: #4a5568;
         }
         .dark-mode .message-input {
-            background-color: #4a5568; /* Darker input field */
+            background-color: #4a5568;
             color: #e2e8f0;
             border-color: #6b7280;
         }
@@ -89,7 +87,7 @@
             color: #a0aec0;
         }
         .dark-mode .send-button, .dark-mode .upload-button, .dark-mode .emoji-button, .dark-mode .theme-toggle-button, .dark-mode .menu-button {
-            background-color: #6366f1; /* Lighter indigo for dark mode */
+            background-color: #6366f1;
         }
         .dark-mode .send-button:hover, .dark-mode .upload-button:hover, .dark-mode .emoji-button:hover, .dark-mode .theme-toggle-button:hover, .dark-mode .menu-button:hover {
             background-color: #4f46e5;
@@ -129,7 +127,7 @@
             color: #a0aec0;
         }
         .dark-mode .font-semibold.text-blue-700 {
-            color: #90cdf4; /* Lighter blue for nicknames */
+            color: #90cdf4;
         }
         .dark-mode .day-divider {
             color: #cbd5e0;
@@ -146,99 +144,116 @@
             background-color: #4a5568;
         }
 
-
         .chat-header {
-            background: #212121 ; /* */
+            background: #212121;
             color: white;
             padding: 1rem;
             font-size: 1.25rem;
             font-weight: bold;
             text-align: center;
-            flex-shrink: 0; /* Prevent header from shrinking */
-            border-bottom: 1px solid #1e40af; /* Darker blue border */
+            flex-shrink: 0;
+            border-bottom: 1px solid #1e40af;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
         }
-         .chat-header:hover{
-            background: #212121 ;
-            color: white;
-            padding: 1rem;
-            font-size: 1.25rem;
-            font-weight: bold;
-            text-align: center;
-            flex-shrink: 0; /* Prevent header from shrinking */
-        }
+
         @media (min-width: 768px) {
             .chat-header {
                 border-top-left-radius: 12px;
                 border-top-right-radius: 12px;
             }
         }
+
+        #networkIndicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            transition: background-color 0.3s ease-in-out;
+        }
+        .status-red {
+            background-color: #ef4444; /* disconnected */
+        }
+        .status-green {
+            background-color: #22c55e; /* connected */
+        }
+        .status-orange {
+            background-color: #f97316; /* bad network */
+        }
+
         .messages-area {
             flex-grow: 1;
-            padding: 0.5rem 1rem; /* Slightly reduced vertical padding */
+            padding: 0.5rem 1rem;
             overflow-y: auto;
             display: flex;
             flex-direction: column;
-            gap: 8px; /* Reduced gap between bubbles */
-            background-color: #eff6ff; /* Blue-50 */
-            scroll-behavior: smooth; /* Smooth scrolling for new messages */
+            gap: 8px;
+            background-color: #eff6ff;
+            scroll-behavior: smooth;
         }
+
         .message-bubble {
             max-width: 80%;
-            padding: 0.4rem 0.8rem; /* Reduced vertical padding for smaller height */
+            padding: 0.4rem 0.8rem;
             border-radius: 18px;
-            line-height: 1.3; /* Slightly tighter line height */
+            line-height: 1.3;
             word-wrap: break-word;
-            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08); /* Slightly softer shadow */
-            transition: transform 0.2s ease-out, opacity 0.2s ease-out; /* For message animations */
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+            transition: transform 0.2s ease-out, opacity 0.2s ease-out;
             transform: translateY(10px);
             opacity: 0;
+            position: relative;
         }
-        .message-bubble.show { /* Class to trigger animation */
+
+        .message-bubble.show {
             transform: translateY(0);
             opacity: 1;
         }
+
         .message-bubble.sent {
             align-self: flex-end;
-            background-color: #fbbf24; /* Amber-400 (Orange) */
-            color: #1f2937; /* Dark gray for text on light background */
+            background-color: #fbbf24;
+            color: #1f2937;
             border-bottom-right-radius: 4px;
         }
+
         .message-bubble.received {
             align-self: flex-start;
             background-color: #ffffff;
-            color: #374151; /* Gray-700 */
+            color: #374151;
             border-bottom-left-radius: 4px;
         }
-        .message-bubble.announcement { /* Admin announcement style */
+
+        .message-bubble.announcement {
             align-self: center;
-            background-color: #ea580c; /* Orange-600 */
+            background-color: #ea580c;
             color: white;
             text-align: center;
             font-weight: bold;
-            padding: 0.6rem 1.2rem; /* Adjusted padding */
+            padding: 0.6rem 1.2rem;
             border-radius: 20px;
             max-width: 90%;
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
         }
-        .message-bubble.status-update { /* User join/leave style */
+
+        .message-bubble.status-update {
             align-self: center;
-            background-color: #bfdbfe; /* Blue-200 */
-            color: #1e40af; /* Darker blue text */
+            background-color: #bfdbfe;
+            color: #1e40af;
             text-align: center;
-            font-size: 0.85rem; /* Slightly smaller font */
-            padding: 0.4rem 0.8rem; /* Adjusted padding */
+            font-size: 0.85rem;
+            padding: 0.4rem 0.8rem;
             border-radius: 15px;
             max-width: 70%;
             box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
         }
 
-        /* Day Divider Style */
         .day-divider {
             align-self: center;
             margin: 15px 0;
             padding: 5px 15px;
-            background-color: #93c5fd; /* Blue-300 */
-            color: #1e40af; /* Blue-700 text */
+            background-color: #93c5fd;
+            color: #1e40af;
             border-radius: 15px;
             font-size: 0.8rem;
             font-weight: 600;
@@ -249,29 +264,31 @@
 
         .message-input-area {
             display: flex;
-            padding: 0.75rem 1rem; /* Slightly reduced padding */
+            padding: 0.75rem 1rem;
             border-top: 1px solid #e2e8f0;
             background-color: #ffffff;
-            gap: 8px; /* Reduced gap */
+            gap: 8px;
             align-items: flex-end;
             flex-shrink: 0;
         }
+
         .message-input {
             flex-grow: 1;
-            padding: 0.6rem 0.75rem; /* Reduced padding */
+            padding: 0.6rem 0.75rem;
             border: 1px solid #d1d5db;
             border-radius: 8px;
-            font-size: 0.95rem; /* Slightly smaller font */
+            font-size: 0.95rem;
             resize: none;
             overflow-y: hidden;
-            min-height: 38px; /* Adjusted minimum height */
-            line-height: 1.4; /* Adjusted line height */
-            max-height: 120px; /* Limit max height to prevent excessive growth */
+            min-height: 38px;
+            line-height: 1.4;
+            max-height: 120px;
         }
+
         .send-button, .upload-button, .emoji-button, .theme-toggle-button, .menu-button {
-            background-color: #2563eb; /* Blue-600 */
+            background-color: #2563eb;
             color: white;
-            padding: 0.6rem 0.5rem; /* Adjusted padding */
+            padding: 0.6rem 0.5rem;
             border-radius: 8px;
             cursor: pointer;
             font-weight: bold;
@@ -281,19 +298,23 @@
             align-items: center;
             justify-content: center;
             flex-shrink: 0;
-            height: 38px; /* Match input min-height for vertical alignment */
-            width: 38px; /* Make buttons square */
+            height: 38px;
+            width: 38px;
         }
+
         .send-button:hover, .upload-button:hover, .emoji-button:hover, .theme-toggle-button:hover, .menu-button:hover {
-            background-color: #1e40af; /* Blue-700 */
+            background-color: #1e40af;
             transform: translateY(-1px);
         }
+
         .send-button:active, .upload-button:active, .emoji-button:active, .theme-toggle-button:active, .menu-button:active {
             transform: scale(0.98);
         }
+
         .upload-button input[type="file"] {
             display: none;
         }
+
         .chat-image {
             max-width: 100%;
             height: auto;
@@ -302,25 +323,26 @@
             display: block;
         }
 
-        /* Emoji Picker Modal */
         .emoji-picker-modal {
             position: absolute;
-            bottom: 70px; /* Above the input area */
-            left: 10px; /* Positioned left */
+            bottom: 70px;
+            left: 10px;
             background-color: #ffffff;
             border-radius: 12px;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
             padding: 10px;
             display: grid;
-            grid-template-columns: repeat(7, 1fr); /* Adjust columns as needed */
+            grid-template-columns: repeat(7, 1fr);
             gap: 5px;
             max-height: 200px;
             overflow-y: auto;
             z-index: 100;
         }
+
         .dark-mode .emoji-picker-modal {
             background-color: #4a5568;
         }
+
         .emoji-picker-modal button {
             background: none;
             border: none;
@@ -330,19 +352,20 @@
             border-radius: 4px;
             transition: background-color 0.1s;
         }
+
         .emoji-picker-modal button:hover {
             background-color: #e2e8f0;
         }
+
         .dark-mode .emoji-picker-modal button:hover {
             background-color: #6b7280;
         }
 
-        /* New Messages Indicator */
         .new-messages-indicator {
             position: absolute;
-            bottom: 80px; /* Above input and emoji picker */
+            bottom: 80px;
             right: 20px;
-            background-color: #2563eb; /* Blue-600 */
+            background-color: #2563eb;
             color: white;
             padding: 8px 15px;
             border-radius: 20px;
@@ -350,15 +373,14 @@
             cursor: pointer;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
             z-index: 90;
-            display: none; /* Hidden by default */
+            display: none;
             transition: opacity 0.3s ease-in-out;
         }
+
         .dark-mode .new-messages-indicator {
             background-color: #6366f1;
         }
 
-
-        /* All Modals (Existing styles, ensure they are still centered) */
         .modal-overlay {
             position: fixed;
             top: 0;
@@ -371,7 +393,8 @@
             align-items: center;
             z-index: 1000;
         }
-        .modal-content { /* Generic modal content style */
+
+        .modal-content {
             background-color: #ffffff;
             padding: 30px;
             border-radius: 12px;
@@ -383,6 +406,7 @@
             gap: 15px;
             position: relative;
         }
+
         .modal-content h2, .modal-content h3 {
             font-size: 2rem;
             font-weight: bold;
@@ -390,6 +414,7 @@
             text-align: center;
             margin-bottom: 10px;
         }
+
         .modal-content input,
         .modal-content textarea,
         .modal-content select {
@@ -400,8 +425,9 @@
             width: 100%;
             box-sizing: border-box;
         }
+
         .modal-content button {
-            background-color: #2563eb; /* Blue-600 */
+            background-color: #2563eb;
             color: white;
             padding: 12px;
             border-radius: 8px;
@@ -411,9 +437,11 @@
             transition: background-color 0.2s;
             border: none;
         }
+
         .modal-content button:hover {
-            background-color: #1e40af; /* Blue-700 */
+            background-color: #1e40af;
         }
+
         .modal-content .close-button {
             position: absolute;
             top: 10px;
@@ -424,69 +452,71 @@
             border: none;
             color: #6b7280;
         }
+
         .modal-content .close-button:hover {
             color: #1f2937;
         }
+
         .hidden {
             display: none;
         }
+
         .loading-indicator {
             text-align: center;
             color: #6b7280;
             font-style: italic;
             padding: 10px;
         }
-        
-        /* --- ANIMATION STYLES --- */
 
-        /* Shake Animation (for 'death' / 'fuck') */
+        /* --- ANIMATION STYLES --- */
         @keyframes shake {
             0%, 100% { transform: translateX(0); }
             20%, 60% { transform: translateX(-5px); }
             40%, 80% { transform: translateX(5px); }
         }
+
         .shake-active {
             animation: shake 0.2s ease-in-out infinite;
         }
 
-        /* Glitter/Sparkle Animation (for 'movie' / 'peace') */
         @keyframes glitter-fade-in {
             0% { opacity: 0; transform: scale(0.5); }
             50% { opacity: 1; transform: scale(1); }
             100% { opacity: 0; transform: scale(1.5); }
         }
+
         .glitter-star {
             position: fixed;
-            font-size: 24px; /* Adjust size of stars */
+            font-size: 24px;
             color: gold;
             text-shadow: 0 0 5px orange;
-            pointer-events: none; /* Don't interfere with clicks */
+            pointer-events: none;
             z-index: 999;
-            animation: glitter-fade-in 1.5s ease-out forwards; /* Fade in and out */
+            animation: glitter-fade-in 1.5s ease-out forwards;
         }
 
-        /* Love Emojis Animation (for 'love') */
         @keyframes rise-and-fade {
             0% { transform: translateY(0) scale(0.8); opacity: 0; }
             20% { opacity: 1; }
             100% { transform: translateY(-100vh) scale(1.2); opacity: 0; }
         }
+
         .love-emoji {
             position: fixed;
-            bottom: -50px; /* Start below screen */
-            font-size: 30px; /* Size of heart emojis */
+            bottom: -50px;
+            font-size: 30px;
             pointer-events: none;
             z-index: 999;
-            animation: rise-and-fade 4s ease-out forwards; /* Rise and fade */
-            opacity: 0; /* Hidden initially */
+            animation: rise-and-fade 4s ease-out forwards;
+            opacity: 0;
         }
 
-        /* Confetti Animation (for 'happy', 'monpress') */
         @keyframes confetti-fall {
             0% { opacity: 0; transform: translate(0, -20px) rotate(0deg); }
             10% { opacity: 1; }
             100% { opacity: 0; transform: translate(var(--x), var(--y)) rotate(var(--deg)); }
         }
+
         .confetti {
             position: fixed;
             z-index: 9999;
@@ -495,12 +525,12 @@
             animation: confetti-fall var(--duration) ease-out forwards;
         }
 
-        /* Droplet Animation (for 'sad') */
         @keyframes droplet-fall {
             0% { opacity: 0; transform: translateY(-10px) scale(0.8); }
             20% { opacity: 1; }
             100% { opacity: 0; transform: translateY(100vh) scale(1.2); }
         }
+
         .droplet {
             position: fixed;
             z-index: 9999;
@@ -509,20 +539,19 @@
             animation: droplet-fall var(--duration) ease-in forwards;
         }
 
-        /* Sidebar Styles */
         .sidebar {
             position: fixed;
             top: 0;
-            right: -250px; /* Hidden by default */
+            right: -250px;
             width: 250px;
             height: 100%;
             background-color: #ffffff;
             box-shadow: -4px 0 12px rgba(0, 0, 0, 0.15);
             transition: right 0.3s ease-in-out;
-            z-index: 1000; /* Ensure it's above other content */
+            z-index: 1000;
             display: flex;
             flex-direction: column;
-            padding-top: 60px; /* Space for fixed close button */
+            padding-top: 60px;
         }
 
         .sidebar.open {
@@ -549,12 +578,15 @@
             padding: 0.5rem;
             transition: color 0.2s;
         }
+
         .sidebar-close-button:hover {
             color: #1a202c;
         }
+
         .dark-mode .sidebar-close-button {
             color: #a0aec0;
         }
+
         .dark-mode .sidebar-close-button:hover {
             color: #e2e8f0;
         }
@@ -571,17 +603,16 @@
             padding: 0.75rem 1rem;
             font-size: 1.1rem;
             font-weight: 600;
-            color: #374151; /* Gray-700 */
+            color: #374151;
             border-radius: 8px;
             transition: background-color 0.2s, color 0.2s;
         }
 
         .sidebar-nav a:hover {
-            background-color: #eff6ff; /* Blue-50 */
-            color: #2563eb; /* Blue-600 */
+            background-color: #eff6ff;
+            color: #2563eb;
         }
 
-        /* Overlay for sidebar */
         .sidebar-overlay {
             position: fixed;
             top: 0;
@@ -594,16 +625,55 @@
             visibility: hidden;
             transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
         }
+
         .sidebar-overlay.open {
             opacity: 1;
             visibility: visible;
         }
+        .sending-image {
+            opacity: 0.5;
+        }
+
+        .typing-indicator {
+            font-style: italic;
+            color: #888;
+            text-align: center;
+            padding: 5px 0;
+        }
+        .message-content {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .message-status {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            font-size: 0.75rem;
+            color: #6b7280;
+            margin-top: 4px;
+            gap: 4px;
+        }
+        .message-bubble.received .message-status {
+            justify-content: flex-start;
+        }
+        .read-receipt {
+            font-size: 0.8rem;
+        }
+        .read-receipt.sent-tick {
+            color: #9ca3af;
+        }
+        .read-receipt.read-ticks {
+            color: #2563eb;
+        }
     </style>
 </head>
 <body class="bg-blue-100">
+
     <div class="chat-container">
         <div class="chat-header flex justify-between items-center">
-            <span class="flex-grow text-center">Eksu  Chat</span>
+            <div id="networkIndicator" class="w-3 h-3 rounded-full status-red"></div>
+            <span class="flex-grow text-center">Eksu Chat</span>
             <button id="themeToggleButton" class="theme-toggle-button">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5">
                     <path d="M12 2.25a.75.75 0 0 1 .75.75v2.25a.75.75 0 0 1-1.5 0V3a.75.75 0 0 1 .75-.75ZM7.5 12a4.5 4.5 0 1 1 9 0 4.5 4.5 0 0 1-9 0ZM18.894 6.166a.75.75 0 0 0-1.06-1.06l-1.591 1.59a.75.75 0 1 0 1.06 1.061l1.591-1.59ZM12 18a.75.75 0 0 1 .75.75v2.25a.75.75 0 0 1-1.5 0V18a.75.75 0 0 1 .75-.75ZM5.929 17.395a.75.75 0 0 0-1.06 1.06l1.59 1.591a.75.75 0 0 0 1.061-1.06l-1.591-1.59ZM18 12a.75.75 0 0 1 .75-.75h2.25a.75.75 0 0 1 0 1.5H18a.75.75 0 0 1-.75-.75ZM6 12a.75.75 0 0 1-.75.75H3a.75.75 0 0 1 0-1.5h2.25a.75.75 0 0 1 .75.75ZM17.395 18.894a.75.75 0 0 0 1.06-1.06l-1.591-1.59a.75.75 0 0 0-1.06 1.061l1.591 1.59ZM6.166 5.929a.75.75 0 0 0-1.06-1.06l-1.59 1.591a.75.75 0 1 0 1.06 1.061l1.591-1.59Z" />
@@ -618,6 +688,9 @@
         <div id="chatMessages" class="messages-area">
             <div id="loadingMessages" class="loading-indicator">Messages are loading...</div>
         </div>
+
+        <div class="typing-indicator" id="typingIndicator"></div>
+
         <div class="message-input-area relative">
             <button id="emojiButton" class="emoji-button">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6">
@@ -654,19 +727,18 @@
             <a href="market.html" class="sidebar-item">Market</a>
             <a href="news.html" class="sidebar-item">News</a>
             <a href="quicktest.html" class="sidebar-item">Quick Test</a>
-            </nav>
+        </nav>
     </div>
 
     <div id="userProfileDisplayModal" class="modal-overlay hidden">
-    <div class="modal-content profile-modal-content relative">
-        <button class="close-button" id="closeUserProfileModal">&times;</button>
-        <h3 id="displayNickname"></h3>
-        <p><span class="font-semibold">Interest:</span> <span id="displayInterest"></span></p>
-        <p><span class="font-semibold">Gender:</span> <span id="displayGender"></span></p>
-        <p><span class="font-semibold">Last Seen:</span> <span id="displayLastSeen"></span></p>
+        <div class="modal-content profile-modal-content relative">
+            <button class="close-button" id="closeUserProfileModal">&times;</button>
+            <h3 id="displayNickname"></h3>
+            <p><span class="font-semibold">Interest:</span> <span id="displayInterest"></span></p>
+            <p><span class="font-semibold">Gender:</span> <span id="displayGender"></span></p>
+            <p><span class="font-semibold">Status:</span> <span id="displayStatus" class="font-bold"></span></p>
+        </div>
     </div>
-</div>
-
 
     <div id="signupModal" class="modal-overlay hidden">
         <div class="modal-content signup-modal-content">
@@ -684,858 +756,40 @@
             <button id="signupButton">Join Chat</button>
         </div>
     </div>
-
     
-        <script>
-    const chatMessages = document.getElementById('chatMessages');
-    const messageInput = document.getElementById('messageInput');
-    const sendButton = document.getElementById('sendButton');
-    const imageUpload = document.getElementById('imageUpload');
-    const loadingMessagesIndicator = document.getElementById('loadingMessages');
-
-    // Signup modal elements
-    const signupModal = document.getElementById('signupModal');
-    const signupNicknameInput = document.getElementById('signupNickname');
-    const signupInterestInput = document.getElementById('signupInterest');
-    const signupGenderSelect = document.getElementById('signupGender');
-    const signupButton = document.getElementById('signupButton');
-
-    // Profile display modal elements
-    const userProfileDisplayModal = document.getElementById('userProfileDisplayModal');
-    const closeUserProfileModalButton = document.getElementById('closeUserProfileModal');
-    const displayNickname = document.getElementById('displayNickname');
-    const displayInterest = document.getElementById('displayInterest');
-    const displayGender = document.getElementById('displayGender');
-    // NEW: Element for last seen status
-    const displayLastSeen = document.getElementById('displayLastSeen');
-
-    // New elements
-    const emojiButton = document.getElementById('emojiButton');
-    const emojiPicker = document.getElementById('emojiPicker');
-    const newMessagesIndicator = document.getElementById('newMessagesIndicator');
-    const themeToggleButton = document.getElementById('themeToggleButton');
-    const menuButton = document.getElementById('menuButton');
-    const sidebar = document.getElementById('sidebar');
-    const sidebarCloseButton = document.getElementById('sidebarCloseButton');
-    const sidebarOverlay = document.getElementById('sidebarOverlay');
-
-
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
     let ws;
     let persistentUserId = localStorage.getItem('chatPersistentUserId');
-    let userProfile = JSON.parse(localStorage.getItem('chatUserProfile')) || {};
-    // NEW: Map to store the status of online users
+    let userProfile = JSON.parse(localStorage.getItem('chatUserProfile')) || null;
+    let allDisplayedMessages = [];
     let onlineUsers = new Map();
-
-    // --- IMPORTANT: YOUR DEPLOYED RENDER.COM URL ---
-    const WEBSOCKET_SERVER_URL = 'wss://websocket-server-6jct.onrender.com';
-
-    // -----------------------------------------------------------------
-
-    // --- IndexedDB Constants ---
-    const DB_NAME = 'EksuChatDB';
-    const DB_VERSION = 1;
-    const STORE_NAME = 'messages';
-    const TWO_DAYS_MS = 2 * 24 * 60 * 60 * 1000; // Milliseconds in 2 days
-    // -----------------------------
-
-    let db; // Variable to hold the IndexedDB instance
-    let allDisplayedMessages = []; // In-memory array to store current messages, including loaded ones
-    let lastDisplayedDate = null; // For day divider logic
-    let isScrolledToBottom = true; // Track scroll position for new messages indicator
-
-    // --- THEME TOGGLE LOGIC (MAINTAINED) ---
-    const currentTheme = localStorage.getItem('theme') || 'light';
-    document.body.classList.add(currentTheme + '-mode');
-
-    themeToggleButton.addEventListener('click', () => {
-        if (document.body.classList.contains('light-mode')) {
-            document.body.classList.remove('light-mode');
-            document.body.classList.add('dark-mode');
-            localStorage.setItem('theme', 'dark');
-        } else {
-            document.body.classList.remove('dark-mode');
-            document.body.classList.add('light-mode');
-            localStorage.setItem('theme', 'light');
-        }
-    });
-    // --- END THEME TOGGLE LOGIC ---
-
-    // If no persistent user ID, generate one and store it
-    if (!persistentUserId) {
-        persistentUserId = crypto.randomUUID();
-        localStorage.setItem('chatPersistentUserId', persistentUserId);
-        console.log('Generated new persistent user ID:', persistentUserId);
-    } else {
-        console.log('Found existing persistent user ID:', persistentUserId);
-    }
-
-    // --- IndexedDB Functions ---
-
-    /**
-     * Opens the IndexedDB database.
-     * Creates or upgrades the 'messages' object store with 'id' as primary key and 'timestamp' as an index.
-     * @returns {Promise<IDBDatabase>} A promise that resolves with the database instance.
-     */
-    function openDb() {
-        return new Promise((resolve, reject) => {
-            const request = indexedDB.open(DB_NAME, DB_VERSION);
-
-            request.onupgradeneeded = (event) => {
-                db = event.target.result;
-                if (!db.objectStoreNames.contains(STORE_NAME)) {
-                    const objectStore = db.createObjectStore(STORE_NAME, { keyPath: 'id' });
-                    objectStore.createIndex('timestamp', 'timestamp', { unique: false });
-                    console.log(`IndexedDB: Object store '${STORE_NAME}' created.`);
-                }
-            };
-
-            request.onsuccess = (event) => {
-                db = event.target.result;
-                console.log('IndexedDB: Database opened successfully.');
-                resolve(db);
-            };
-
-            request.onerror = (event) => {
-                console.error('IndexedDB: Database error:', event.target.errorCode, event.target.error);
-                reject(event.target.error);
-            };
-        });
-    }
-
-    /**
-     * Adds a message to the IndexedDB.
-     * @param {Object} message - The message object to add.
-     * @returns {Promise<void>} A promise that resolves when the message is added.
-     */
-    function addMessageToDb(message) {
-        return new Promise((resolve, reject) => {
-            if (!db) {
-                console.warn('IndexedDB not open yet for addMessageToDb. Trying to open...');
-                openDb().then(() => addMessageToDb(message).then(resolve).catch(reject)).catch(reject);
-                return;
-            }
-            const transaction = db.transaction([STORE_NAME], 'readwrite');
-            const objectStore = transaction.objectStore(STORE_NAME);
-            const request = objectStore.put(message); // Use put to overwrite if ID exists
-
-            request.onsuccess = () => {
-                // console.log('IndexedDB: Message added/updated successfully:', message.id);
-                resolve();
-            };
-
-            request.onerror = (event) => {
-                const error = event.target.error;
-                console.error('IndexedDB: Error adding message:', error.name, error.message, 'Message data:', message);
-                reject(error);
-            };
-        });
-    }
-
-    /**
-     * Retrieves all messages from IndexedDB, sorted by timestamp.
-     * @returns {Promise<Array<Object>>} A promise that resolves with an array of messages.
-     */
-    function getMessagesFromDb() {
-        return new Promise((resolve, reject) => {
-            if (!db) {
-                console.warn('IndexedDB not open yet for getMessagesFromDb. Trying to open...');
-                openDb().then(() => getMessagesFromDb().then(resolve).catch(reject)).catch(reject);
-                return;
-            }
-
-            const transaction = db.transaction([STORE_NAME], 'readonly');
-            const objectStore = transaction.objectStore(STORE_NAME);
-            const messages = [];
-
-            // Use the 'timestamp' index to retrieve messages in order
-            const index = objectStore.index('timestamp');
-            const request = index.openCursor();
-
-            request.onsuccess = (event) => {
-                const cursor = event.target.result;
-                if (cursor) {
-                    messages.push(cursor.value);
-                    cursor.continue();
-                } else {
-                    // console.log('IndexedDB: All messages retrieved.');
-                    resolve(messages);
-                }
-            };
-
-            request.onerror = (event) => {
-                console.error('IndexedDB: Error retrieving messages:', event.target.error);
-                reject(event.target.error);
-            };
-        });
-    }
-
-    /**
-     * Deletes old messages from IndexedDB based on the 2-day rolling window.
-     * @returns {Promise<void>} A promise that resolves when cleanup is complete.
-     */
-    function cleanOldMessages() {
-        return new Promise((resolve, reject) => {
-            if (!db) {
-                 console.warn('IndexedDB not open for cleanup. Trying to open...');
-                openDb().then(() => cleanOldMessages().then(resolve).catch(reject)).catch(reject);
-                return;
-            }
-
-            const twoDaysAgo = Date.now() - TWO_DAYS_MS;
-            const transaction = db.transaction([STORE_NAME], 'readwrite');
-            const objectStore = transaction.objectStore(STORE_NAME);
-            const index = objectStore.index('timestamp');
-            
-            // Create a range for timestamps less than or equal to twoDaysAgo
-            const range = IDBKeyRange.upperBound(twoDaysAgo);
-
-            const request = index.openCursor(range);
-            let deletedCount = 0;
-
-            request.onsuccess = (event) => {
-                const cursor = event.target.result;
-                if (cursor) {
-                    objectStore.delete(cursor.primaryKey);
-                    deletedCount++;
-                    cursor.continue();
-                } else {
-                    console.log(`IndexedDB: Cleaned up ${deletedCount} old messages.`);
-                    resolve();
-                }
-            };
-
-            request.onerror = (event) => {
-                console.error('IndexedDB: Error cleaning old messages:', event.target.error);
-                reject(event.target.error);
-            };
-        });
-    }
-
-    /**
-     * Deletes a specific message by its ID from IndexedDB.
-     * @param {string} messageId - The ID of the message to delete.
-     * @returns {Promise<void>} A promise that resolves when the message is deleted.
-     */
-    function deleteMessageFromDb(messageId) {
-        return new Promise((resolve, reject) => {
-            if (!db) {
-                 console.warn('IndexedDB not open for deletion. Trying to open...');
-                openDb().then(() => deleteMessageFromDb(messageId).then(resolve).catch(reject)).catch(reject);
-                return;
-            }
-            const transaction = db.transaction([STORE_NAME], 'readwrite');
-            const objectStore = transaction.objectStore(STORE_NAME);
-            const request = objectStore.delete(messageId);
-
-            request.onsuccess = () => {
-                console.log(`IndexedDB: Message ID ${messageId} deleted.`);
-                resolve();
-            };
-
-            request.onerror = (event) => {
-                console.error('IndexedDB: Error deleting message:', event.target.error);
-                reject(event.target.error);
-            };
-        });
-    }
-    // --- End IndexedDB Functions ---
-
-    // Initial setup for messages area:
-    loadingMessagesIndicator.classList.remove('hidden');
-    loadingMessagesIndicator.textContent = 'Initializing chat...';
-
-    // Initialize IndexedDB and load messages
-    openDb().then(() => {
-        return cleanOldMessages(); // Clean up old messages first
-    }).then(() => {
-        return getMessagesFromDb(); // Then load current messages
-    }).then(messages => {
-        allDisplayedMessages = messages;
-        chatMessages.innerHTML = ''; // Clear initial loading indicator
-        lastDisplayedDate = null; // Reset for fresh render of initial DB messages
-        
-        // Render messages from IndexedDB - NO ANIMATIONS on initial load
-        allDisplayedMessages.forEach(msg => addMessageToUI(msg, false)); 
-        
-        chatMessages.scrollTop = chatMessages.scrollHeight; // Scroll to bottom of initial load
-        loadingMessagesIndicator.classList.add('hidden');
-        console.log(`Loaded ${allDisplayedMessages.length} messages from IndexedDB.`);
-
-        // After loading local messages, proceed with WebSocket connection
-        if (!userProfile.nickname || !userProfile.gender) {
-            signupModal.classList.remove('hidden');
-        } else {
-            connectWebSocket();
-        }
-    }).catch(error => {
-        console.error('Failed to initialize IndexedDB or load messages:', error);
-        loadingMessagesIndicator.textContent = 'Error loading messages. Please refresh.';
-        // Proceed without cached messages if IndexedDB fails, but alert user
-        if (!userProfile.nickname || !userProfile.gender) {
-            signupModal.classList.remove('hidden');
-        } else {
-            connectWebSocket();
-        }
-    });
-
-
-    signupButton.addEventListener('click', () => {
-        const nickname = signupNicknameInput.value.trim();
-        const interest = signupInterestInput.value.trim();
-        const gender = signupGenderSelect.value;
-
-        if (nickname && gender) {
-            userProfile = { nickname, interest, gender };
-            localStorage.setItem('chatUserProfile', JSON.stringify(userProfile)); // Store user profile
-            signupModal.classList.add('hidden');
-            connectWebSocket();
-        } else {
-            alert('Please enter your nickname and select a gender.');
-        }
-    });
-
-    closeUserProfileModalButton.addEventListener('click', () => {
-        userProfileDisplayModal.classList.add('hidden');
-    });
-
-    // NEW: Add display element for last seen
-    const userProfileModalContent = userProfileDisplayModal.querySelector('.modal-content');
-    const lastSeenP = document.createElement('p');
-    lastSeenP.innerHTML = '<span class="font-semibold">Last Seen:</span> <span id="displayLastSeen"></span>';
-    userProfileModalContent.appendChild(lastSeenP);
-    
-    function connectWebSocket() {
-        ws = new WebSocket(WEBSOCKET_SERVER_URL);
-
-        ws.onopen = () => {
-            console.log('Connected to WebSocket server');
-            ws.send(JSON.stringify({
-                type: 'initialUserData',
-                payload: {
-                    persistentUserId: persistentUserId,
-                    nickname: userProfile.nickname,
-                    interest: userProfile.interest,
-                    gender: userProfile.gender
-                }
-            }));
-
-            // Determine lastFetchTimestamp based on the latest message in `allDisplayedMessages`
-            // This array now contains messages from IndexedDB (if any)
-            let lastFetchTimestamp = 0;
-            if (allDisplayedMessages.length > 0) {
-                // Ensure allDisplayedMessages is sorted before picking the last one
-                allDisplayedMessages.sort((a, b) => a.timestamp - b.timestamp); 
-                lastFetchTimestamp = allDisplayedMessages[allDisplayedMessages.length - 1].timestamp;
-                console.log(`Requesting new messages since ${new Date(lastFetchTimestamp).toLocaleString()}`);
-            } else {
-                console.log('No local history. Requesting all messages from server.');
-            }
-            loadingMessagesIndicator.classList.remove('hidden');
-            loadingMessagesIndicator.textContent = 'Fetching new messages...';
-
-            ws.send(JSON.stringify({
-                type: 'requestInitialData',
-                payload: {
-                    lastFetchTimestamp: lastFetchTimestamp
-                }
-            }));
-        };
-
-        ws.onmessage = (event) => {
-            const data = JSON.parse(event.data);
-
-            switch (data.type) {
-                case 'initialData':
-                    loadingMessagesIndicator.classList.add('hidden');
-                    const newMessagesFromServer = data.payload.messages; // These are messages *from the server*
-                    
-                    let shouldScrollToBottomAfterInitial = isScrolledToBottom;
-                    
-                    const messagesToAppendToUI = []; // Collect only truly new messages for appending
-                    
-                    // Process messages from server, adding only truly new ones to allDisplayedMessages and DB
-                    newMessagesFromServer.forEach(newMessage => {
-                        // Check if message ID already exists in our in-memory array
-                        const existingMessageIndex = allDisplayedMessages.findIndex(msg => msg.id === newMessage.id);
-                        if (existingMessageIndex === -1) {
-                            // It's a new message, add to our in-memory array
-                            allDisplayedMessages.push(newMessage);
-                            messagesToAppendToUI.push(newMessage); // Also collect for UI appending
-                            // Add to IndexedDB (asynchronously, don't wait for it)
-                            addMessageToDb(newMessage).catch(e => {
-                                console.error('IndexedDB: Error adding new message from initialData:', e);
-                            });
-                        } else {
-                            // Message already exists in allDisplayedMessages.
-                            // If the server sends ALL messages, this prevents re-adding.
-                            // If server only sends NEW messages, this branch won't be hit often.
-                        }
-                    });
-                    
-                    // Sort the entire in-memory array to maintain chronological order
-                    // This is crucial for correct day dividers and lastFetchTimestamp
-                    allDisplayedMessages.sort((a, b) => a.timestamp - b.timestamp);
-
-                    // If there are messages to append, add them to the UI
-                    if (messagesToAppendToUI.length > 0) {
-                        // Render new messages from server data - NO ANIMATIONS
-                        messagesToAppendToUI.forEach(msg => addMessageToUI(msg, false)); 
-                    }
-                    
-                    // Handle scrolling and new messages indicator based on collected new messages
-                    if (shouldScrollToBottomAfterInitial || messagesToAppendToUI.length > 0) {
-                        chatMessages.scrollTop = chatMessages.scrollHeight;
-                        newMessagesIndicator.classList.add('hidden');
-                    } else {
-                        // Only show indicator if not scrolled to bottom AND new messages arrived
-                        if (messagesToAppendToUI.length > 0) {
-                            newMessagesIndicator.classList.remove('hidden');
-                        }
-                    }
-                    console.log(`Processed ${newMessagesFromServer.length} messages from server. Added ${messagesToAppendToUI.length} new messages to UI/DB. Total displayed: ${allDisplayedMessages.length} messages.`);
-                    
-                    // NEW: Update online status indicators after initial data load
-                    updateOnlineStatusIndicators();
-                    break;
-
-                // NEW: Handle real-time user list updates
-                case 'userListUpdate':
-                    onlineUsers.clear();
-                    data.payload.forEach(user => {
-                        onlineUsers.set(user.persistentId, user);
-                    });
-                    console.log('Updated online users list:', onlineUsers);
-                    updateOnlineStatusIndicators();
-                    break;
-                    
-                case 'chatMessage':
-                case 'systemAnnouncement':
-                case 'userStatusUpdate':
-                    // Add real-time message to in-memory array and IndexedDB
-                    if (!allDisplayedMessages.some(msg => msg.id === data.payload.id)) {
-                        allDisplayedMessages.push(data.payload);
-                        addMessageToDb(data.payload)
-                            .then(() => console.log(`IndexedDB: Added real-time message ${data.payload.id}`))
-                            .catch(e => console.error('IndexedDB: Error adding real-time message:', e));
-                        addMessageToUI(data.payload, true); // Auto-scroll for new real-time messages
-                        
-                        // --- TRIGGER ANIMATIONS ONLY FOR REAL-TIME INCOMING MESSAGES ---
-                        if (data.payload.text) { // Only check text messages for now
-                            checkAndTriggerAnimations(data.payload.text);
-                        }
-                        // -----------------------------------------------------------------
-                    } else {
-                        // If message already exists (e.g., echo from server), just ensure it's displayed
-                        const existingElement = chatMessages.querySelector(`[data-message-id="${data.payload.id}"]`);
-                        if (!existingElement) {
-                            addMessageToUI(data.payload, true);
-                            if (data.payload.text) {
-                                checkAndTriggerAnimations(data.payload.text);
-                            }
-                        }
-                    }
-                    break;
-
-                case 'messageDeleted':
-                    removeMessage(data.payload.messageId);
-                    // Also remove from in-memory array and IndexedDB
-                    const indexToDelete = allDisplayedMessages.findIndex(msg => msg.id === data.payload.messageId);
-                    if (indexToDelete > -1) {
-                        allDisplayedMessages.splice(indexToDelete, 1);
-                        deleteMessageFromDb(data.payload.messageId)
-                            .then(() => console.log(`IndexedDB: Deleted message ${data.payload.messageId}`))
-                            .catch(e => console.error('IndexedDB: Error deleting message:', e));
-                        console.log(`Message ID ${data.payload.messageId} removed from in-memory display.`);
-                    }
-                    break;
-                default:
-                    console.warn('Unknown message type:', data.type);
-            }
-        };
-
-        ws.onclose = () => {
-            console.log('Disconnected from WebSocket server');
-            loadingMessagesIndicator.classList.remove('hidden');
-            loadingMessagesIndicator.textContent = 'Disconnected. Reconnecting...';
-            onlineUsers.clear();
-            updateOnlineStatusIndicators();
-            // Messages remain displayed from IndexedDB, new connection will fetch new ones
-            setTimeout(connectWebSocket, 3000);
-        };
-
-        ws.onerror = (error) => {
-            console.error('WebSocket error:', error);
-            loadingMessagesIndicator.classList.remove('hidden');
-            loadingMessagesIndicator.textContent = 'Connection error. Retrying...';
-        };
-    }
-
-    sendButton.addEventListener('click', sendMessage);
-    messageInput.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter' && !e.shiftKey) {
-            e.preventDefault();
-            sendMessage();
-        }
-    });
-    messageInput.addEventListener('input', () => {
-        messageInput.style.height = 'auto';
-        messageInput.style.height = messageInput.scrollHeight + 'px';
-    });
-
-    imageUpload.addEventListener('change', (event) => {
-        const file = event.target.files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                const base64Image = e.target.result;
-                const messageText = messageInput.value.trim();
-
-                if (ws && ws.readyState === ws.OPEN) {
-                    ws.send(JSON.stringify({
-                        type: 'chatMessage',
-                        payload: {
-                            text: messageText || null,
-                            image: base64Image,
-                            fileName: file.name
-                        }
-                    }));
-                    messageInput.value = '';
-                    messageInput.style.height = 'auto';
-                    imageUpload.value = '';
-
-                    // --- TRIGGER ANIMATIONS FOR SENT MESSAGES ---
-                    if (messageText) {
-                        checkAndTriggerAnimations(messageText);
-                    }
-                    // ---------------------------------------------
-                } else {
-                    alert('Not connected to chat server. Please check your internet connection.');
-                }
-            };
-            reader.readAsDataURL(file);
-        }
-    });
-
-    function sendMessage() {
-        const text = messageInput.value.trim();
-        if (text === '') return;
-
-        if (ws && ws.readyState === ws.OPEN) {
-            ws.send(JSON.stringify({
-                type: 'chatMessage',
-                payload: {
-                    text: text
-                }
-            }));
-            messageInput.value = '';
-            messageInput.style.height = 'auto';
-
-            // --- TRIGGER ANIMATIONS FOR SENT MESSAGES ---
-            checkAndTriggerAnimations(text);
-            // ---------------------------------------------
-        } else {
-            alert('Not connected to chat server. Please check your internet connection.');
-        }
-    }
-    
-    // --- UPDATED addMessageToUI function ---
-    function addMessageToUI(msg, autoScroll = true) {
-        // Validate timestamp before proceeding
-        let messageDate;
-        let timestampString;
-        if (msg.timestamp && typeof msg.timestamp === 'number' && !isNaN(msg.timestamp)) {
-            messageDate = new Date(msg.timestamp);
-            timestampString = messageDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-        } else {
-            console.warn("Invalid timestamp received for message:", msg);
-            // Option 1: Hide the message entirely if the timestamp is crucial
-            // return; 
-            // Option 2: Provide a fallback text for invalid timestamps
-            timestampString = 'Unknown Time'; 
-            // Create a placeholder date for day divider logic if timestamp is invalid
-            // This ensures day dividers still appear, even if the time is generic.
-            // Using current date as a safe fallback for the *date* part.
-            messageDate = new Date(); 
-        }
-
-        // Day Divider Logic
-        const today = new Date();
-        const yesterday = new Date(today);
-        yesterday.setDate(today.getDate() - 1);
-
-        let dateString;
-        if (messageDate) { // Only attempt to format if messageDate is a valid Date object
-            dateString = messageDate.toLocaleDateString('en-US', {
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric'
-            });
-
-            if (messageDate.toDateString() === today.toDateString()) {
-                dateString = 'Today';
-            } else if (messageDate.toDateString() === yesterday.toDateString()) {
-                dateString = 'Yesterday';
-            }
-        } else {
-            dateString = 'Unknown Date'; // Fallback for highly problematic dates
-        }
-
-        // Only add a day divider if the date has changed since the last message displayed
-        // Or if it's the very first message being displayed.
-        if (lastDisplayedDate !== dateString || chatMessages.children.length === 0) {
-            const divider = document.createElement('div');
-            divider.classList.add('day-divider');
-            divider.textContent = dateString;
-            chatMessages.appendChild(divider);
-            lastDisplayedDate = dateString; // Update last displayed date
-        }
-
-        const messageElement = document.createElement('div');
-        if (msg.id) {
-            messageElement.dataset.messageId = msg.id;
-        }
-
-        const messageType = msg.messageType || 'chatMessage';
-        let messageTextContent = msg.text || ''; // Store text content for animation check
-
-        if (messageType === 'systemAnnouncement') {
-            messageElement.classList.add('message-bubble', 'announcement', 'my-2');
-            messageElement.textContent = msg.text;
-        } else if (messageType === 'userStatusUpdate') {
-            messageElement.classList.add('message-bubble', 'status-update', 'my-2');
-            messageElement.textContent = `${msg.nickname || 'Unknown User'} has ${msg.status || 'joined/left'} the chat.`;
-        } else { // Default to chatMessage
-            messageElement.classList.add('message-bubble');
-
-            let senderProfileObj = {};
-            if (msg.senderProfile) {
-                try {
-                    senderProfileObj = typeof msg.senderProfile === 'string' ? JSON.parse(msg.senderProfile) : msg.senderProfile;
-                } catch (e) {
-                    console.error('Error parsing senderProfile:', e, msg.senderProfile);
-                    senderProfileObj = {};
-                }
-            } else if (typeof msg.senderProfile === 'object' && msg.senderProfile !== null) {
-                senderProfileObj = msg.senderProfile;
-            }
-
-            const senderNickname = senderProfileObj.nickname || `User ${msg.senderPersistentId ? msg.senderPersistentId.substring(0,8) + '...' : 'Unknown'}`;
-            
-            let messageContentHTML = '';
-            if (msg.image) {
-                messageContentHTML += `<img src="${msg.image}" class="chat-image" alt="Sent Image" onerror="this.onerror=null;this.src='https://placehold.co/100x100/A0A0A0/FFFFFF?text=Image+Load+Error';">`;
-            }
-            if (msg.text) {
-                messageContentHTML += `<p>${escapeHTML(msg.text)}</p>`;
-            }
-
-            if (msg.senderPersistentId === persistentUserId) {
-                // Sent message
-                messageElement.classList.add('sent');
-                messageElement.innerHTML = `
-                    <div class="flex items-center text-sm text-gray-600 mb-1 justify-end">
-                        <span class="mr-2 text-xs">${timestampString}</span>
-                        <span class="font-semibold text-blue-700 cursor-pointer" data-sender-profile='${JSON.stringify(senderProfileObj)}' data-sender-id="${msg.senderPersistentId}">
-                            You
-                        </span>
-                    </div>
-                    <div class="bubble-content">
-                        ${messageContentHTML}
-                    </div>
-                `;
-            } else {
-                // Received message
-                messageElement.classList.add('received');
-                messageElement.innerHTML = `
-                    <div class="bubble-content">
-                        <div class="flex items-center text-sm text-gray-600 mb-1">
-                             <span class="status-dot"></span>
-                            <span class="font-semibold text-blue-700 cursor-pointer" data-sender-profile='${JSON.stringify(senderProfileObj)}' data-sender-id="${msg.senderPersistentId}">
-                                ${senderNickname}
-                            </span>
-                            <span class="ml-2 text-xs">${timestampString}</span>
-                        </div>
-                        <div>
-                            ${messageContentHTML}
-                        </div>
-                    </div>
-                `;
-            }
-
-            // Apply text color for 'death' word
-            if (messageTextContent.toLowerCase().includes('death')) {
-                const textP = messageElement.querySelector('p');
-                if (textP) { // Ensure <p> element exists before adding class
-                    textP.classList.add('text-red-500', 'font-bold');
-                }
-            }
-            
-            const senderNicknameSpan = messageElement.querySelector('.font-semibold.cursor-pointer');
-            if (senderNicknameSpan) {
-                senderNicknameSpan.addEventListener('click', (e) => {
-                    try {
-                        const profileData = JSON.parse(e.target.dataset.senderProfile);
-                        showUserProfile(profileData);
-                    } catch (error) {
-                        console.error('Error parsing sender profile from data attribute:', error);
-                    }
-                });
-            }
-        }
-
-        // The *previous* hiding logic for "User Unknown" is still good for nicknames,
-        // but for "Invalid Date" it's better handled by providing "Unknown Time" above.
-        // Still keeping the general content check just in case.
-        const renderedContentCheck = messageElement.textContent || messageElement.innerText;
-        if (renderedContentCheck.includes("User Unknown")) {
-            messageElement.style.display = 'none';
-            console.warn('Hidden a message element due to "User Unknown" in its content:', msg);
-            return; 
-        }
-
-        chatMessages.appendChild(messageElement);
-        // Trigger animation for bubble appearance
-        setTimeout(() => messageElement.classList.add('show'), 10);
-
-        // Conditional auto-scroll
-        if (autoScroll) {
-            if (msg.senderPersistentId === persistentUserId || isScrolledToBottom) {
-                chatMessages.scrollTop = chatMessages.scrollHeight;
-                newMessagesIndicator.classList.add('hidden');
-            } else {
-                newMessagesIndicator.classList.remove('hidden');
-            }
-        }
-    }
-    // --- END UPDATED addMessageToUI ---
-
-    // NEW: Function to update online status dots
-    function updateOnlineStatusIndicators() {
-        const receivedMessages = document.querySelectorAll('.message-bubble.received');
-        receivedMessages.forEach(msgEl => {
-            const senderId = msgEl.querySelector('.font-semibold.cursor-pointer').dataset.senderId;
-            const dot = msgEl.querySelector('.status-dot');
-            if (dot) {
-                if (onlineUsers.has(senderId)) {
-                    dot.style.backgroundColor = 'green';
-                    dot.title = 'Online';
-                } else {
-                    dot.style.backgroundColor = 'gray';
-                    dot.title = 'Offline';
-                }
-            }
-        });
-    }
-
-    // NEW: Function to format "last seen" time
-    function formatLastSeen(timestamp) {
-        if (!timestamp) return 'N/A';
-        const date = new Date(timestamp);
-        const now = new Date();
-        const diffInMinutes = Math.floor((now - date) / (1000 * 60));
-
-        if (diffInMinutes < 1) return 'Just now';
-        if (diffInMinutes < 60) return `${diffInMinutes} min ago`;
-        if (diffInMinutes < 1440) return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-
-        const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-        const dayOfWeek = days[date.getDay()];
-        if (diffInMinutes < 2880 && new Date(now.setDate(now.getDate() - 1)).toDateString() === date.toDateString()) {
-            return `Yesterday at ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
-        }
-        return `${dayOfWeek}, ${date.toLocaleDateString()}`;
-    }
-
-    function displayGeneralSystemMessage(text) {
-        const systemMessageElement = document.createElement('div');
-        systemMessageElement.classList.add('text-center', 'text-gray-500', 'text-sm', 'my-2');
-        systemMessageElement.textContent = text;
-        chatMessages.appendChild(systemMessageElement);
-        chatMessages.scrollTop = chatMessages.scrollHeight;
-    }
-
-    function removeMessage(messageId) {
-        const messageElement = chatMessages.querySelector(`[data-message-id="${messageId}"]`);
-        if (messageElement) {
-            messageElement.remove();
-        }
-    }
-
-    function showUserProfile(profile) {
-        displayNickname.textContent = profile.nickname || 'N/A';
-        displayInterest.textContent = profile.interest || 'N/A';
-        displayGender.textContent = profile.gender || 'N/A';
-        // NEW: Display the formatted last seen time
-        displayLastSeen.textContent = formatLastSeen(profile.lastSeen);
-        userProfileDisplayModal.classList.remove('hidden');
-    }
-
-    function escapeHTML(str) {
-        const div = document.createElement('div');
-        div.appendChild(document.createTextNode(str));
-        return div.innerHTML;
-    }
-
-    // --- EMOJI PICKER LOGIC (MAINTAINED) ---
-    const emojis = ['😀', '😃', '😄', '😁', '😆', '😅', '😂', '🤣', '😊', '😇', '🙂', '🙃', '😉', '😌', '😍', '🥰', '😘', '😗', '😙', '😚', '😋', '😛', '😜', '🤪', '😝', '🤑', '🤗', '🤭', '🤫', '🤔', '🤐', '🤨', '😐', '😑', '😶', '😏', '😒', '🙄', '😬', '🤥', '😌', '😔', '😪', '🤤', '😴', '😷', '🤒', '🤕', '🤢', '🤮', '🤧', '🥵', '🥶', '🥴', '😵', '🤯', '🤠', '🥳', '😎', '🤓', '🧐', '😕', '😟', '🙁', '😮', '😯', '😲', '😳', '🥺', '😦', '😧', '😨', '😰', '😥', '😢', '😭', '😱', '😖', '😣', '😩', '😫', '😤', '😡', '😠', '🤬', '😈', '👿', '💀', '💩', '🤡', '👹', '👺', '👻', '👽', '👾', '🤖', '😺', '😸', '😹', '😻', '😼', '😽', '🙀', '😿', '😾'];
-
-    emojis.forEach(emoji => {
-        const button = document.createElement('button');
-        button.textContent = emoji;
-        button.addEventListener('click', () => {
-            messageInput.value += emoji;
-            emojiPicker.classList.add('hidden'); // Hide after selection
-            messageInput.focus(); // Keep focus on input
-            // Adjust textarea height after adding emoji
-            messageInput.style.height = 'auto';
-            messageInput.style.height = messageInput.scrollHeight + 'px';
-        });
-        emojiPicker.appendChild(button);
-    });
-
-    emojiButton.addEventListener('click', (event) => {
-        event.stopPropagation(); // Prevent click from immediately closing it
-        emojiPicker.classList.toggle('hidden');
-    });
-
-    // Close emoji picker if clicked outside
-    document.addEventListener('click', (event) => {
-        if (!emojiPicker.contains(event.target) && !emojiButton.contains(event.target)) {
-            emojiPicker.classList.add('hidden');
-        }
-    });
-    // --- END EMOJI PICKER LOGIC ---
-
-    // --- NEW MESSAGES INDICATOR LOGIC (MAINTAINED) ---
-    chatMessages.addEventListener('scroll', () => {
-        const tolerance = 5;
-        isScrolledToBottom = (chatMessages.scrollHeight - chatMessages.clientHeight) <= (chatMessages.scrollTop + tolerance);
-        if (isScrolledToBottom) {
-            newMessagesIndicator.classList.add('hidden');
-        }
-    });
-
-    newMessagesIndicator.addEventListener('click', () => {
-        chatMessages.scrollTop = chatMessages.scrollHeight;
-        newMessagesIndicator.classList.add('hidden');
-    });
-    // --- END NEW MESSAGES INDICATOR LOGIC ---
-
-    // --- BASIC BROWSER NOTIFICATION LOGIC (MAINTAINED) ---
-    function requestNotificationPermission() {
-        if (!("Notification" in window)) {
-            console.warn("This browser does not support desktop notification");
-        } else if (Notification.permission === "default") {
-            Notification.requestPermission();
-        }
-    }
-
-    signupButton.addEventListener('click', () => {
-        if (signupNicknameInput.value.trim() && signupGenderSelect.value) {
-            requestNotificationPermission();
-        }
-    });
-    // --- END BASIC BROWSER NOTIFICATION LOGIC ---
+    let db;
+    let isTyping = false;
+    let typingTimeout;
+    let readObserver;
+    let lastMessageDate = '';
+
+    const WEBSOCKET_SERVER_URL = 'wss://websocket-server-6jct.onrender.com'; // Change to your server URL
+    const chatMessages = document.getElementById('chatMessages');
+    const messageInput = document.getElementById('messageInput');
+    const newMessagesIndicator = document.getElementById('newMessagesIndicator');
+    const sidebar = document.getElementById('sidebar');
+    const sidebarOverlay = document.getElementById('sidebarOverlay');
+    const themeToggleButton = document.getElementById('themeToggleButton');
+    const menuButton = document.getElementById('menuButton');
+    const sidebarCloseButton = document.getElementById('sidebarCloseButton');
+    const signupModal = document.getElementById('signupModal');
+    const signupButton = document.getElementById('signupButton');
+    const signupNickname = document.getElementById('signupNickname');
+    const signupInterest = document.getElementById('signupInterest');
+    const signupGender = document.getElementById('signupGender');
+    const networkIndicator = document.getElementById('networkIndicator');
+    const userProfileDisplayModal = document.getElementById('userProfileDisplayModal');
+    const closeUserProfileModal = document.getElementById('closeUserProfileModal');
+    const imageUpload = document.getElementById('imageUpload');
+    const emojiButton = document.getElementById('emojiButton');
+    const emojiPicker = document.getElementById('emojiPicker');
 
     // --- WORD-TRIGGERED ANIMATIONS ---
     const animationTriggers = [
@@ -1543,7 +797,7 @@
         { word: 'movie', type: 'glitter', count: 15, duration: 4000 },
         { word: 'love', type: 'love_emojis', count: 20, duration: 4000 },
         { word: 'happy', type: 'confetti', count: 50, duration: 3000 },
-        { word: 'monpress', type: 'confetti', count: 50, duration: 3000 }, // Assuming positive/impressive
+        { word: 'monpress', type: 'confetti', count: 50, duration: 3000 },
         { word: 'sad', type: 'droplet', count: 30, duration: 3000 },
         { word: 'peace', type: 'glitter', count: 15, duration: 4000 },
         { word: 'fuck', type: 'shake', duration: 2000 }
@@ -1586,13 +840,12 @@
         const area = document.body;
         for (let i = 0; i < count; i++) {
             const star = document.createElement('span');
-            star.textContent = ['⭐',];
+            star.textContent = '⭐';
             star.classList.add('glitter-star');
-            star.style.left = `${Math.random() * 150}vw`;
+            star.style.left = `${Math.random() * 100}vw`;
             star.style.top = `${Math.random() * 100}vh`;
             star.style.animationDuration = `${duration / 1000}s`;
             area.appendChild(star);
-
             star.addEventListener('animationend', () => star.remove());
         }
     }
@@ -1607,104 +860,699 @@
             heart.style.animationDuration = `${duration / 1000}s`;
             heart.style.animationDelay = `${Math.random() * 0.5}s`;
             area.appendChild(heart);
-
             heart.addEventListener('animationend', () => heart.remove());
         }
     }
 
     function triggerConfettiAnimation(count, duration) {
-        const colors = ['#f06292', '#81c784', '#64b5f6', '#ffd54f', '#ba68c8', '#ff9800', '#cddc39']; // More colors
+        const colors = ['#f06292', '#81c784', '#64b5f6', '#ffd54f', '#ba68c8', '#ff9800', '#cddc39'];
         const area = document.body;
         for (let i = 0; i < count; i++) {
             const confetti = document.createElement('div');
-            const size = Math.random() * 8 + 4; // 4-12px
+            const size = Math.random() * 8 + 4;
             confetti.style.width = `${size}px`;
-            confetti.style.height = `${size * 1.5}px`; // Rectangular for variety
+            confetti.style.height = `${size * 1.5}px`;
             confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
             confetti.style.position = 'fixed';
             confetti.style.left = `${Math.random() * 100}vw`;
-            confetti.style.top = `-20px`; // Start above screen
-            confetti.style.opacity = '0'; 
+            confetti.style.top = `-20px`;
+            confetti.style.opacity = '0';
             confetti.style.transform = `rotate(${Math.random() * 360}deg)`;
             confetti.style.zIndex = '9999';
             area.appendChild(confetti);
-
-            const finalX = (Math.random() * 200) - 100; // -100 to 100
-            const finalY = window.innerHeight + (Math.random() * 100) + 50; // Fall off screen
-            const finalDeg = Math.random() * 720 + 360; // More spinning
-
+            const finalX = (Math.random() * 200) - 100;
+            const finalY = window.innerHeight + (Math.random() * 100) + 50;
+            const finalDeg = Math.random() * 720 + 360;
             confetti.style.setProperty('--x', `${finalX}px`);
             confetti.style.setProperty('--y', `${finalY}px`);
             confetti.style.setProperty('--deg', `${finalDeg}deg`);
             confetti.style.setProperty('--duration', `${duration / 1000}s`);
-
             setTimeout(() => {
-                confetti.classList.add('confetti'); // Add class to trigger animation
+                confetti.classList.add('confetti');
             }, 10);
-
             confetti.addEventListener('animationend', () => confetti.remove());
         }
     }
 
     function triggerDropletAnimation(count, duration) {
-        const colors = ['#90caf9', '#64b5f6', '#42a5f5', '#2196f3', '#1976d2']; // Shades of blue
+        const colors = ['#90caf9', '#64b5f6', '#42a5f5', '#2196f3', '#1976d2'];
         const area = document.body;
         for (let i = 0; i < count; i++) {
             const droplet = document.createElement('div');
             droplet.style.width = '5px';
             droplet.style.height = '10px';
             droplet.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
-            droplet.style.borderRadius = '50% 50% 50% 0'; // Tear drop shape
+            droplet.style.borderRadius = '50% 50% 50% 0';
             droplet.style.position = 'fixed';
             droplet.style.left = `${Math.random() * 100}vw`;
-            droplet.style.bottom = `-10px`; // Start just below screen
+            droplet.style.bottom = `-10px`;
             droplet.style.opacity = '0';
             droplet.style.zIndex = '9999';
             area.appendChild(droplet);
-            
             droplet.style.setProperty('--duration', `${duration / 1000}s`);
-
             setTimeout(() => {
-                droplet.classList.add('droplet'); // Add class to trigger animation
+                droplet.classList.add('droplet');
             }, 10);
-
             droplet.addEventListener('animationend', () => droplet.remove());
         }
     }
-    // --- END WORD-TRIGGERED ANIMATIONS ---
 
-    // --- SIDEBAR MENU LOGIC ---
+    // --- Event Listeners for new UI elements ---
+    messageInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            sendMessageFromInput();
+        } else {
+            sendTypingStatus();
+        }
+    });
+    document.getElementById('sendButton').addEventListener('click', sendMessageFromInput);
     menuButton.addEventListener('click', () => {
         sidebar.classList.add('open');
-        sidebarOverlay.classList.add('open');
+        sidebarOverlay.classList.remove('hidden');
     });
-
     sidebarCloseButton.addEventListener('click', () => {
         sidebar.classList.remove('open');
-        sidebarOverlay.classList.remove('open');
+        sidebarOverlay.classList.add('hidden');
     });
-
     sidebarOverlay.addEventListener('click', () => {
         sidebar.classList.remove('open');
-        sidebarOverlay.classList.remove('open');
+        sidebarOverlay.classList.add('hidden');
+    });
+    themeToggleButton.addEventListener('click', () => {
+        document.body.classList.toggle('dark-mode');
+    });
+    signupButton.addEventListener('click', () => {
+        const nickname = signupNickname.value.trim();
+        const interest = signupInterest.value.trim();
+        const gender = signupGender.value;
+        if (nickname) {
+            userProfile = { nickname, interest, gender };
+            localStorage.setItem('chatUserProfile', JSON.stringify(userProfile));
+            signupModal.classList.add('hidden');
+            startApp();
+        } else {
+            alert("Please enter a nickname to continue.");
+        }
+    });
+    chatMessages.addEventListener('scroll', () => {
+        if (isScrolledToBottom()) {
+            newMessagesIndicator.classList.add('hidden');
+        }
+    });
+    newMessagesIndicator.addEventListener('click', () => {
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+        newMessagesIndicator.classList.add('hidden');
+    });
+    closeUserProfileModal.addEventListener('click', () => {
+        userProfileDisplayModal.classList.add('hidden');
     });
 
-    // Removed the JavaScript for sidebarItems click listener
-    // The browser will now handle navigation directly via the href attributes.
-    // const sidebarItems = document.querySelectorAll('.sidebar-item');
-    // sidebarItems.forEach(item => {
-    //     item.addEventListener('click', (e) => {
-    //         e.preventDefault(); // This line is now removed
-    //         const action = e.target.dataset.action;
-    //         // alert(`You clicked: ${action.charAt(0).toUpperCase() + action.slice(1)}`);
-    //         sidebar.classList.remove('open');
-    //         sidebarOverlay.classList.remove('open');
-    //     });
-    // });
-    // --- END SIDEBAR MENU LOGIC ---
+    // --- IndexedDB Functions ---
+    function initDb() {
+        return new Promise((resolve, reject) => {
+            const request = indexedDB.open('chatDb', 1);
+            request.onupgradeneeded = (event) => {
+                const db = event.target.result;
+                if (!db.objectStoreNames.contains('messages')) {
+                    db.createObjectStore('messages', { keyPath: 'id' });
+                }
+            };
+            request.onsuccess = (event) => {
+                db = event.target.result;
+                resolve();
+            };
+            request.onerror = (event) => {
+                console.error('IndexedDB error:', event.target.errorCode);
+                reject(event.target.error);
+            };
+        });
+    }
 
+    function getMessagesFromDb() {
+        return new Promise((resolve) => {
+            if (!db) return resolve([]);
+            const transaction = db.transaction(['messages'], 'readonly');
+            const store = transaction.objectStore('messages');
+            const request = store.getAll();
+            request.onsuccess = () => resolve(request.result);
+            request.onerror = () => resolve([]);
+        });
+    }
 
+    function addMessageToDb(message) {
+        if (!db) return;
+        const transaction = db.transaction(['messages'], 'readwrite');
+        const store = transaction.objectStore('messages');
+        store.put(message);
+    }
+
+    function syncHistoryWithDb(serverMessages) {
+        return new Promise(async (resolve) => {
+            const localMessages = await getMessagesFromDb();
+            const localMessageIds = new Set(localMessages.map(msg => msg.id));
+            const newMessages = [];
+            serverMessages.forEach(msg => {
+                // Check if message is a new chat message
+                const isNewChatMessage = msg.type === "message" && !localMessageIds.has(msg.id);
+                // Check if it's a new broadcast
+                const isNewBroadcast = msg.type === "broadcast" && !localMessageIds.has(msg.id);
+                
+                if (isNewChatMessage || isNewBroadcast) {
+                    newMessages.push(msg);
+                    addMessageToDb(msg);
+                }
+            });
+            resolve(newMessages);
+        });
+    }
+
+    function startApp() {
+        initDb().then(() => {
+            connect();
+        }).catch(err => {
+            console.error("Failed to initialize IndexedDB:", err);
+            connect();
+        });
+    }
+
+    function connect() {
+        ws = new WebSocket(WEBSOCKET_SERVER_URL);
+        setupReadReceiptObserver();
+        const loadingMessagesDiv = document.getElementById('loadingMessages');
+        if (loadingMessagesDiv) {
+            loadingMessagesDiv.textContent = "Connecting...";
+        }
+        setNetworkStatus('red');
+        ws.onopen = () => {
+            console.log("Connected to server ✅");
+            setNetworkStatus('green');
+            const loadingMessagesDiv = document.getElementById('loadingMessages');
+            if (loadingMessagesDiv) {
+                loadingMessagesDiv.textContent = "Fetching messages...";
+            }
+            if (!persistentUserId) {
+                persistentUserId = crypto.randomUUID();
+                localStorage.setItem('chatPersistentUserId', persistentUserId);
+                if (!userProfile) {
+                    userProfile = { nickname: '', gender: '', interest: '' };
+                }
+                localStorage.setItem('chatUserProfile', JSON.stringify(userProfile));
+            }
+            const nicknameToSend = userProfile?.nickname || 'Guest';
+            ws.send(JSON.stringify({
+                type: "init",
+                userId: persistentUserId,
+                username: nicknameToSend,
+                gender: userProfile?.gender || 'N/A',
+                interests: userProfile?.interest || 'N/A',
+                bio: userProfile?.bio || ''
+            }));
+        };
+
+        ws.onmessage = async (event) => {
+            let raw;
+            try {
+                raw = JSON.parse(event.data);
+            } catch (e) {
+                console.error("Invalid WS message:", event.data);
+                return;
+            }
+
+            // Centralized message handling based on type
+            switch (raw.type) {
+                case "init":
+                    console.log("Received initial history.");
+                    // Clear and re-render the whole chat
+                    chatMessages.innerHTML = '';
+                    const loadingMessagesDiv = document.getElementById('loadingMessages');
+                    if (loadingMessagesDiv) {
+                        loadingMessagesDiv.style.display = 'none';
+                    }
+                    allDisplayedMessages = [];
+                    onlineUsers.clear();
+                    
+                    raw.history.forEach(msg => {
+                        const message = {
+                            id: msg.id,
+                            senderPersistentId: msg.userId,
+                            senderProfile: { nickname: msg.username, gender: msg.gender, interest: msg.interests, bio: msg.bio },
+                            text: msg.content,
+                            image: msg.image,
+                            timestamp: msg.timestamp,
+                            readBy: msg.readBy || [],
+                            messageType: msg.content ? "chatMessage" : "broadcast" // Heuristic for message vs broadcast
+                        };
+                        addMessageToDb(message);
+                        allDisplayedMessages.push(message);
+                        
+                        // Update online users map
+                        onlineUsers.set(msg.userId, {
+                            id: msg.userId,
+                            name: msg.username,
+                            gender: msg.gender,
+                            interests: msg.interests,
+                            bio: msg.bio
+                        });
+                    });
+
+                    raw.onlineUsers.forEach(user => {
+                        onlineUsers.set(user.id, user);
+                    });
+
+                    renderAllMessages();
+                    break;
+                case "message":
+                    const wasScrolledToBottom = isScrolledToBottom();
+                    const existingMessageIndex = allDisplayedMessages.findIndex(m => m.tempId === raw.tempId);
+                    if (existingMessageIndex !== -1) {
+                        const existingDiv = document.querySelector(`[data-temp-id="${raw.tempId}"]`);
+                        if (existingDiv) {
+                            existingDiv.remove();
+                        }
+                        allDisplayedMessages.splice(existingMessageIndex, 1);
+                    }
+                    const normalized = {
+                        id: raw.id,
+                        senderPersistentId: raw.userId,
+                        senderProfile: {
+                            nickname: raw.username,
+                            gender: raw.gender,
+                            interest: raw.interests,
+                            bio: raw.bio
+                        },
+                        text: raw.content,
+                        image: raw.image,
+                        timestamp: raw.timestamp,
+                        readBy: raw.readBy || [],
+                        messageType: "chatMessage"
+                    };
+                    addMessageToDb(normalized);
+                    allDisplayedMessages.push(normalized);
+                    addMessageToUI(normalized, wasScrolledToBottom);
+                    if (!wasScrolledToBottom) {
+                        newMessagesIndicator.classList.remove('hidden');
+                    }
+                    if (normalized.text) {
+                        checkAndTriggerAnimations(normalized.text);
+                    }
+                    break;
+                case "typing":
+                    const typingIndicator = document.getElementById('typingIndicator');
+                    if (typingIndicator) typingIndicator.textContent = `${raw.username} is typing...`;
+                    break;
+                case "stopTyping":
+                    const typingIndicator2 = document.getElementById('typingIndicator');
+                    if (typingIndicator2) typingIndicator2.textContent = '';
+                    break;
+                case "messageRead":
+                    const message = allDisplayedMessages.find(m => m.id === raw.messageId);
+                    if (message && !message.readBy.includes(raw.readerId)) {
+                        message.readBy.push(raw.readerId);
+                        updateReadReceipts();
+                    }
+                    break;
+                case "userStatus":
+                    const userStatusMessage = {
+                        id: raw.id + Date.now(), // Unique ID for status message
+                        senderPersistentId: raw.id,
+                        senderProfile: { nickname: raw.name },
+                        text: raw.name + (raw.type === "userJoined" ? " joined the chat." : " left the chat."),
+                        timestamp: Date.now(),
+                        messageType: "userStatus"
+                    };
+                    allDisplayedMessages.push(userStatusMessage);
+                    addMessageToUI(userStatusMessage, true);
+                    if (raw.type === "userJoined") {
+                        onlineUsers.set(raw.id, { id: raw.id, name: raw.name });
+                    } else if (raw.type === "userLeft") {
+                        onlineUsers.delete(raw.id);
+                    }
+                    break;
+                case "broadcast":
+                    const broadcastMsg = {
+                        id: raw.id,
+                        senderPersistentId: "admin",
+                        senderProfile: { nickname: "Admin" },
+                        text: raw.content,
+                        image: null,
+                        timestamp: raw.timestamp,
+                        messageType: "adminBroadcast"
+                    };
+                    allDisplayedMessages.push(broadcastMsg);
+                    addMessageToUI(broadcastMsg, true);
+                    break;
+                case "onlineUsers":
+                    onlineUsers.clear();
+                    raw.users.forEach(u => onlineUsers.set(u.id, u));
+                    break;
+            }
+        };
+
+        ws.onclose = (event) => {
+            console.log("Disconnected ❌, retrying in 3s...");
+            setNetworkStatus('red');
+            setTimeout(connect, 3000);
+        };
+
+        ws.onerror = (err) => {
+            console.error("WebSocket error:", err);
+            setNetworkStatus('orange');
+        };
+    }
+
+    function setNetworkStatus(status) {
+        networkIndicator.classList.remove('status-red', 'status-green', 'status-orange');
+        networkIndicator.classList.add(`status-${status}`);
+    }
+
+    function renderAllMessages() {
+        allDisplayedMessages.sort((a, b) => a.timestamp - b.timestamp);
+        chatMessages.innerHTML = '';
+        lastMessageDate = '';
+        allDisplayedMessages.forEach(msg => addMessageToUI(msg, false));
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    function sendMessageFromInput() {
+        const messageText = messageInput.value.trim();
+        if (!messageText) return; // Do not send empty messages
+
+        // Added robust check for user profile
+        if (!userProfile || !userProfile.nickname) {
+            alert("Please enter a nickname to join the chat.");
+            signupModal.classList.remove('hidden');
+            return;
+        }
         
-     </script>
+        const tempId = Date.now().toString() + Math.random().toString().substring(2, 8);
+        const msg = {
+            type: "message",
+            userId: persistentUserId,
+            username: userProfile.nickname,
+            content: messageText,
+            image: null,
+            timestamp: Date.now(),
+            tempId: tempId
+        };
+        
+        if (!ws || ws.readyState !== WebSocket.OPEN) {
+            console.log("WebSocket not ready. Message not sent.");
+            return;
+        }
+
+        const tempMessageForUI = { ...msg, readBy: [] };
+        allDisplayedMessages.push(tempMessageForUI);
+        addMessageToUI(tempMessageForUI, true);
+        ws.send(JSON.stringify(msg));
+        messageInput.value = '';
+        sendStopTyping();
+        checkAndTriggerAnimations(messageText);
+    }
+
+    function sendTypingStatus() {
+        if (!ws || ws.readyState !== WebSocket.OPEN) return;
+        if (!userProfile || !userProfile.nickname) return;
+        if (!isTyping) {
+            isTyping = true;
+            ws.send(JSON.stringify({ type: "typing", userId: persistentUserId, username: userProfile.nickname }));
+        }
+        clearTimeout(typingTimeout);
+        typingTimeout = setTimeout(sendStopTyping, 3000);
+    }
+
+    function sendStopTyping() {
+        if (!ws || ws.readyState !== WebSocket.OPEN) return;
+        isTyping = false;
+        ws.send(JSON.stringify({ type: "stopTyping", userId: persistentUserId }));
+    }
+
+    function resizeImage(file, maxWidth = 800, maxHeight = 800, quality = 0.5) {
+        return new Promise(resolve => {
+            const img = new Image();
+            const reader = new FileReader();
+            reader.onload = e => {
+                img.src = e.target.result;
+            };
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                let { width, height } = img;
+                if (width > maxWidth || height > maxHeight) {
+                    const scale = Math.min(maxWidth / width, maxHeight / height);
+                    width *= scale;
+                    height *= scale;
+                }
+                canvas.width = width;
+                canvas.height = height;
+                canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+                resolve(canvas.toDataURL('image/jpeg', quality));
+            };
+            reader.readAsDataURL(file);
+        });
+    }
+
+    imageUpload.addEventListener('change', (event) => {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        // Added robust check for user profile
+        if (!userProfile || !userProfile.nickname) {
+            alert("Please enter a nickname to join the chat.");
+            signupModal.classList.remove('hidden');
+            return;
+        }
+
+        if (!ws || ws.readyState !== WebSocket.OPEN) {
+            console.error("WebSocket not ready. Image not sent.");
+            return;
+        }
+
+        resizeImage(file).then(base64 => {
+            const tempId = Date.now().toString() + Math.random().toString().substring(2, 8);
+            const msg = {
+                type: "message",
+                userId: persistentUserId,
+                username: userProfile.nickname,
+                content: '',
+                image: base64,
+                timestamp: Date.now(),
+                tempId: tempId
+            };
+            const tempMessageForUI = { ...msg, readBy: [] };
+            allDisplayedMessages.push(tempMessageForUI);
+            addMessageToUI(tempMessageForUI, true);
+            ws.send(JSON.stringify(msg));
+        }).catch(err => {
+            console.error("Image processing failed:", err);
+        });
+    });
+
+    function addMessageToUI(msg, scroll = false) {
+        const messageDate = new Date(msg.timestamp).toLocaleDateString();
+        if (messageDate !== lastMessageDate) {
+            const dateDiv = document.createElement('div');
+            dateDiv.className = 'day-divider';
+            dateDiv.textContent = messageDate;
+            chatMessages.appendChild(dateDiv);
+            lastMessageDate = messageDate;
+        }
+
+        let divClass = '';
+        let nicknameText = '';
+
+        if (msg.messageType === "chatMessage") {
+            divClass = (msg.senderPersistentId === persistentUserId ? "sent" : "received");
+            nicknameText = `${msg.senderProfile.nickname}: `;
+        } else if (msg.messageType === "adminBroadcast") {
+            divClass = 'announcement';
+            nicknameText = '';
+        } else if (msg.messageType === "userStatus") {
+            divClass = 'status-update';
+            nicknameText = '';
+        }
+
+        const div = document.createElement("div");
+        div.className = `message-bubble ${divClass}`;
+        div.setAttribute('data-message-id', msg.id);
+        div.setAttribute('data-sender-id', msg.senderPersistentId);
+        if (msg.tempId) {
+            div.setAttribute('data-temp-id', msg.tempId);
+        }
+
+        if (msg.messageType === "chatMessage") {
+            div.addEventListener('click', () => {
+                const user = onlineUsers.get(msg.senderPersistentId) || {
+                    name: msg.senderProfile.nickname,
+                    interests: msg.senderProfile.interest || "N/A",
+                    gender: msg.senderProfile.gender || "N/A",
+                    bio: msg.senderProfile.bio || "N/A",
+                    online: onlineUsers.has(msg.senderPersistentId)
+                };
+                displayUserProfile(user);
+            });
+        }
+        
+        const contentDiv = document.createElement("div");
+        contentDiv.className = "message-content";
+        if (nicknameText) {
+            const nicknameSpan = document.createElement("strong");
+            nicknameSpan.textContent = nicknameText;
+            contentDiv.appendChild(nicknameSpan);
+        }
+        
+        if (msg.text) {
+            const textSpan = document.createElement("span");
+            textSpan.textContent = msg.text;
+            contentDiv.appendChild(textSpan);
+        }
+        
+        if (msg.image) {
+            const img = document.createElement('img');
+            img.src = msg.image;
+            img.alt = 'Image';
+            img.className = 'chat-image';
+            contentDiv.appendChild(img);
+        }
+
+        if (msg.messageType === "chatMessage") {
+            const statusContainer = document.createElement("div");
+            statusContainer.className = "message-status";
+            const timestampSpan = document.createElement("span");
+            timestampSpan.textContent = new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            statusContainer.appendChild(timestampSpan);
+            if (msg.senderPersistentId === persistentUserId) {
+                const readReceiptSpan = document.createElement("span");
+                readReceiptSpan.className = "read-receipt";
+                if (msg.readBy && msg.readBy.length > 0) {
+                    readReceiptSpan.textContent = "✓✓";
+                    readReceiptSpan.classList.add('read-ticks');
+                } else {
+                    readReceiptSpan.textContent = "✓";
+                    readReceiptSpan.classList.add('sent-tick');
+                }
+                statusContainer.appendChild(readReceiptSpan);
+            }
+            div.appendChild(contentDiv);
+            div.appendChild(statusContainer);
+        } else {
+            div.appendChild(contentDiv);
+        }
+        
+        chatMessages.appendChild(div);
+        setTimeout(() => {
+            div.classList.add('show');
+        }, 10);
+        if (scroll) {
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+        if (readObserver) {
+            readObserver.observe(div);
+        }
+    }
+
+    function updateReadReceipts() {
+        allDisplayedMessages.forEach(msg => {
+            if (msg.senderPersistentId === persistentUserId) {
+                const messageElement = document.querySelector(`[data-message-id="${msg.id}"]`);
+                if (messageElement) {
+                    const readReceiptSpan = messageElement.querySelector('.read-receipt');
+                    if (readReceiptSpan) {
+                        if (msg.readBy && msg.readBy.length > 0) {
+                            readReceiptSpan.textContent = "✓✓";
+                            readReceiptSpan.classList.remove('sent-tick');
+                            readReceiptSpan.classList.add('read-ticks');
+                        } else {
+                            readReceiptSpan.textContent = "✓";
+                            readReceiptSpan.classList.remove('read-ticks');
+                            readReceiptSpan.classList.add('sent-tick');
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    function setupReadReceiptObserver() {
+        const observerOptions = {
+            root: document.getElementById('chatMessages'),
+            threshold: 1.0,
+        };
+        readObserver = new IntersectionObserver((entries, observer) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const messageId = entry.target.getAttribute('data-message-id');
+                    const message = allDisplayedMessages.find(m => m.id == messageId);
+                    if (message && message.senderPersistentId !== persistentUserId && (!message.readBy || !message.readBy.includes(persistentUserId))) {
+                        if (ws && ws.readyState === WebSocket.OPEN) {
+                            ws.send(JSON.stringify({ type: "messageRead", messageId: message.id }));
+                        }
+                    }
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, observerOptions);
+    }
+
+    function displayUserProfile(user) {
+        const modal = userProfileDisplayModal;
+        if (!modal) return;
+        const nicknameEl = document.getElementById('displayNickname');
+        const interestEl = document.getElementById('displayInterest');
+        const genderEl = document.getElementById('displayGender');
+        const statusEl = document.getElementById('displayStatus');
+        
+        if (nicknameEl) nicknameEl.textContent = user.name || 'Unknown';
+        if (interestEl) interestEl.textContent = user.interests || 'N/A';
+        if (genderEl) genderEl.textContent = user.gender || 'N/A';
+        
+        if (statusEl) {
+            if (user.online) {
+                statusEl.textContent = 'Online';
+                statusEl.style.color = '#22c5e';
+            } else {
+                statusEl.textContent = 'Offline';
+                statusEl.style.color = '#ef4444';
+            }
+        }
+        modal.classList.remove('hidden');
+    }
+
+    function isScrolledToBottom() {
+        const scrollThreshold = 100;
+        return chatMessages.scrollHeight - chatMessages.clientHeight <= chatMessages.scrollTop + scrollThreshold;
+    }
+
+    // --- EMOJI PICKER LOGIC ---
+    const emojis = ['😀', '😃', '😄', '😁', '😆', '😅', '😂', '🤣', '😊', '😇', '🙂', '🙃', '😉', '😌', '😍', '🥰', '😘', '😗', '😙', '😚', '😋', '😛', '😜', '🤪', '😝', '🤑', '🤗', '🤭', '🤫', '🤔', '🤐', '🤨', '😐', '😑', '😶', '😏', '😒', '🙄', '😬', '🤥', '😌', '😔', '😪', '🤤', '😴', '😷', '🤒', '🤕', '🤢', '🤮', '🤧', '🥵', '🥶', '🥴', '😵', '🤯', '🤠', '🥳', '😎', '🤓', '🧐', '😕', '😟', '🙁', '😮', '😯', '😲', '😳', '🥺', '😦', '😧', '😨', '😰', '😥', '😢', '😭', '😱', '😖', '😣', '😩', '😫', '😤', '😡', '😠', '🤬', '😈', '👿', '💀', '💩', '🤡', '👹', '👺', '👻', '👽', '👾', '🤖', '😺', '😸', '😹', '😻', '😼', '😽', '🙀', '😿', '😾'];
+    emojis.forEach(emoji => {
+        const button = document.createElement('button');
+        button.textContent = emoji;
+        button.addEventListener('click', () => {
+            messageInput.value += emoji;
+            emojiPicker.classList.add('hidden');
+            messageInput.focus();
+            messageInput.style.height = 'auto';
+            messageInput.style.height = messageInput.scrollHeight + 'px';
+        });
+        emojiPicker.appendChild(button);
+    });
+    emojiButton.addEventListener('click', (event) => {
+        event.stopPropagation();
+        emojiPicker.classList.toggle('hidden');
+    });
+    document.addEventListener('click', (event) => {
+        if (!emojiPicker.contains(event.target) && !emojiButton.contains(event.target)) {
+            emojiPicker.classList.add('hidden');
+        }
+    });
+
+    // --- END EMOJI PICKER LOGIC ---
+    if (userProfile && userProfile.nickname && persistentUserId) {
+        startApp();
+    } else {
+        signupModal.classList.remove('hidden');
+    }
+});
+    </script>
 </body>
 </html>
