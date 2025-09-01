@@ -112,6 +112,21 @@
         .hamburger-menu.active {
             transform: rotate(90deg); /* Rotate when active */
         }
+        #statusIndicator {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            z-index: 1000;
+        }
+        #statusIndicator.connected {
+            background-color: #28a745; /* Green */
+        }
+        #statusIndicator.disconnected {
+            background-color: #dc3545; /* Red */
+        }
 
         /* --- Side Navigation Menu --- */
         .side-nav {
@@ -399,10 +414,11 @@
 <body class="min-h-screen flex flex-col">
 
     <header class="header">
+        <div id="statusIndicator" class="w-3 h-3 rounded-full absolute top-2 left-2 shadow-lg"></div>
         <h2 id="platform-title" class="cursor-pointer" onclick="showBuyerMarketplace()">
      <i class='fas fa-cart-arrow-down' style=''       style="color:orange;"></i>
             Eksu Market
-        </h1>
+        </h2>
         <div class="flex items-center space-x-4">
             <button id="sellProductBtn" class="bg-yellow-400 text-gray-900 px-4 py-2 rounded-lg font-semibold hover:bg-yellow-500 transition duration-200 shadow-md">
                 <i class="fas fa-plus-circle mr-2"></i> Sell Product
@@ -415,9 +431,10 @@
 
     <div id="mySidenav" class="side-nav">
         <a href="javascript:void(0)" class="closebtn" id="close-nav">&times;</a>
-        <a href="index.html" onclick="showBuyerMarketplace()">Dashboard</a>
-        <a href="#" onclick="showMyProducts()">My Products</a>
+        <a href="index.html" onclick="showBuyerMarketplace()">Market</a>
+        
         <a href="#" onclick="showSellProductForm()">Sell Product</a>
+        <a href="index.html" >Dashboard</a>
         <a href="News.html">News</a>
         <a href="chat.html">Chat</a>
     </div>
@@ -557,9 +574,9 @@
 
         <section id="myProductsSection" class="bg-white p-6 rounded-xl shadow-lg border border-gray-200 hidden">
             <h2 class="text-3xl font-semibold mb-6 text-gray-800 border-b pb-3">
-                My Listed Products
+                
             </h2>
-            <p class="text-gray-600 mb-4">Manage your listed products here. In a real application, you would see products you've posted and have options to edit or mark as sold.</p>
+            <p class="text-gray-600 mb-4">Manage your listed products here. </p>
 
             <div id="myProductsList" class="space-y-4">
                 <p id="noMyProductsMessage" class="col-span-full text-center text-gray-500 text-lg hidden">You haven't listed any products yet.</p>
@@ -623,23 +640,15 @@
     <script>
         // --- Global Variables ---
         let ws;
-        // IMPORTANT: Replace this with the actual URL of your Railway app's WebSocket server!
-        // It will be similar to wss://YOUR-APP-NAME-production.up.railway.app
-        const WEBSOCKET_SERVER_URL = 'wss://energetic-blessing-production.up.railway.app'; // <--- VERIFY THIS URL
+        const WEBSOCKET_SERVER_URL = 'wss://newsapp-z14a.onrender.com';
+        const CLIENT_ID = 'user_' + Math.random().toString(36).substring(2, 9);
 
-        let products = []; // All raw product data
-        let filteredProducts = []; // Products after applying search and filters
-        let currentCategory = 'All'; // Currently selected category for filtering
-        // Simple client ID for demo; in production, use persistent user IDs (e.g., from auth)
-        const CLIENT_ID = 'user_' + Math.random().toString(36).substring(2, 9); 
-
-        // Demo Products Data (Updated with new fields and diverse images)
-        // These will ONLY be used if IndexedDB is empty AND WebSocket connection fails or doesn't provide initial data.
-        
-        
+        let products = [];
+        let filteredProducts = [];
+        let currentCategory = 'All';
 
         const CATEGORIES = [
-            "All", // Special category to show all
+            "All",
             "Fashion & Accessories",
             "Electronics & Gadgets",
             "Phones & Tablets",
@@ -649,7 +658,6 @@
             "Vehicles",
             "Real Estate"
         ];
-
 
         // IndexedDB variables
         const DB_NAME = 'MarketplaceDB';
@@ -669,13 +677,14 @@
         const footerText = document.querySelector('footer div');
         const categoriesBar = document.getElementById('categoriesBar');
         const currentCategoryTitle = document.getElementById('currentCategory');
+        const statusIndicator = document.getElementById('statusIndicator');
 
         // Main Sections
         const buyerMarketplaceSection = document.getElementById('buyerMarketplaceSection');
         const sellProductSection = document.getElementById('sellProductSection');
         const myProductsSection = document.getElementById('myProductsSection');
 
-        // Search & Filter DOM Elements (within buyerMarketplaceSection)
+        // Search & Filter DOM Elements
         const searchInput = document.getElementById('search-input');
         const clearSearchBtn = document.getElementById('clear-search');
         const minPriceInput = document.getElementById('min-price');
@@ -684,7 +693,6 @@
         const clearFiltersBtn = document.getElementById('clear-filters');
         const toggleFiltersBtn = document.getElementById('toggle-filters-btn');
         const priceFilterControls = document.getElementById('priceFilterControls');
-
 
         // Modal DOM Elements
         const productDetailModal = document.getElementById('productDetailModal');
@@ -699,7 +707,7 @@
         const modalProductDescription = document.getElementById('modalProductDescription');
         const modalWhatsAppBtn = document.getElementById('modalWhatsAppBtn');
 
-        // Sell Product Form DOM Elements (within sellProductSection)
+        // Sell Product Form DOM Elements
         const sellProductBtn = document.getElementById('sellProductBtn');
         const sellProductForm = document.getElementById('sellProductForm');
         const sellFormProductName = document.getElementById('productName');
@@ -713,20 +721,14 @@
         const sellFormSellerWhatsApp = document.getElementById('sellerWhatsApp');
         const productImageUpload = document.getElementById('productImageUpload');
         const imagePreview = document.getElementById('imagePreview');
-        let currentImageBase64 = null; // To store the base64 string of the uploaded image
+        let currentImageBase64 = null;
         const cancelSellProductBtn = document.getElementById('cancelSellProduct');
 
-        // My Products DOM Elements (within myProductsSection)
+        // My Products DOM Elements
         const myProductsList = document.getElementById('myProductsList');
         const noMyProductsMessage = document.getElementById('noMyProductsMessage');
 
         // --- Helper Functions ---
-
-        /**
-         * Displays a temporary message box (toast notification).
-         * @param {string} message - The message to display.
-         * @param {string} type - 'success' or 'error' for styling (optional).
-         */
         function showMessage(message, type = 'info') {
             messageBox.textContent = message;
             messageBox.classList.remove('hidden', 'bg-red-500', 'bg-green-500', 'bg-gray-800');
@@ -741,13 +743,10 @@
 
             setTimeout(() => {
                 messageBox.classList.remove('show');
-                setTimeout(() => messageBox.classList.add('hidden'), 300); // Hide after transition
-            }, 3000); // Message visible for 3 seconds
+                setTimeout(() => messageBox.classList.add('hidden'), 300);
+            }, 3000);
         }
 
-        /**
-         * Rotates the messages in the footer.
-         */
         function startRotatingFooterMessages() {
             const rotatingFooterMessages = [
                 "Find your next great deal!",
@@ -761,17 +760,11 @@
             setInterval(() => {
                 currentFooterMessageIndex = (currentFooterMessageIndex + 1) % rotatingFooterMessages.length;
                 footerText.textContent = rotatingFooterMessages[currentFooterMessageIndex];
-            }, 10000); // Every 10 seconds
+            }, 10000);
         }
 
-        /**
-         * Renders a single product advertisement card.
-         * @param {object} product - The product object.
-         * @returns {string} - HTML string for the product card.
-         */
         function renderProductCard(product) {
             const formattedPrice = product.price.toLocaleString('en-NG', { style: 'currency', currency: 'NGN' });
-            // Use a specific placeholder image if imageUrl is missing or invalid
             const imageUrl = product.imageUrl && (product.imageUrl.startsWith('data:image/') || product.imageUrl.startsWith('http')) ? product.imageUrl : 'https://placehold.co/400x300/E0E0E0/666666?text=Image+Not+Found';
 
             return `
@@ -792,26 +785,17 @@
             `;
         }
 
-        /**
-         * Updates the display of products based on `filteredProducts`.
-         * Now always displays all filtered products.
-         */
         function updateProductDisplay() {
             if (filteredProducts.length === 0) {
                 noProductsMessage.classList.remove('hidden');
                 productsContainer.innerHTML = '';
             } else {
                 noProductsMessage.classList.add('hidden');
-                // Sort by timestamp (newest first)
                 const sortedProducts = [...filteredProducts].sort((a, b) => b.timestamp - a.timestamp);
                 productsContainer.innerHTML = sortedProducts.map(renderProductCard).join('');
             }
         }
 
-        /**
-         * Redirects the user to the seller's WhatsApp chat.
-         * @param {string} productId - The ID of the product.
-         */
         function redirectToWhatsApp(productId) {
             const product = products.find(p => p.id === productId);
             if (product && product.sellerWhatsApp) {
@@ -828,10 +812,6 @@
             }
         }
 
-        /**
-         * Opens the product details modal.
-         * @param {string} productId - The ID of the product to display.
-         */
         function openProductDetails(productId) {
             const product = products.find(p => p.id === productId);
             if (!product) {
@@ -848,25 +828,16 @@
             modalProductPayment.textContent = product.paymentOption || 'N/A';
             modalProductDescription.textContent = product.description || 'No description provided.';
 
-            // Set up WhatsApp button in modal
             modalWhatsAppBtn.onclick = () => redirectToWhatsApp(product.id);
 
-            productDetailModal.style.display = 'flex'; // Use flex to center
+            productDetailModal.style.display = 'flex';
         }
 
-        /**
-         * Closes the product details modal.
-         */
         function closeProductDetails() {
             productDetailModal.style.display = 'none';
         }
 
-
         // --- IndexedDB Functions ---
-        /**
-         * Opens the IndexedDB database and creates object store if it doesn't exist.
-         * @returns {Promise<IDBDatabase>} A promise that resolves with the database instance.
-         */
         function openDatabase() {
             return new Promise((resolve, reject) => {
                 const request = indexedDB.open(DB_NAME, DB_VERSION);
@@ -877,7 +848,7 @@
                         const objectStore = db.createObjectStore(STORE_NAME, { keyPath: 'id' });
                         objectStore.createIndex('timestamp', 'timestamp', { unique: false });
                         objectStore.createIndex('category', 'category', { unique: false });
-                        objectStore.createIndex('sellerId', 'sellerId', { unique: false }); // New index for seller's own products
+                        objectStore.createIndex('sellerId', 'sellerId', { unique: false });
                         console.log('IndexedDB object store created/updated.');
                     }
                 };
@@ -896,16 +867,11 @@
             });
         }
 
-        /**
-         * Adds or updates a product in IndexedDB.
-         * @param {object} product - The product object to store.
-         * @returns {Promise<void>}
-         */
         function addOrUpdateProduct(product) {
             return new Promise((resolve, reject) => {
                 if (!db) {
                     console.warn('IndexedDB not initialized. Cannot save product.');
-                    return resolve(); // Resolve even if DB isn't ready, to not block the app
+                    return resolve();
                 }
                 const transaction = db.transaction([STORE_NAME], 'readwrite');
                 const objectStore = transaction.objectStore(STORE_NAME);
@@ -922,11 +888,6 @@
             });
         }
 
-        /**
-         * Deletes a product from IndexedDB.
-         * @param {string} productId - The ID of the product to delete.
-         * @returns {Promise<void>}
-         */
         function deleteProductFromDB(productId) {
             return new Promise((resolve, reject) => {
                 if (!db) {
@@ -948,10 +909,6 @@
             });
         }
 
-        /**
-         * Retrieves all products from IndexedDB.
-         * @returns {Promise<Array<object>>} A promise that resolves with an array of products.
-         */
         function getAllProductsFromDB() {
             return new Promise((resolve, reject) => {
                 if (!db) {
@@ -973,63 +930,49 @@
             });
         }
 
-        /**
-         * Loads products from IndexedDB and displays them.
-         */
         async function loadProductsFromIndexedDB() {
             loadingIndicator.classList.remove('hidden');
             try {
                 products = await getAllProductsFromDB();
-                if (products.length === 0) {
-                    console.log("No products in IndexedDB.");
-                    // If no products in DB and no WebSocket, then load demo products
-                    if (!ws || ws.readyState !== WebSocket.OPEN) {
-                        console.log("Adding demo products as no DB products and no active WS connection.");
-                        // Ensure demo products have unique IDs and a sellerId for "My Products"
-                        demoProducts.forEach(p => {
-                            if (!p.id) p.id = `demo_${Date.now()}_${Math.floor(Math.random() * 1000)}`; // Simple unique ID
-                            if (!p.sellerId) p.sellerId = "user_demo_default"; // Assign a default if missing
-                        });
-                        products = [...demoProducts]; // Directly assign for initial load
-                        await Promise.all(products.map(p => addOrUpdateProduct(p))); // Save them to DB
-                        showMessage('Demo products loaded into local storage.', 'info');
-                    }
+                if (products.length > 0) {
+                    console.log("Loaded products from IndexedDB.");
+                    applyFiltersAndSearch();
                 } else {
-                     console.log("Loaded products from IndexedDB.");
+                    console.log("No products in IndexedDB.");
+                    // The WebSocket will handle the initial population
                 }
-                applyFiltersAndSearch(); // Apply initial filters/search after loading
             } catch (error) {
                 console.error('Failed to load products from IndexedDB:', error);
                 showMessage('Failed to load products from local cache.', 'error');
             } finally {
-                loadingIndicator.classList.add('hidden');
+                // The loading indicator will be hidden by the WebSocket's ALL_PRODUCTS message
+                // This prevents a flash of content before server data arrives.
             }
         }
 
-
         // --- WebSocket Implementation ---
-        /**
-         * Connects to the WebSocket server and sets up event handlers.
-         */
         function connectWebSocket() {
             if (!WEBSOCKET_SERVER_URL) {
                 console.log('WebSocket connection URL is not set. Skipping WebSocket connection.');
-                loadingIndicator.classList.add('hidden'); // Ensure hidden if WS not connecting
+                loadingIndicator.classList.add('hidden');
+                statusIndicator.classList.remove('connected');
+                statusIndicator.classList.add('disconnected');
                 return;
             }
 
             console.log('Attempting to connect WebSocket...');
-            // Show loading indicator only if we are still waiting for initial data
-            if (products.length === 0) { // If products array is empty
-                loadingIndicator.classList.remove('hidden');
-            }
+            loadingIndicator.classList.remove('hidden');
+            
+            statusIndicator.classList.remove('connected');
+            statusIndicator.classList.add('disconnected');
 
             ws = new WebSocket(WEBSOCKET_SERVER_URL);
 
             ws.onopen = () => {
                 console.log('WebSocket connected to server.');
+                statusIndicator.classList.remove('disconnected');
+                statusIndicator.classList.add('connected');
                 showMessage('Connected to marketplace server.', 'success');
-                loadingIndicator.classList.add('hidden');
                 // Request all products from the server immediately upon connection
                 ws.send(JSON.stringify({ type: 'GET_ALL_PRODUCTS', payload: {} }));
             };
@@ -1038,37 +981,34 @@
                 let message;
                 try {
                     message = JSON.parse(event.data);
-                    console.log('Received message from WebSocket:', message.type, message.payload); // Log type and payload
+                    console.log('Received message from WebSocket:', message.type, message.payload);
                 } catch (e) {
                     console.error('Error parsing WebSocket message JSON:', e, event.data);
                     showMessage('Error receiving data from server: Invalid format.', 'error');
-                    return; // Stop processing if JSON is invalid
+                    return;
                 }
 
                 try {
                     switch (message.type) {
                         case 'ALL_PRODUCTS':
-                            // This payload is an array of all products from the server
                             if (Array.isArray(message.payload)) {
                                 console.log(`Received ${message.payload.length} products from server.`);
-                                // Overwrite local products with server data for consistency
                                 products = message.payload;
-                                // Also update IndexedDB
                                 await Promise.all(message.payload.map(p => addOrUpdateProduct(p)));
-                                applyFiltersAndSearch(); // Refresh display with server data
+                                applyFiltersAndSearch();
                                 showMessage('Product listings synced with server.', 'info');
                             } else {
                                 console.error('ALL_PRODUCTS payload is not an array:', message.payload);
                                 showMessage('Server sent malformed product data.', 'error');
                             }
+                            loadingIndicator.classList.add('hidden'); // Hide loading spinner here
                             break;
 
                         case 'PRODUCT_ADDED':
-                            // This payload is a single product object
                             if (message.payload && typeof message.payload === 'object') {
-                                products.unshift(message.payload); // Add to the beginning for "newest first"
+                                products.unshift(message.payload);
                                 await addOrUpdateProduct(message.payload);
-                                applyFiltersAndSearch(); // Re-filter and display
+                                applyFiltersAndSearch();
                                 showMessage(`New product "${message.payload.name}" advertised!`, 'success');
                             } else {
                                 console.error('PRODUCT_ADDED payload is malformed:', message.payload);
@@ -1076,17 +1016,16 @@
                             break;
 
                         case 'PRODUCT_UPDATED':
-                            // This payload is the updated single product object
                             if (message.payload && typeof message.payload === 'object' && message.payload.id) {
                                 const updatedProduct = message.payload;
                                 const index = products.findIndex(p => p.id === updatedProduct.id);
                                 if (index !== -1) {
-                                    products[index] = updatedProduct; // Update existing product
+                                    products[index] = updatedProduct;
                                 } else {
-                                    products.unshift(updatedProduct); // Or add if it was somehow missing
+                                    products.unshift(updatedProduct);
                                 }
                                 await addOrUpdateProduct(updatedProduct);
-                                applyFiltersAndSearch(); // Re-filter and display
+                                applyFiltersAndSearch();
                                 showMessage(`Product "${updatedProduct.name}" updated.`, 'info');
                             } else {
                                 console.error('PRODUCT_UPDATED payload is malformed or missing ID:', message.payload);
@@ -1094,12 +1033,11 @@
                             break;
 
                         case 'PRODUCT_DELETED':
-                            // This payload is an object like { id: 'product-id' }
                             if (message.payload && message.payload.id) {
                                 const deletedId = message.payload.id;
-                                products = products.filter(p => p.id !== deletedId); // Remove from array
-                                await deleteProductFromDB(deletedId); // Delete from IndexedDB
-                                applyFiltersAndSearch(); // Re-filter and display
+                                products = products.filter(p => p.id !== deletedId);
+                                await deleteProductFromDB(deletedId);
+                                applyFiltersAndSearch();
                                 showMessage(`Product with ID ${deletedId} deleted.`, 'info');
                             } else {
                                 console.error('PRODUCT_DELETED payload is malformed or missing ID:', message.payload);
@@ -1107,13 +1045,8 @@
                             break;
 
                         case 'MY_PRODUCTS_LIST':
-                            // This payload is an array of products belonging to the current seller
                             if (Array.isArray(message.payload)) {
-                                // This is a response to GET_MY_PRODUCTS, so just display them
-                                // Don't modify the global 'products' array from this specific request
-                                // unless you intend to replace ALL products with only 'my products'.
-                                // For now, we'll just use it for renderMyProducts.
-                                renderMyProducts(message.payload); // Pass the specific list to the renderer
+                                renderMyProducts(message.payload);
                                 showMessage('Your product listings loaded.', 'success');
                             } else {
                                 console.error('MY_PRODUCTS_LIST payload is not an array:', message.payload);
@@ -1124,29 +1057,26 @@
                         case 'UPDATE_PRODUCT_SUCCESS':
                         case 'DELETE_PRODUCT_SUCCESS':
                             console.log(`Operation ${message.type} successful for ID:`, message.payload);
-                            // This is just a confirmation, no need to update local data as broadcas
-                            // will handle it. Can be used for UI feedback like closing a form.
                             if (message.type === 'ADD_PRODUCT_SUCCESS') {
                                 showMessage('Your product has been listed!', 'success');
-                                sellProductForm.reset(); // Clear form
-                                imagePreview.innerHTML = `<span class="placeholder">Image Preview</span>`; // Reset image preview
+                                sellProductForm.reset();
+                                imagePreview.innerHTML = `<span class="placeholder">Image Preview</span>`;
                                 currentImageBase64 = null;
-                                showBuyerMarketplace(); // Go back to marketplace view
+                                showBuyerMarketplace();
                             } else if (message.type === 'DELETE_PRODUCT_SUCCESS') {
                                 showMessage('Product deleted successfully from server.', 'success');
-                                renderMyProducts(); // Re-render my products to reflect deletion
-                                applyFiltersAndSearch(); // Update main marketplace view
+                                renderMyProducts();
+                                applyFiltersAndSearch();
                             } else if (message.type === 'UPDATE_PRODUCT_SUCCESS') {
                                 showMessage('Product updated successfully on server.', 'success');
-                                // Optionally, go back to my products or marketplace
                                 showMyProducts();
                             }
                             break;
 
                         case 'ERROR':
-                            // This payload is a string error message
                             showMessage(`Server Error: ${message.payload}`, 'error');
                             console.error('Server Error:', message.payload);
+                            loadingIndicator.classList.add('hidden'); // Hide loading spinner on error
                             break;
 
                         default:
@@ -1161,13 +1091,17 @@
 
             ws.onclose = () => {
                 console.log('WebSocket disconnected. Attempting to reconnect in 5 seconds...');
+                statusIndicator.classList.remove('connected');
+                statusIndicator.classList.add('disconnected');
                 showMessage('Disconnected from server. Reconnecting...', 'error');
                 loadingIndicator.classList.remove('hidden');
-                setTimeout(connectWebSocket, 5000); // Attempt to reconnect
+                setTimeout(connectWebSocket, 5000);
             };
 
             ws.onerror = (error) => {
                 console.error('WebSocket error:', error);
+                statusIndicator.classList.remove('connected');
+                statusIndicator.classList.add('disconnected');
                 showMessage('WebSocket connection error!', 'error');
             };
         }
@@ -1182,38 +1116,33 @@
         function showBuyerMarketplace() {
             hideAllSections();
             buyerMarketplaceSection.classList.remove('hidden');
-            categoriesBar.classList.remove('hidden'); // Show categories for buyer view
-            currentCategory = 'All'; // Reset category when returning to home
-            renderCategories(); // Re-render categories to ensure 'All' is active
-            applyFiltersAndSearch(); // Refresh product display
+            categoriesBar.classList.remove('hidden');
+            currentCategory = 'All';
+            renderCategories();
+            applyFiltersAndSearch();
             closeSideNav();
-            // Reset search/filters visually if desired, but keep current logic
-            // searchInput.value = '';
-            // minPriceInput.value = '';
-            // maxPriceInput.value = '';
             setActiveMenuLink('buyerMarketplaceSection');
         }
 
         function showSellProductForm(productToEdit = null) {
             hideAllSections();
             sellProductSection.classList.remove('hidden');
-            categoriesBar.classList.add('hidden'); // Hide categories when on sell form
-            populateSellFormCategories(); // Populate dropdown
+            categoriesBar.classList.add('hidden');
+            populateSellFormCategories();
             closeSideNav();
             
-            sellProductForm.reset(); // Always reset form
+            sellProductForm.reset();
             imagePreview.innerHTML = `<span class="placeholder">Image Preview</span>`;
             currentImageBase64 = null;
 
             if (productToEdit) {
-                // Populate form for editing
-                sellProductForm.dataset.editingId = productToEdit.id; // Store ID for update
+                sellProductForm.dataset.editingId = productToEdit.id;
                 sellFormProductName.value = productToEdit.name;
                 sellFormProductDescription.value = productToEdit.description;
                 sellFormProductPrice.value = productToEdit.price;
                 sellFormProductCategory.value = productToEdit.category;
                 sellFormProductCondition.value = productToEdit.condition;
-                sellFormProductNegotiable.value = String(productToEdit.negotiable); // Convert boolean to string
+                sellFormProductNegotiable.value = String(productToEdit.negotiable);
                 sellFormProductLocation.value = productToEdit.location;
                 sellFormProductPaymentOption.value = productToEdit.paymentOption;
                 sellFormSellerWhatsApp.value = productToEdit.sellerWhatsApp;
@@ -1224,7 +1153,7 @@
                 sellProductForm.querySelector('button[type="submit"]').textContent = 'Update Product';
                 showMessage(`Editing product "${productToEdit.name}"`, 'info');
             } else {
-                sellProductForm.removeAttribute('data-editing-id'); // Clear editing state
+                sellProductForm.removeAttribute('data-editing-id');
                 sellProductForm.querySelector('button[type="submit"]').textContent = 'List Product';
             }
             setActiveMenuLink('sellProductSection');
@@ -1233,14 +1162,12 @@
         async function showMyProducts() {
             hideAllSections();
             myProductsSection.classList.remove('hidden');
-            categoriesBar.classList.add('hidden'); // Hide categories when on my products
+            categoriesBar.classList.add('hidden');
             closeSideNav();
             
-            // Request my products from server if WebSocket is open
             if (ws && ws.readyState === WebSocket.OPEN) {
                 console.log(`Requesting my products for sellerId: ${CLIENT_ID}`);
                 ws.send(JSON.stringify({ type: 'GET_MY_PRODUCTS', payload: { sellerId: CLIENT_ID } }));
-                // The 'MY_PRODUCTS_LIST' message from server will call renderMyProducts
             } else {
                 console.warn('WebSocket not connected. Showing my products from local cache.');
                 renderMyProducts(products.filter(p => p.sellerId === CLIENT_ID));
@@ -1266,15 +1193,14 @@
             document.querySelectorAll('.category-item').forEach(item => {
                 item.addEventListener('click', () => {
                     currentCategory = item.dataset.category;
-                    renderCategories(); // Re-render to update active state
-                    applyFiltersAndSearch(); // Re-apply filters including new category
+                    renderCategories();
+                    applyFiltersAndSearch();
                 });
             });
         }
 
         function populateSellFormCategories() {
             sellFormProductCategory.innerHTML = '<option value="">Select a Category</option>';
-            // Exclude "All" from the sell form categories
             CATEGORIES.filter(c => c !== 'All').forEach(category => {
                 const option = document.createElement('option');
                 option.value = category;
@@ -1291,7 +1217,6 @@
 
             currentCategoryTitle.textContent = currentCategory === 'All' ? '' : `(${currentCategory})`;
 
-            // Filter all products first
             filteredProducts = products.filter(product => {
                 const matchesCategory = currentCategory === 'All' || product.category === currentCategory;
                 const matchesSearch = searchTerm === '' ||
@@ -1303,7 +1228,7 @@
                 return matchesCategory && matchesSearch && matchesMinPrice && matchesMaxPrice;
             });
 
-            updateProductDisplay(); // This function now always displays all filtered products
+            updateProductDisplay();
             updateClearSearchButtonVisibility();
         }
 
@@ -1311,11 +1236,10 @@
             searchInput.value = '';
             minPriceInput.value = '';
             maxPriceInput.value = '';
-            currentCategory = 'All'; // Reset category
-            renderCategories(); // Re-render categories to highlight 'All'
+            currentCategory = 'All';
+            renderCategories();
             applyFiltersAndSearch();
             showMessage('Filters cleared.', 'info');
-            // Hide filter controls after clearing them
             priceFilterControls.classList.add('hidden-filters');
             toggleFiltersBtn.textContent = 'Show Filters';
             toggleFiltersBtn.prepend(document.createElement('i')).classList.add('fas', 'fa-filter', 'mr-2');
@@ -1334,7 +1258,6 @@
         applyFiltersBtn.addEventListener('click', applyFiltersAndSearch);
         clearFiltersBtn.addEventListener('click', clearFilters);
 
-        // Toggle filters visibility
         toggleFiltersBtn.addEventListener('click', () => {
             priceFilterControls.classList.toggle('hidden-filters');
             if (priceFilterControls.classList.contains('hidden-filters')) {
@@ -1346,34 +1269,31 @@
             }
         });
 
-
         // --- Event Delegation for Product Card Clicks ---
         productsContainer.addEventListener('click', (event) => {
             const productItem = event.target.closest('.product-item');
-            if (!productItem) return; // Not a product item click
+            if (!productItem) return;
 
-            const productId = productItem.dataset.productId; // IDs are strings now
+            const productId = productItem.dataset.productId;
 
-            // Check if the click was on the WhatsApp button
             if (event.target.closest('.whatsapp-btn')) {
                 redirectToWhatsApp(productId);
             } else {
-                // Otherwise, open product details
                 openProductDetails(productId);
             }
         });
 
         // --- Sell Product Form Logic ---
-        sellProductBtn.addEventListener('click', () => showSellProductForm(null)); // Pass null for new product
+        sellProductBtn.addEventListener('click', () => showSellProductForm(null));
         cancelSellProductBtn.addEventListener('click', showBuyerMarketplace);
-        closeModalBtn.addEventListener('click', closeProductDetails); // Make sure modal close button works
+        closeModalBtn.addEventListener('click', closeProductDetails);
 
         productImageUpload.addEventListener('change', (event) => {
             const file = event.target.files[0];
             if (file) {
                 if (!file.type.startsWith('image/')) {
                     showMessage('Please upload an image file (e.g., JPG, PNG, GIF).', 'error');
-                    productImageUpload.value = ''; // Clear selected file
+                    productImageUpload.value = '';
                     imagePreview.innerHTML = `<span class="placeholder">Image Preview</span>`;
                     currentImageBase64 = null;
                     return;
@@ -1381,15 +1301,41 @@
 
                 const reader = new FileReader();
                 reader.onload = (e) => {
-                    currentImageBase64 = e.target.result; // Store Base64 string
-                    imagePreview.innerHTML = `<img src="${currentImageBase64}" alt="Image Preview">`;
+                    const img = new Image();
+                    img.onload = () => {
+                        const canvas = document.createElement('canvas');
+                        const ctx = canvas.getContext('2d');
+                        let width = img.width;
+                        let height = img.height;
+                        const maxSize = 800;
+
+                        if (width > height) {
+                            if (width > maxSize) {
+                                height *= maxSize / width;
+                                width = maxSize;
+                            }
+                        } else {
+                            if (height > maxSize) {
+                                width *= maxSize / height;
+                                height = maxSize;
+                            }
+                        }
+
+                        canvas.width = width;
+                        canvas.height = height;
+                        ctx.drawImage(img, 0, 0, width, height);
+
+                        currentImageBase64 = canvas.toDataURL('image/jpeg', 0.5);
+                        imagePreview.innerHTML = `<img src="${currentImageBase64}" alt="Image Preview">`;
+                    };
+                    img.src = e.target.result;
                 };
                 reader.onerror = () => {
                     showMessage('Error reading file.', 'error');
                     currentImageBase64 = null;
                     imagePreview.innerHTML = `<span class="placeholder">Error loading image</span>`;
                 };
-                reader.readAsDataURL(file); // Read file as Base64 data URL
+                reader.readAsDataURL(file);
             } else {
                 currentImageBase64 = null;
                 imagePreview.innerHTML = `<span class="placeholder">Image Preview</span>`;
@@ -1399,64 +1345,65 @@
         sellProductForm.addEventListener('submit', async function(event) {
             event.preventDefault();
 
-            const isEditing = sellProductForm.dataset.editingId;
-            const productId = isEditing || `client_${Date.now()}`; // Use existing ID or generate new client-side ID
+            if (this.dataset.submitting === 'true') {
+                return;
+            }
+            this.dataset.submitting = 'true';
+
+            const isEditing = this.dataset.editingId;
+            const productId = isEditing || `client_${Date.now()}`;
 
             const productData = {
-                id: productId, // Use generated or existing ID
+                id: productId,
                 name: sellFormProductName.value,
                 description: sellFormProductDescription.value,
                 price: parseFloat(sellFormProductPrice.value),
                 category: sellFormProductCategory.value,
                 condition: sellFormProductCondition.value,
-                negotiable: sellFormProductNegotiable.value === 'true', // Ensure boolean
+                negotiable: sellFormProductNegotiable.value === 'true',
                 location: sellFormProductLocation.value,
                 paymentOption: sellFormProductPaymentOption.value,
                 sellerWhatsApp: sellFormSellerWhatsApp.value,
-                imageUrl: currentImageBase64 || 'https://placehold.co/400x300/E0E0E0/666666?text=No+Image', // Use uploaded image or placeholder
-                timestamp: Date.now(), // Always update timestamp on submission/edit
-                sellerId: CLIENT_ID // Assign this client's ID as seller ID
+                imageUrl: currentImageBase64 || 'https://placehold.co/400x300/E0E0E0/666666?text=No+Image',
+                timestamp: Date.now(),
+                sellerId: CLIENT_ID
             };
 
             if (ws && ws.readyState === WebSocket.OPEN) {
                 if (isEditing) {
-                    console.log('Sending UPDATE_PRODUCT to server:', productData.id);
                     ws.send(JSON.stringify({ type: 'UPDATE_PRODUCT', payload: productData }));
+                    showMessage('Updating your product...', 'info');
                 } else {
-                    console.log('Sending ADD_PRODUCT to server:', productData.id);
                     ws.send(JSON.stringify({ type: 'ADD_PRODUCT', payload: productData }));
+                    showMessage('Listing your product...', 'info');
                 }
-                // The onmessage handler will receive SUCCESS/ERROR or the broadcast and update UI
             } else {
-                showMessage('No server connection. Listing product locally.', 'info');
                 try {
-                    // Update local 'products' array
                     if (isEditing) {
                         const index = products.findIndex(p => p.id === productId);
                         if (index !== -1) {
                             products[index] = productData;
                         }
                     } else {
-                        products.unshift(productData); // Add new product
+                        products.unshift(productData);
                     }
-                    await addOrUpdateProduct(productData); // Save to IndexedDB
-                    sellProductForm.reset();
-                    imagePreview.innerHTML = `<span class="placeholder">Image Preview</span>`;
-                    currentImageBase64 = null;
+                    await addOrUpdateProduct(productData);
                     showMessage('Product listed/updated successfully locally!', 'success');
-                    showBuyerMarketplace();
                 } catch (error) {
                     console.error('Error listing/updating product locally:', error);
                     showMessage('Failed to list/update product locally.', 'error');
                 }
             }
-        });
 
+            sellProductForm.reset();
+            imagePreview.innerHTML = `<span class="placeholder">Image Preview</span>`;
+            currentImageBase64 = null;
+            delete this.dataset.submitting;
+            showMyProducts();
+        });
 
         // --- My Products Logic ---
         function renderMyProducts(myProductsData = null) {
-            // If data is provided (from WS 'MY_PRODUCTS_LIST'), use it.
-            // Otherwise, filter from the global 'products' array (local cache).
             const productsToRender = myProductsData || products.filter(p => p.sellerId === CLIENT_ID);
             const sortedMyProducts = [...productsToRender].sort((a, b) => b.timestamp - a.timestamp);
 
@@ -1484,13 +1431,12 @@
                     `;
                 }).join('');
 
-                // Add event listeners for edit/delete buttons
                 myProductsList.querySelectorAll('.edit-btn').forEach(button => {
                     button.addEventListener('click', (event) => {
                         const productId = event.target.dataset.productId;
                         const productToEdit = products.find(p => p.id === productId);
                         if (productToEdit) {
-                            showSellProductForm(productToEdit); // Pass product object for editing
+                            showSellProductForm(productToEdit);
                         }
                     });
                 });
@@ -1502,15 +1448,14 @@
                             if (ws && ws.readyState === WebSocket.OPEN) {
                                 console.log('Sending DELETE_PRODUCT to server:', productId);
                                 ws.send(JSON.stringify({ type: 'DELETE_PRODUCT', payload: { id: productId } }));
-                                // UI update will be handled by the 'PRODUCT_DELETED' broadcast
                             } else {
                                 showMessage('No server connection. Deleting product locally.', 'info');
                                 try {
-                                    products = products.filter(p => p.id !== productId); // Remove from in-memory array
-                                    await deleteProductFromDB(productId); // Remove from IndexedDB
+                                    products = products.filter(p => p.id !== productId);
+                                    await deleteProductFromDB(productId);
                                     showMessage('Product deleted successfully locally.', 'success');
-                                    renderMyProducts(); // Re-render the list
-                                    applyFiltersAndSearch(); // Update main marketplace view
+                                    renderMyProducts();
+                                    applyFiltersAndSearch();
                                 } catch (error) {
                                     console.error('Error deleting product locally:', error);
                                     showMessage('Failed to delete product locally.', 'error');
@@ -1522,27 +1467,20 @@
             }
         }
 
-
         // --- Initial Setup ---
         window.onload = async () => {
-            // Set initial active menu link
             setActiveMenuLink('buyerMarketplaceSection');
+            await openDatabase();
 
-            await openDatabase(); // Open IndexedDB first
-
-            // Load products from IndexedDB, or use demo data if DB is empty and WS not connected
+            // Load products from IndexedDB first for a fast initial display
             await loadProductsFromIndexedDB();
 
-            // Connect WebSocket (will connect or attempt to reconnect)
+            // Then, connect WebSocket to get the latest server data and listen for updates
             connectWebSocket();
 
             startRotatingFooterMessages();
-            renderCategories(); // Initialize category bar
-
-            // Populate categories for the sell form
+            renderCategories();
             populateSellFormCategories();
-
-            // Ensure correct view is shown on load
             showBuyerMarketplace();
         };
 
@@ -1559,10 +1497,9 @@
 
         closeNavBtn.addEventListener('click', closeSideNav);
 
-        // Function to set the active menu link
         function setActiveMenuLink(activeSectionId) {
             document.querySelectorAll('#mySidenav a').forEach(link => {
-                link.classList.remove('active-menu-link'); // Remove from all
+                link.classList.remove('active-menu-link');
             });
 
             let targetLink;
@@ -1575,10 +1512,9 @@
             }
             
             if (targetLink) {
-                targetLink.classList.add('active-menu-link'); // Add to the active one
+                targetLink.classList.add('active-menu-link');
             }
         }
-
     </script>
 </body>
 </html>
