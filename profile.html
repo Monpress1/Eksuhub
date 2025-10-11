@@ -277,7 +277,6 @@
     </div>
   </div>
 
-
   <script>
     const profileName = document.getElementById('profileName');
     const profileDepartment = document.getElementById('profileDepartment');
@@ -302,7 +301,7 @@
 
     function loadQuizHistory() {
       // Assuming quizHistory is stored as a JSON array of objects
-      // Each object should contain: quizName, score, total, percentage, timeTaken, date, allAnswers
+      // Each object should contain: quizName/course, score, total, percentage, timeTaken, date, allAnswers
       const quizHistory = JSON.parse(localStorage.getItem('quizHistory')) || [];
 
       quizHistoryList.innerHTML = ''; // Clear existing content
@@ -316,16 +315,25 @@
         clearHistoryButton.style.display = 'block'; // Show clear button
       }
 
-      quizHistory.forEach((record, index) => {
+      // Display newest history entries first
+      const reversedHistory = [...quizHistory].reverse(); 
+
+      reversedHistory.forEach((record, originalIndex) => {
         const listItem = document.createElement('li');
         listItem.classList.add('quiz-history-item');
 
-        const date = record.date || new Date().toLocaleString(); // Use stored date or current date
-        const quizName = record.quizName || 'Prevous Exam';
+        const date = record.date || new Date().toLocaleString();
+        
+        // FIX: Check for both 'quizName' (new key) and 'course' (old key)
+        const quizName = record.quizName || record.course || 'Previous Exam';
+        
         const score = record.score !== undefined ? record.score : 'N/A';
         const total = record.total !== undefined ? record.total : 'N/A';
         const percentage = record.percentage !== undefined ? record.percentage : 'N/A';
         const timeTaken = record.timeTaken !== undefined ? `${record.timeTaken} minutes` : 'N/A';
+
+        // Calculate the index for review based on the original (un-reversed) array
+        const reviewIndex = quizHistory.length - 1 - originalIndex;
 
         listItem.innerHTML = `
           <div class="quiz-title">${quizName}</div>
@@ -335,7 +343,7 @@
             <span class="detail-item"><strong>Percentage:</strong> ${percentage}%</span>
             <span class="detail-item"><strong>Time Taken:</strong> ${timeTaken}</span>
           </div>
-          <button class="review-button" data-index="${index}">Review Missed Answers</button>
+          <button class="review-button" data-index="${reviewIndex}">Review Missed Answers</button>
         `;
         quizHistoryList.appendChild(listItem);
       });
@@ -357,7 +365,7 @@
         noMissedMessageModal.style.display = 'none'; // Hide default message
 
         if (entry && entry.allAnswers && entry.allAnswers.length > 0) {
-            const missed = entry.allAnswers.filter(answer => !answer.isCorrect);
+            const missed = entry.allAnswers.filter(answer => answer && !answer.isCorrect); // Ensure 'answer' is not null/undefined
 
             if (missed.length > 0) {
                 missed.forEach((missedAnswer, qIndex) => {
@@ -373,7 +381,7 @@
                 noMissedMessageModal.style.display = 'block'; // Show "Great job" message
             }
         } else {
-            // Fallback if 'allAnswers' data is missing for some reason (e.g., old history format)
+            // Fallback if 'allAnswers' data is missing for some reason
             missedQuestionsListModal.innerHTML = '<li><p>No detailed answer data available for this quiz attempt.</p></li>';
         }
 
@@ -399,9 +407,6 @@
         localStorage.removeItem('department');
         localStorage.removeItem('faculty');
         localStorage.removeItem('level');
-        // You might want to clear quiz history here too, or keep it.
-        // For now, let's keep it to demonstrate, but you can uncomment the line below to clear it:
-        // localStorage.removeItem('quizHistory');
         alert('Your profile data has been cleared. You will be asked to re-register on the dashboard.');
         window.location.href = 'index.html'; // Redirect back to the dashboard to trigger the sign-up form
       }
@@ -426,5 +431,7 @@
     loadProfile();
     loadQuizHistory();
   </script>
+
+  
 </body>
 </html>

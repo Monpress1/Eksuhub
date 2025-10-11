@@ -3,1518 +3,861 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Global Marketplace</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <title>EKSU MARKET | Campus Marketplace</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #f3f4f6; /* Light gray background */
-            color: #333;
-            overflow-x: hidden; /* Prevent horizontal scroll due to menu animation */
-        }
-        /* Custom scrollbar for better aesthetics */
-        ::-webkit-scrollbar {
-            width: 8px;
-        }
-        ::-webkit-scrollbar-track {
-            background: #f1f1f1;
-            border-radius: 10px;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #888;
-            border-radius: 10px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #555;
-        }
-        /* Hide default number input arrows */
-        input[type="number"]::-webkit-inner-spin-button,
-        input[type="number"]::-webkit-outer-spin-button {
-            -webkit-appearance: none;
-            margin: 0;
-        }
-        input[type="number"] {
-            -moz-appearance: textfield;
+        /* ==================================== */
+        /* --- Root Variables & Base Styling --- */
+        /* ==================================== */
+        :root {
+            --primary-color: #1f3b7d; /* Deep Blue */
+            --secondary-color: #e19d00; /* Gold/Yellow */
+            --bg-color: #f8f9fa;
+            --card-bg: #ffffff;
+            --shadow-light: 0 2px 8px rgba(0, 0, 0, 0.1); /* Updated for modern look */
+            --shadow-medium: 0 5px 15px rgba(0, 0, 0, 0.15);
+            --border-radius: 13px;
         }
 
-        /* Toast Message Styles */
-        #messageBox {
-            position: fixed;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background-color: #333;
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            margin: 0; 
+            padding: 0; 
+            background-color: var(--bg-color); 
+            color: #333; 
+            line-height: 1.6;
+            padding-bottom: 60px; /* Space for bottom nav */
+        }
+        
+        /* ==================================== */
+        /* --- Header & Navigation (Modern Curved) --- */
+        /* ==================================== */
+        .header { 
+            background-color: var(--primary-color); 
+            color: white; 
+            padding: 10px 20px; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            box-shadow: var(--shadow-medium);
+            position: relative; /* Needed for z-index context */
+            z-index: 10;
+            height: 90px; /* Increased height for a deeper curve */
+        }
+        
+        /* The clip-path is now applied here for the modern curved bottom */
+        .header-curved-bottom {
+            clip-path: path("M 0 0 L 100% 0 L 100% 100% C 75% 70%, 25% 120%, 0 100% Z");
+        }
+
+        .header-left, .header-right { 
+            display: flex; 
+            align-items: center; 
+            gap: 15px; 
+        }
+
+        .header h1 { 
+            margin: 0; 
+            font-size: 1.5rem; 
+            font-weight: 700;
+        }
+
+        .header .icon, .back-btn { 
+            font-size: 1.5rem; 
+            cursor: pointer; 
             color: white;
-            padding: 12px 20px;
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-            z-index: 1000;
-            opacity: 0;
-            transition: opacity 0.3s ease-in-out;
-            pointer-events: none; /* Allows clicks to pass through when hidden */
+            text-decoration: none; /* For back button link */
         }
-        #messageBox.show {
-            opacity: 1;
+        
+        .list-btn { 
+            background-color: var(--secondary-color); 
+            color: var(--primary-color); 
+            border: none; 
+            padding: 8px 15px; 
+            border-radius: 20px; /* More pill-shaped */
+            cursor: pointer; 
+            font-size: 0.9rem; 
+            font-weight: bold; 
+            transition: background-color 0.3s; 
+            box-shadow: var(--shadow-light);
         }
+        .list-btn:hover { background-color: #e6c800; }
 
-        /* Loading Spinner Styles */
-        .spinner {
-            border: 4px solid rgba(0, 0, 0, 0.1);
-            border-left-color: #3b82f6; /* Blue-500 */
-            border-radius: 50%;
-            width: 30px;
-            height: 30px;
-            animation: spin 1s linear infinite;
+        /* ==================================== */
+        /* --- Controls (Search & Filters) --- */
+        /* ==================================== */
+        .controls { 
+            padding: 20px; 
+            padding-top: 10px; /* Move controls up a bit */
+            background: var(--bg-color); /* Matches body background */
+            position: relative;
+            z-index: 5;
         }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        /* --- Header Adjustments for Logo and Menu --- */
-        .header {
-            display: flex;
-            justify-content: space-between;
+        
+        /* Google Search Bar Style */
+        .search-container { 
+            display: flex; 
             align-items: center;
-            padding: 15px 20px;
-            background-color:  #212121 ; /* Primary header color */
-            color: #fff;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-            position: sticky;
-            top: 0;
-            z-index: 1000;
-        }
-
-        .header h1 {
-            margin: 0;
-            font-size: 1.8em;
-            cursor: pointer; /* Indicate it's clickable */
-            display: flex;
-            align-items: center;
-        }
-
-        .header .logo-icon { /* Renamed for clarity */
-            font-size: 1.5em;
-            margin-right: 10px;
-            cursor: pointer; /* Indicate it's clickable */
-        }
-
-        /* --- Hamburger Menu Icon --- */
-        .hamburger-menu {
-            font-size: 1.8em;
-            cursor: pointer;
-            transition: transform 0.3s ease;
-            color: #fff;
-        }
-
-        .hamburger-menu.active {
-            transform: rotate(90deg); /* Rotate when active */
-        }
-        #statusIndicator {
-            position: absolute;
-            top: 15px;
-            left: 15px;
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-            z-index: 1000;
-        }
-        #statusIndicator.connected {
-            background-color: #28a745; /* Green */
-        }
-        #statusIndicator.disconnected {
-            background-color: #dc3545; /* Red */
-        }
-
-        /* --- Side Navigation Menu --- */
-        .side-nav {
-            height: 100%;
-            width: 0; /* Initially hidden */
-            position: fixed;
-            z-index: 1001; /* Above header */
-            top: 0;
-            right: 0;
-            background-color: #111;
-            overflow-x: hidden;
-            transition: 0.5s; /* Animation for opening/closing */
-            padding-top: 60px;
-            box-shadow: -5px 0 15px rgba(0, 0, 0, 0.3);
-        }
-
-        .side-nav a {
-            padding: 15px 25px 15px 35px;
-            text-decoration: none;
-            font-size: 25px;
-            color: #818181;
-            display: block;
-            transition: 0.3s;
-        }
-
-        .side-nav a:hover {
-            color: #f1f1f1;
-            background-color: #007bff; /* Highlight on hover */
-        }
-
-        .side-nav .closebtn {
-            position: absolute;
-            top: 0;
-            right: 25px;
-            font-size: 36px;
-            margin-left: 50px;
-            color: #ccc;
-        }
-
-        /* --- Product Item (Smaller Tiles - 2 per row on large screens) --- */
-        #productsContainer {
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); /* Adjusted for smaller tiles */
-            gap: 1.5rem; /* Increased gap for better spacing */
-        }
-        @media (min-width: 768px) {
-            #productsContainer {
-                grid-template-columns: repeat(2, 1fr); /* 2 products per row on medium screens */
-            }
-        }
-        @media (min-width: 1024px) { /* Adjust for larger screens if needed */
-            #productsContainer {
-                grid-template-columns: repeat(3, 1fr); /* You can keep 3 or even go for 4 */
-            }
-        }
-        @media (min-width: 1280px) { /* Even larger screens for 4 columns */
-            #productsContainer {
-                grid-template-columns: repeat(4, 1fr);
-            }
-        }
-
-
-        .product-item {
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between; /* Pushes button to bottom */
-            height: auto; /* Allow height to adjust */
-            min-height: 380px; /* Minimum height for consistency */
-            overflow: hidden; /* For rounded corners on image */
-        }
-
-        .product-item img {
+            border: none; /* Remove default border */
+            border-radius: 30px; /* Pill shape */
+            overflow: hidden; 
             width: 100%;
-            height: 180px; /* Fixed height for images */
-            object-fit: cover; /* Ensures image covers area, crops if necessary */
-            border-radius: 0.5rem; /* rounded-lg */
-            margin-bottom: 1rem;
+            background-color: var(--card-bg); 
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); /* Elevated shadow */
+            transition: box-shadow 0.3s;
         }
-        .product-item .product-info {
-            flex-grow: 1; /* Allows this section to take up available space */
-        }
-        .product-item .product-name {
-            font-size: 1.125rem; /* text-xl */
-            font-weight: 600; /* font-semibold */
-            margin-bottom: 0.5rem;
-            color: #333;
-            line-height: 1.3;
-            max-height: 2.6em; /* Limit to 2 lines */
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-        .product-item .product-price {
-            font-size: 1rem; /* text-lg */
-            font-weight: 700; /* font-bold */
-            color: #007bff; /* A nice blue for price */
-            margin-bottom: 0.75rem;
+        .search-container:focus-within {
+             box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2); 
         }
 
-        /* --- Categories Bar - Fixed to wrap --- */
-        #categoriesBar {
-            background-color: #ffffff;
-            padding: 0.75rem 0;
-            margin-top: 0;
-            border-bottom: 1px solid #e5e7eb;
-            display: flex; /* Use flexbox */
-            flex-wrap: wrap; /* Allow items to wrap to the next line */
-            justify-content: center; /* Center items if they don't fill a full row */
-            gap: 0.5rem; /* Space between categories */
-            padding-left: 1rem; /* Add some padding on the sides */
-            padding-right: 1rem;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05); /* subtle shadow */
+        .search-input { 
+            padding: 12px 15px; /* More padding */
+            border: none; 
+            flex-grow: 1; 
+            font-size: 1rem; 
+            background: transparent;
         }
-        .category-item {
-            display: inline-block; /* Now flex items, but inline-block still works */
-            padding: 0.5rem 1rem;
-            border-radius: 9999px; /* rounded-full */
-            background-color: #e2e8f0; /* bg-gray-200 */
-            color: #4a5568; /* text-gray-700 */
-            font-size: 0.875rem; /* text-sm */
-            font-weight: 500; /* font-medium */
+        .search-icon { 
+            color: var(--primary-color); /* Icon color */
+            padding: 12px 15px; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center;
+        }
+
+        /* Filter Row/Pills */
+        .filter-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .filter-toggle-btn {
+            display: block; /* Show on mobile */
+            background: none;
+            border: none;
+            color: var(--primary-color);
+            font-size: 1.2rem;
             cursor: pointer;
-            transition: background-color 0.2s, color 0.2s;
-        }
-        .category-item:hover {
-            background-color: #cbd5e0; /* bg-gray-300 */
-        }
-        .category-item.active {
-            background-color: #007bff; /* bg-blue-600 */
-            color: #ffffff;
-        }
-        .category-item.all { /* Style for 'All Categories' */
-            background-color: #0056b3;
-            color: #ffffff;
-        }
-        .category-item.all:hover {
-            background-color: #004085;
+            padding: 5px;
         }
 
-        /* --- Modal Styles --- */
-        .modal {
-            display: none; /* Hidden by default */
-            position: fixed; /* Stay in place */
-            z-index: 1002; /* Sit on top */
-            left: 0;
-            top: 0;
-            width: 100%; /* Full width */
-            height: 100%; /* Full height */
-            overflow: auto; /* Enable scroll if needed */
-            background-color: rgba(0,0,0,0.5); /* Black w/ opacity */
+        .filter-pills-container {
+            display: flex;
+            gap: 10px;
+            overflow-x: auto; /* Allows horizontal scrolling */
+            padding-bottom: 5px; /* Space for scrollbar */
+            white-space: nowrap; /* Keeps pills in one line */
+            -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+        }
+        
+        .filter-pill {
+            display: inline-block;
+            padding: 8px 15px;
+            border-radius: 20px; /* Round pill shape */
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 500;
+            background-color: #e9ecef; /* Inactive/round background */
+            color: #495057; /* Inactive color */
+            border: 2px solid transparent;
+            transition: all 0.2s ease;
+        }
+
+        .filter-pill:hover, .filter-pill.active {
+            background-color: var(--primary-color);
+            color: white;
+            border-color: var(--secondary-color);
+        }
+        
+        /* ==================================== */
+        /* --- Product Grid & Pagination --- */
+        /* ==================================== */
+        .product-grid { 
+            padding: 20px; 
+            display: grid; 
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); 
+            gap: 20px; 
+        }
+        
+        /* Card styles remain largely the same */
+        .product-card { 
+            background: var(--card-bg); 
+            border-radius: var(--border-radius); 
+            overflow: hidden; 
+            box-shadow: var(--shadow-medium); 
+            transition: transform 0.3s, box-shadow 0.3s; 
+        }
+        .product-card:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2); }
+        .product-card img { width: 100%; height: 180px; object-fit: cover; }
+        .product-info { padding: 15px; }
+        .product-info h2 { font-size: 1.2rem; margin-top: 0; margin-bottom: 5px; color: var(--primary-color); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;}
+        .product-price { font-size: 1.6rem; font-weight: 800; color: #d9534f; margin-bottom: 10px; display: block;}
+        
+        /* Tags */
+        .tag-row { margin-bottom: 8px; }
+        .product-tag { 
+            display: inline-block; 
+            padding: 3px 8px; 
+            border-radius: 15px; 
+            margin-right: 5px; 
+            font-size: 0.7rem; 
+            font-weight: bold; 
+            text-transform: uppercase;
+        }
+        .tag-neg { background-color: #f0ad4e; color: white; }
+        .tag-new { background-color: #5cb85c; color: white; }
+        .tag-used { background-color: #007bff; color: white; }
+        .tag-location { color: #6c757d; font-weight: 500; font-size: 0.85rem; margin-top: 5px; display: block;}
+        
+        .whatsapp-btn { 
+            background-color: #25d366; 
+            color: white; 
+            padding: 10px; 
+            border-radius: var(--border-radius); 
+            text-decoration: none; 
+            display: block; 
+            text-align: center; 
+            margin-top: 15px; 
+            font-weight: 600; 
+            transition: background-color 0.2s;
+        }
+        .whatsapp-btn:hover { background-color: #128c7e; }
+
+        #loading { text-align: center; padding: 50px; font-size: 1.2em; color: #6c757d; }
+        
+        /* Pagination Controls */
+        .pagination {
+            display: flex;
             justify-content: center;
             align-items: center;
+            gap: 20px;
+            padding: 20px;
+            margin-top: 20px;
         }
-        .modal-content {
-            background-color: #fefefe;
-            margin: auto;
-            padding: 2rem;
-            border-radius: 0.75rem;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-            width: 90%;
-            max-width: 600px;
-            position: relative;
-            animation: fadeInScale 0.3s ease-out;
-            max-height: 90vh; /* Max height for modal content */
-            overflow-y: auto; /* Scroll if content is too long */
-        }
-        @keyframes fadeInScale {
-            from { opacity: 0; transform: scale(0.95); }
-            to { opacity: 1; transform: scale(1); }
-        }
-        .close-button {
-            color: #aaa;
-            font-size: 28px;
-            font-weight: bold;
-            position: absolute;
-            top: 10px;
-            right: 20px;
+        .pagination button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 20px;
             cursor: pointer;
+            font-weight: bold;
+            transition: background-color 0.3s;
+        }
+        .pagination button:hover:not(:disabled) {
+            background-color: #152d61;
+        }
+        .pagination button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+        .pagination span {
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+
+        /* ==================================== */
+        /* --- Modal Styling (List Form) --- */
+        /* ==================================== */
+        .modal { display: none; position: fixed; z-index: 100; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.7); }
+        .modal-content { 
+            background-color: var(--card-bg); 
+            margin: 5vh auto; 
+            padding: 30px; 
+            border-radius: var(--border-radius); 
+            width: 90%; 
+            max-width: 500px; 
+            position: relative; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3); 
+        }
+        
+        /* Form fields inside modal */
+        .form-row { margin-bottom: 15px; }
+        .modal-content label { display: block; margin-bottom: 5px; font-weight: 600; color: var(--primary-color); }
+        .modal-content input[type="text"], .modal-content input[type="number"], 
+        .modal-content textarea, .modal-content input[type="file"], .modal-content select { 
+            width: 100%; 
+            padding: 12px; 
+            border: 1px solid #ccc; 
+            border-radius: 5px; 
+            box-sizing: border-box;
+            transition: border-color 0.2s;
+        }
+        .modal-content input:focus, .modal-content select:focus, .modal-content textarea:focus {
+            border-color: var(--primary-color);
+            outline: none;
+        }
+
+        .checkbox-group { display: flex; align-items: center; margin-top: 10px; margin-bottom: 20px; }
+        .checkbox-group input { width: 20px; height: 20px; margin-right: 10px; }
+        
+        .modal-content button[type="submit"] {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 12px;
+            border: none;
+            border-radius: 5px;
+            width: 100%;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .modal-content button[type="submit"]:hover {
+            background-color: #152d61;
+        }
+
+        /* Bottom Navigation Bar */
+        .bottom-navigation {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            display: flex;
+            justify-content: space-around;
+            background-color: var(--card-bg);
+            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+            z-index: 20;
+            padding: 5px 0;
+        }
+
+        .bottom-navigation a {
+            flex: 1;
+            text-align: center;
+            padding: 10px 0;
+            color: #6c757d;
+            text-decoration: none;
+            font-size: 0.75rem;
             transition: color 0.3s;
         }
-        .close-button:hover,
-        .close-button:focus {
-            color: #333;
-            text-decoration: none;
-            cursor: pointer;
-        }
-        .modal-image {
-            width: 100%;
-            max-height: 300px;
-            object-fit: contain; /* Changed to contain for full image visibility */
-            border-radius: 0.5rem;
-            margin-bottom: 1.5rem;
-            background-color: #eee; /* Background for containment */
-        }
-        .modal-detail-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0.5rem 0;
-            border-bottom: 1px dashed #eee;
-        }
-        .modal-detail-row:last-child {
-            border-bottom: none;
-        }
-        .modal-detail-label {
-            font-weight: 600;
-            color: #555;
-            flex-shrink: 0;
-            margin-right: 1rem;
-        }
-        .modal-detail-value {
-            color: #333;
-            text-align: right;
-            flex-grow: 1;
+
+        .bottom-navigation a i {
+            display: block;
+            font-size: 1.2rem;
+            margin-bottom: 3px;
         }
 
-        /* Image Preview for Upload */
-        #imagePreview {
-            width: 150px;
-            height: 150px;
-            border: 2px dashed #ccc;
-            border-radius: 0.5rem;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            overflow: hidden;
-            margin-top: 0.5rem;
-            background-color: #f9f9f9;
+        .bottom-navigation a:hover, .bottom-navigation a.active {
+            color: var(--primary-color);
         }
-        #imagePreview img {
-            width: 100%;
-            height: 100%;
-            object-fit: contain;
+        
+        /* Media Query for larger screens */
+        @media (min-width: 768px) {
+            .header { padding: 15px 40px; }
+            .header h1 { font-size: 2rem; }
+            .controls { padding: 20px 40px; }
+            .search-container { width: 450px; /* Limit search width on desktop */ }
+            .filter-row { flex-wrap: nowrap; }
+            .product-grid { padding: 40px; }
+            .modal-content { margin: 10vh auto; }
+            
+            .filter-toggle-btn { display: none; } /* Hide filter icon on desktop */
+            .filter-pills-container { overflow-x: visible; } /* No scrollbar needed */
         }
-        #imagePreview .placeholder {
-            color: #aaa;
-            font-size: 0.9rem;
-            text-align: center;
-            padding: 10px;
-        }
-
-        /* Filter Controls Toggle */
-        #priceFilterControls.hidden-filters {
-            display: none;
-        }
-
-        /* My Products Card Styling */
-        .product-management-card {
-            display: flex;
-            align-items: center;
-            background-color: #fff;
-            border: 1px solid #e5e7eb;
-            border-radius: 0.5rem;
-            padding: 1rem;
-            gap: 1rem;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-        }
-        .product-management-card img {
-            width: 80px;
-            height: 80px;
-            object-fit: cover;
-            border-radius: 0.25rem;
-        }
-        .product-management-card .info {
-            flex-grow: 1;
-        }
-        .product-management-card .info h3 {
-            font-weight: 600;
-            color: #333;
-        }
-        .product-management-card .actions {
-            display: flex;
-            gap: 0.5rem;
-        }
-        /* Inside your <style> block */
-
-.side-nav a.active-menu-link {
-    color: #fff; /* White text for active link */
-    background-color: #007bff; /* Highlight background */
-    font-weight: bold; /* Make it bold */
-    border-left: 5px solid #ffcc00; /* A yellow border for emphasis */
-    padding-left: 30px; /* Adjust padding due to border */
-}
-
     </style>
 </head>
-<body class="min-h-screen flex flex-col">
+<body>
 
-    <header class="header">
-        <div id="statusIndicator" class="w-3 h-3 rounded-full absolute top-2 left-2 shadow-lg"></div>
-        <h2 id="platform-title" class="cursor-pointer" onclick="showBuyerMarketplace()">
-     <i class='fas fa-cart-arrow-down' style=''       style="color:orange;"></i>
-            Eksu Market
-        </h2>
-        <div class="flex items-center space-x-4">
-            <button id="sellProductBtn" class="bg-yellow-400 text-gray-900 px-4 py-2 rounded-lg font-semibold hover:bg-yellow-500 transition duration-200 shadow-md">
-                <i class="fas fa-plus-circle mr-2"></i> Sell Product
-            </button>
-            <div class="hamburger-menu" id="hamburger-menu">
-                <i class="fas fa-bars"></i>
-            </div>
+    <div class="header header-curved-bottom">
+        <div class="header-left">
+             <a href="index.html" class="back-btn" aria-label="Go Back to Home">
+                <i class="fas fa-arrow-left"></i>
+            </a>
+            <h1>EKSU MARKET</h1>
         </div>
-    </header>
-
-    <div id="mySidenav" class="side-nav">
-        <a href="javascript:void(0)" class="closebtn" id="close-nav">&times;</a>
-        <a href="index.html" onclick="showBuyerMarketplace()">Market</a>
-        
-        <a href="#" onclick="showSellProductForm()">Sell Product</a>
-        <a href="index.html" >Dashboard</a>
-        <a href="news.html">News</a>
-        <a href="chat.html">Chat</a>
+        <div class="header-right">
+             <i class="fas fa-shopping-cart icon" aria-label="Shopping Cart"></i>
+            <button class="list-btn" onclick="openSellModal()">SELL</button>
+        </div>
     </div>
 
-    <div id="categoriesBar" class="mx-auto flex justify-start items-center px-4 py-2 bg-white shadow-sm border-b border-gray-200">
+    <div class="controls">
+        <div class="search-container">
+            <div class="search-icon"><i class="fas fa-search"></i></div>
+            <input type="text" id="searchInput" class="search-input" placeholder="Search product name, description, or location..." aria-label="Search">
+            <button class="filter-toggle-btn" id="filterToggleBtn" aria-label="Toggle Filters"><i class="fas fa-sliders-h"></i></button>
         </div>
 
-
-    <main class="container mx-auto my-6 p-6 flex-grow">
-
-        <section id="buyerMarketplaceSection" class="bg-white p-6 rounded-xl shadow-lg border border-gray-200">
-            <h2 class="text-3xl font-semibold mb-6 text-gray-800 border-b pb-3">
-                Current Listings
-                <span id="currentCategory" class="text-xl text-blue-600 ml-3"></span>
-            </h2>
-
-            <div class="mb-6 flex flex-wrap gap-4 items-end">
-                <div class="flex-grow">
-                    <label for="search-input" class="block text-sm font-medium text-gray-700 mb-1">Search Products</label>
-                    <div class="relative">
-                        <input type="text" id="search-input" placeholder="Search by name, description..." class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 shadow-sm">
-                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <i class="fas fa-search text-gray-400"></i>
-                        </div>
-                        <button id="clear-search" class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 transition duration-150" style="display: none;">
-                            <i class="fas fa-times-circle"></i>
-                        </button>
-                    </div>
-                </div>
-
-                <button id="toggle-filters-btn" class="bg-gray-200 text-gray-800 px-5 py-2.5 rounded-lg font-medium hover:bg-gray-300 transition duration-200 shadow-md">
-                    <i class="fas fa-filter mr-2"></i> Show Filters
-                </button>
-
-                <div id="priceFilterControls" class="flex flex-wrap gap-4 hidden-filters">
-                    <div>
-                        <label for="min-price" class="block text-sm font-medium text-gray-700 mb-1">Min Price (₦)</label>
-                        <input type="number" id="min-price" placeholder="e.g., 5000" class="w-32 py-2 px-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 shadow-sm">
-                    </div>
-                    <div>
-                        <label for="max-price" class="block text-sm font-medium text-gray-700 mb-1">Max Price (₦)</label>
-                        <input type="number" id="max-price" placeholder="e.g., 50000" class="w-32 py-2 px-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 shadow-sm">
-                    </div>
-                    <button id="apply-filters" class="bg-blue-600 text-white px-5 py-2.5 rounded-lg font-medium hover:bg-blue-700 transition duration-200 shadow-md">
-                        Apply
-                    </button>
-                    <button id="clear-filters" class="bg-gray-300 text-gray-800 px-5 py-2.5 rounded-lg font-medium hover:bg-gray-400 transition duration-200 shadow-md">
-                        Clear
-                    </button>
-                </div>
+        <div class="filter-header">
+            <div class="filter-pills-container" id="filterPillsContainer">
+                <span class="filter-pill active" data-category="">All Categories</span>
+                <span class="filter-pill" data-category="Gadgets">Gadgets</span>
+                <span class="filter-pill" data-category="Clothes">Clothes</span>
+                <span class="filter-pill" data-category="Foodstuff">Foodstuff</span>
+                <span class="filter-pill" data-category="Books">Books</span>
+                <span class="filter-pill" data-category="Services">Services</span>
+                <span class="filter-pill" data-category="Other">Other</span>
             </div>
-
-            <div id="loadingIndicator" class="flex justify-center items-center py-10 hidden">
-                <div class="spinner"></div>
-                <p class="ml-4 text-gray-600">Loading products...</p>
-            </div>
-            <div id="productsContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-                <p id="noProductsMessage" class="col-span-full text-center text-gray-500 text-lg hidden">No products advertised yet. Try adjusting your filters or search.</p>
-            </div>
-        </section>
-
-        <section id="sellProductSection" class="bg-white p-6 rounded-xl shadow-lg border border-gray-200 hidden">
-            <h2 class="text-3xl font-semibold mb-6 text-gray-800 border-b pb-3">
-                List Your Product
-            </h2>
-            <form id="sellProductForm" class="space-y-6">
-                <div>
-                    <label for="productName" class="block text-sm font-medium text-gray-700">Product Name</label>
-                    <input type="text" id="productName" name="productName" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500">
-                </div>
-                <div>
-                    <label for="productDescription" class="block text-sm font-medium text-gray-700">Description</label>
-                    <textarea id="productDescription" name="productDescription" rows="4" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500"></textarea>
-                </div>
-                <div>
-                    <label for="productPrice" class="block text-sm font-medium text-gray-700">Price (₦)</label>
-                    <input type="number" id="productPrice" name="productPrice" required min="1" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500">
-                </div>
-                <div>
-                    <label for="productCategory" class="block text-sm font-medium text-gray-700">Category</label>
-                    <select id="productCategory" name="productCategory" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500">
-                        <option value="">Select a Category</option>
-                        </select>
-                </div>
-                <div>
-                    <label for="productCondition" class="block text-sm font-medium text-gray-700">Condition</label>
-                    <select id="productCondition" name="productCondition" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500">
-                        <option value="">Select Condition</option>
-                        <option value="New">New</option>
-                        <option value="Used - Pristine">Used - Pristine</option>
-                        <option value="Used - Like New">Used - Like New</option>
-                        <option value="Used - Very Good">Used - Very Good</option>
-                        <option value="Used - Good">Used - Good</option>
-                        <option value="Used - Fair">Used - Fair</option>
-                    </select>
-                </div>
-                <div>
-                    <label for="productNegotiable" class="block text-sm font-medium text-gray-700">Price Negotiable?</label>
-                    <select id="productNegotiable" name="productNegotiable" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500">
-                        <option value="true">Yes</option>
-                        <option value="false">No</option>
-                    </select>
-                </div>
-                <div>
-                    <label for="productLocation" class="block text-sm font-medium text-gray-700">Location (City/State)</label>
-                    <input type="text" id="productLocation" name="productLocation" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500">
-                </div>
-                 <div>
-                    <label for="productPaymentOption" class="block text-sm font-medium text-gray-700">Payment Option</label>
-                    <select id="productPaymentOption" name="productPaymentOption" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500">
-                        <option value="Full Payment">Full Payment Only</option>
-                        <option value="Down Payment Accepted">Down Payment Accepted</option>
-                    </select>
-                </div>
-                <div>
-                    <label for="sellerWhatsApp" class="block text-sm font-medium text-gray-700">Your WhatsApp Number (e.g., 2348012345678)</label>
-                    <input type="tel" id="sellerWhatsApp" name="sellerWhatsApp" placeholder="e.g., 234XXXXXXXXXX" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500">
-                </div>
-                <div>
-                    <label for="productImageUpload" class="block text-sm font-medium text-gray-700">Upload Product Image</label>
-                    <input type="file" id="productImageUpload" name="productImageUpload" accept="image/*" class="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
-                    <div id="imagePreview" class="mt-2">
-                        <span class="placeholder">Image Preview</span>
-                    </div>
-                </div>
-
-                <div class="flex gap-4">
-                    <button type="submit" class="flex-grow bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700 transition duration-200 font-semibold text-lg shadow-md">
-                        List Product
-                    </button>
-                    <button type="button" id="cancelSellProduct" class="bg-gray-400 text-gray-800 py-2 px-4 rounded-md hover:bg-gray-500 transition duration-200 font-semibold text-lg shadow-md">
-                        Cancel
-                    </button>
-                </div>
-            </form>
-        </section>
-
-        <section id="myProductsSection" class="bg-white p-6 rounded-xl shadow-lg border border-gray-200 hidden">
-            <h2 class="text-3xl font-semibold mb-6 text-gray-800 border-b pb-3">
-                
-            </h2>
-            <p class="text-gray-600 mb-4">Manage your listed products here. </p>
-
-            <div id="myProductsList" class="space-y-4">
-                <p id="noMyProductsMessage" class="col-span-full text-center text-gray-500 text-lg hidden">You haven't listed any products yet.</p>
-            </div>
-            <div class="flex justify-center mt-8">
-                <button type="button" onclick="showBuyerMarketplace()" class="bg-blue-600 text-white py-2 px-6 rounded-md hover:bg-blue-700 transition duration-200 font-semibold shadow-md">
-                    Back to Marketplace
-                </button>
-            </div>
-        </section>
-
-
-    </main>
-
-    <footer class="bg-gray-800 text-white p-6 mt-8 rounded-t-xl shadow-lg">
-        <div class="container mx-auto text-center text-gray-400">
-            &copy; 2025 Global Marketplace. All rights reserved.
         </div>
-    </footer>
+    </div>
 
-    <div id="messageBox" class="hidden"></div>
+    <div id="message"></div>
 
-    <div id="productDetailModal" class="modal">
+    <div id="loading">Loading products...</div>
+    <div class="product-grid" id="productGrid">
+    </div>
+
+    <div class="pagination" id="paginationControls">
+        <button id="prevPageBtn" disabled>Previous</button>
+        <span id="pageInfo">Page 1 of 1</span>
+        <button id="nextPageBtn" disabled>Next</button>
+    </div>
+
+    <div id="sellProductModal" class="modal">
         <div class="modal-content">
-            <span class="close-button" id="closeModalBtn">&times;</span>
-            <h3 id="modalProductName" class="text-2xl font-bold text-gray-800 mb-4"></h3>
-            <img id="modalProductImage" src="" alt="Product Image" class="modal-image">
+            <span class="close-btn" onclick="closeSellModal()" aria-label="Close Modal">&times;</span>
+            <h2>List Your Item for Sale</h2>
+            
+            <form id="productForm">
+                
+                <div class="form-row">
+                    <label for="productName">Product Name</label>
+                    <input type="text" id="productName" name="productName" required>
+                </div>
+                
+                <div class="form-row">
+                    <label for="category">Category</label>
+                    <select id="category" name="category" required>
+                        <option value="">-- Select Category --</option>
+                        <option value="Gadgets">Gadgets</option>
+                        <option value="Clothes">Clothes</option>
+                        <option value="Foodstuff">Foodstuff</option>
+                        <option value="Books">Books</option>
+                        <option value="Services">Services</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
 
-            <div class="space-y-4 text-gray-700">
-                <p id="modalProductPrice" class="text-xl font-bold text-blue-700"></p>
-                <div class="modal-detail-row">
-                    <span class="modal-detail-label">Condition:</span>
-                    <span id="modalProductCondition" class="modal-detail-value"></span>
+                <div class="form-row">
+                    <label for="condition">Item Condition</label>
+                    <select id="condition" name="condition" required>
+                        <option value="">-- Select Condition --</option>
+                        <option value="New">New</option>
+                        <option value="Used but Neat">Used but Neat</option>
+                        <option value="Used">Used</option>
+                    </select>
                 </div>
-                <div class="modal-detail-row">
-                    <span class="modal-detail-label">Negotiable:</span>
-                    <span id="modalProductNegotiable" class="modal-detail-value"></span>
-                </div>
-                <div class="modal-detail-row">
-                    <span class="modal-detail-label">Location:</span>
-                    <span id="modalProductLocation" class="modal-detail-value"></span>
-                </div>
-                <div class="modal-detail-row">
-                    <span class="modal-detail-label">Payment:</span>
-                    <span id="modalProductPayment" class="modal-detail-value"></span>
-                </div>
-                <div class="modal-detail-row">
-                    <span class="modal-detail-label">Description:</span>
-                </div>
-                <p id="modalProductDescription" class="text-gray-600 text-sm leading-relaxed"></p>
-            </div>
 
-            <button id="modalWhatsAppBtn" class="bg-green-500 text-white px-6 py-3 rounded-lg mt-6 text-lg font-semibold hover:bg-green-600 transition duration-200 flex items-center justify-center space-x-2 w-full">
-               <i class='fas fa-cart-arrow-down' style='font-size:24px'></i>
-                <span>Purchase</span>
-            </button>
+                <div class="form-row">
+                    <label for="price">Price (₦)</label>
+                    <input type="number" id="price" name="price" step="0.01" min="0" required>
+                </div>
+                
+                <div class="checkbox-group">
+                    <input type="checkbox" id="isNegotiable" name="isNegotiable">
+                    <label for="isNegotiable">Negotiable</label>
+                </div>
+
+                <div class="form-row">
+                    <label for="imageFile">Product Main Image (Required - Max 1)</label>
+                    <input type="file" id="imageFile" name="imageFile" accept="image/*" required>
+                </div>
+                
+                <div class="form-row">
+                    <label for="description">Product Description</label>
+                    <textarea id="description" name="description" required></textarea>
+                </div>
+
+                <div class="form-row">
+                    <label for="location">Location (e.g., Iworoko-Ekiti, Ado Ekiti)</label>
+                    <input type="text" id="location" name="location" required>
+                </div>
+                
+                <div class="form-row">
+                    <label for="whatsappNumber">WhatsApp No</label>
+                    <input type="text" id="whatsappNumber" name="whatsappNumber" placeholder="e.g., 080XXXXXXXX" required>
+                </div>
+                
+                <button type="submit" id="submitButton">LIST PRODUCT</button>
+            </form>
         </div>
     </div>
-
-
+        
+  <div class="bottom-navigation">
+    <a href="index.html" class="active"><i class="fas fa-home"></i>Home</a>
+    <a href="chat.html"><i class="fas fa-comments"></i>Chat</a>
+    <a href="news.html"><i class="fas fa-newspaper"></i>News</a>
+    <a href="market.html"><i class="fas fa-store"></i>Market</a>
+    <a href="profile.html"><i class="fas fa-user"></i>Profile</a>
+  </div>
     <script>
-        // --- Global Variables ---
-        let ws;
-        const WEBSOCKET_SERVER_URL = 'wss://newsapp-z14a.onrender.com';
-        const CLIENT_ID = 'user_' + Math.random().toString(36).substring(2, 9);
+        // =================================================================================
+        // --- Supabase Configuration & Globals ---
+        // =================================================================================
+        // !!! IMPORTANT: REPLACE THESE WITH YOUR ACTUAL SUPABASE DETAILS !!!
+        const SUPABASE_URL = 'https://dyrsbfrvonajerbfrxzw.supabase.co'; 
+        const SUPABASE_AUTH_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR5cnNiZnJ2b25hamVyYmZyeHp3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk3NDk0ODAsImV4cCI6MjA3NTMyNTQ4MH0.mgj9f_ROkti_I3CeJ4ebYVhaLGy9Wamvj4XTtH_rB_I';
+        
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_AUTH_KEY);
+        
+        const PRODUCTS_TABLE = 'products';
+        const STORAGE_BUCKET = 'market-images'; 
+        
+        let allProducts = [];
+        let filteredProducts = []; // Stores products after search/category filter
+        let currentPage = 1;
+        const productsPerPage = 10;
+        
+        // =================================================================================
+        
+        // --- DOM ELEMENTS & MODAL FUNCTIONS ---
+        const modal = document.getElementById('sellProductModal');
+        const searchInput = document.getElementById('searchInput');
+        const filterPillsContainer = document.getElementById('filterPillsContainer');
+        const productGrid = document.getElementById('productGrid');
+        const prevPageBtn = document.getElementById('prevPageBtn');
+        const nextPageBtn = document.getElementById('nextPageBtn');
+        const pageInfo = document.getElementById('pageInfo');
+        const filterToggleBtn = document.getElementById('filterToggleBtn');
+        
+        let selectedCategory = ''; // Global state for category filtering
 
-        let products = [];
-        let filteredProducts = [];
-        let currentCategory = 'All';
-
-        const CATEGORIES = [
-            "All",
-            "Fashion & Accessories",
-            "Electronics & Gadgets",
-            "Phones & Tablets",
-            "Foodstuff",
-            "Collectibles",
-            "Home Appliances",
-            "Vehicles",
-            "Real Estate"
-        ];
-
-        // IndexedDB variables
-        const DB_NAME = 'MarketplaceDB';
-        const DB_VERSION = 1;
-        const STORE_NAME = 'products';
-        let db;
-
-        // DOM Elements
-        const platformTitle = document.getElementById('platform-title');
-        const hamburgerMenu = document.getElementById('hamburger-menu');
-        const sideNav = document.getElementById('mySidenav');
-        const closeNavBtn = document.getElementById('close-nav');
-        const productsContainer = document.getElementById('productsContainer');
-        const noProductsMessage = document.getElementById('noProductsMessage');
-        const messageBox = document.getElementById('messageBox');
-        const loadingIndicator = document.getElementById('loadingIndicator');
-        const footerText = document.querySelector('footer div');
-        const categoriesBar = document.getElementById('categoriesBar');
-        const currentCategoryTitle = document.getElementById('currentCategory');
-        const statusIndicator = document.getElementById('statusIndicator');
-
-        // Main Sections
-        const buyerMarketplaceSection = document.getElementById('buyerMarketplaceSection');
-        const sellProductSection = document.getElementById('sellProductSection');
-        const myProductsSection = document.getElementById('myProductsSection');
-
-        // Search & Filter DOM Elements
-        const searchInput = document.getElementById('search-input');
-        const clearSearchBtn = document.getElementById('clear-search');
-        const minPriceInput = document.getElementById('min-price');
-        const maxPriceInput = document.getElementById('max-price');
-        const applyFiltersBtn = document.getElementById('apply-filters');
-        const clearFiltersBtn = document.getElementById('clear-filters');
-        const toggleFiltersBtn = document.getElementById('toggle-filters-btn');
-        const priceFilterControls = document.getElementById('priceFilterControls');
-
-        // Modal DOM Elements
-        const productDetailModal = document.getElementById('productDetailModal');
-        const closeModalBtn = document.getElementById('closeModalBtn');
-        const modalProductName = document.getElementById('modalProductName');
-        const modalProductImage = document.getElementById('modalProductImage');
-        const modalProductPrice = document.getElementById('modalProductPrice');
-        const modalProductCondition = document.getElementById('modalProductCondition');
-        const modalProductNegotiable = document.getElementById('modalProductNegotiable');
-        const modalProductLocation = document.getElementById('modalProductLocation');
-        const modalProductPayment = document.getElementById('modalProductPayment');
-        const modalProductDescription = document.getElementById('modalProductDescription');
-        const modalWhatsAppBtn = document.getElementById('modalWhatsAppBtn');
-
-        // Sell Product Form DOM Elements
-        const sellProductBtn = document.getElementById('sellProductBtn');
-        const sellProductForm = document.getElementById('sellProductForm');
-        const sellFormProductName = document.getElementById('productName');
-        const sellFormProductDescription = document.getElementById('productDescription');
-        const sellFormProductPrice = document.getElementById('productPrice');
-        const sellFormProductCategory = document.getElementById('productCategory');
-        const sellFormProductCondition = document.getElementById('productCondition');
-        const sellFormProductNegotiable = document.getElementById('productNegotiable');
-        const sellFormProductLocation = document.getElementById('productLocation');
-        const sellFormProductPaymentOption = document.getElementById('productPaymentOption');
-        const sellFormSellerWhatsApp = document.getElementById('sellerWhatsApp');
-        const productImageUpload = document.getElementById('productImageUpload');
-        const imagePreview = document.getElementById('imagePreview');
-        let currentImageBase64 = null;
-        const cancelSellProductBtn = document.getElementById('cancelSellProduct');
-
-        // My Products DOM Elements
-        const myProductsList = document.getElementById('myProductsList');
-        const noMyProductsMessage = document.getElementById('noMyProductsMessage');
-
-        // --- Helper Functions ---
-        function showMessage(message, type = 'info') {
-            messageBox.textContent = message;
-            messageBox.classList.remove('hidden', 'bg-red-500', 'bg-green-500', 'bg-gray-800');
-            if (type === 'success') {
-                messageBox.classList.add('bg-green-500');
-            } else if (type === 'error') {
-                messageBox.classList.add('bg-red-500');
-            } else {
-                messageBox.classList.add('bg-gray-800');
-            }
-            messageBox.classList.add('show');
-
-            setTimeout(() => {
-                messageBox.classList.remove('show');
-                setTimeout(() => messageBox.classList.add('hidden'), 300);
-            }, 3000);
+        function openSellModal() { modal.style.display = 'block'; }
+        function closeSellModal() { modal.style.display = 'none'; }
+        window.onclick = (event) => { if (event.target == modal) { closeSellModal(); } }
+        
+        // ** Helper Functions (compressImage, sanitizeFilename, displayMessage are reused) **
+        function compressImage(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onerror = reject;
+                reader.onload = (event) => {
+                    const img = new Image();
+                    img.onerror = reject;
+                    img.onload = () => {
+                        const canvas = document.createElement('canvas');
+                        const MAX_WIDTH = 1200; 
+                        let width = img.width;
+                        let height = img.height;
+                        if (width > MAX_WIDTH) {
+                            height = height * (MAX_WIDTH / width);
+                            width = MAX_WIDTH;
+                        }
+                        canvas.width = width;
+                        canvas.height = height;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                        canvas.toBlob((blob) => {
+                            const compressedFile = new File([blob], file.name, {
+                                type: 'image/jpeg'
+                            });
+                            resolve(compressedFile);
+                        }, 'image/jpeg', 0.4); 
+                    };
+                    img.src = event.target.result;
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+        
+        function sanitizeFilename(name){ 
+            const idx = name.lastIndexOf('.'); 
+            const base = idx === -1 ? name : name.slice(0, idx); 
+            const ext = idx === -1 ? '' : name.slice(idx); 
+            const safe = base 
+                .normalize('NFKD') 
+                .replace(/[^\w\s-]/g, '') 
+                .trim() 
+                .replace(/\s+/g, '-') 
+                .replace(/-+/g,'-'); 
+            return `${safe}${ext}`; 
         }
 
-        function startRotatingFooterMessages() {
-            const rotatingFooterMessages = [
-                "Find your next great deal!",
-                "Connect directly with sellers.",
-                "New products added daily!",
-                "Your trusted platform for local goods.",
-                "Have a product to sell? Contact us!"
-            ];
-            let currentFooterMessageIndex = 0;
-            footerText.textContent = rotatingFooterMessages[currentFooterMessageIndex];
-            setInterval(() => {
-                currentFooterMessageIndex = (currentFooterMessageIndex + 1) % rotatingFooterMessages.length;
-                footerText.textContent = rotatingFooterMessages[currentFooterMessageIndex];
-            }, 10000);
+        function displayMessage(text, className, isError = false) {
+            const messageDiv = document.getElementById('message');
+            messageDiv.textContent = text;
+            // Clear previous class and set new one
+            messageDiv.className = '';
+            messageDiv.classList.add(className);
+            messageDiv.style.display = 'block';
+            if (!isError) {
+                 setTimeout(() => { messageDiv.style.display = 'none'; }, 5000);
+            }
+        }
+
+        // =================================================================================
+        // --- PRODUCT LISTING LOGIC (Unchanged) ---
+        // =================================================================================
+        document.getElementById('productForm').addEventListener('submit', async function(event) {
+            event.preventDefault(); 
+
+            const productName = document.getElementById('productName').value;
+            const category = document.getElementById('category').value;
+            const condition = document.getElementById('condition').value;
+            const price = parseFloat(document.getElementById('price').value);
+            const isNegotiable = document.getElementById('isNegotiable').checked;
+            const description = document.getElementById('description').value;
+            const location = document.getElementById('location').value;
+            let whatsappNumber = document.getElementById('whatsappNumber').value; 
+            const imageFile = document.getElementById('imageFile').files[0];
+            
+            const submitButton = document.getElementById('submitButton');
+            
+            if (!productName || !description || isNaN(price) || price < 0 || !imageFile || !category || !condition || !location || !whatsappNumber) {
+                displayMessage('All required fields must be filled.', 'error', true);
+                return;
+            }
+
+            // --- WHATSAPP NUMBER SANITIZATION & PREFIXING ---
+            whatsappNumber = whatsappNumber.replace(/[^0-9+]/g, '');
+            if (whatsappNumber.startsWith('0')) {
+                whatsappNumber = `+234${whatsappNumber.substring(1)}`;
+            } else if (!whatsappNumber.startsWith('+234')) {
+                 whatsappNumber = `+234${whatsappNumber}`;
+            }
+            
+            submitButton.disabled = true;
+            displayMessage('Listing product...', 'warning');
+
+            let imageUrl = null;
+            
+            try {
+                // 1. --- IMAGE FILE UPLOAD LOGIC ---
+                displayMessage('Compressing and uploading product image...', 'warning');
+
+                const compressedImage = await compressImage(imageFile);
+                const safeFileName = sanitizeFilename(compressedImage.name);
+                const filePath = `images/${Date.now()}-${safeFileName}`; 
+                
+                const { error: uploadError } = await supabase.storage
+                    .from(STORAGE_BUCKET) 
+                    .upload(filePath, compressedImage, { cacheControl: '3600', upsert: false });
+
+                if (uploadError) {
+                    throw new Error(`STORAGE UPLOAD FAILED (Image): ${uploadError.message}.`); 
+                }
+
+                const { data: publicUrlData } = supabase.storage.from(STORAGE_BUCKET).getPublicUrl(filePath);
+                imageUrl = publicUrlData.publicUrl;
+                
+                // 2. --- DATABASE INSERT LOGIC ---
+                const productData = {
+                    name: productName, 
+                    price: price,
+                    location: location,
+                    whatsapp_number: whatsappNumber,
+                    is_negotiable: isNegotiable,
+                    condition: condition,
+                    category: category,
+                    description: description, 
+                    image_url: imageUrl,
+                };
+
+                const { error: insertError } = await supabase
+                    .from(PRODUCTS_TABLE) 
+                    .insert([productData]);
+
+                if (insertError) {
+                    const specificError = insertError.message.includes('RLS')
+                        ? `DB INSERT FAILED: RLS policy on '${PRODUCTS_TABLE}' denied the request.`
+                        : `DB INSERT FAILED: ${insertError.message}`;
+                    
+                    throw new Error(specificError);
+                }
+
+                displayMessage(`Product "${productName}" successfully listed!`, 'success');
+                document.getElementById('productForm').reset();
+                closeSellModal();
+                await fetchProducts(); 
+                
+            } catch (error) {
+                console.error('Final Listing Error:', error);
+                
+                const displayMessageText = error.message.includes('RLS') || error.message.includes('STORAGE') || error.message.includes('DB INSERT')
+                    ? error.message 
+                    : `An unknown error occurred: ${error.message}`;
+
+                displayMessage(displayMessageText, 'error', true);
+            } finally {
+                submitButton.disabled = false;
+            }
+        });
+
+        // =================================================================================
+        // --- PRODUCT FETCHING, FILTERING, RENDERING & PAGINATION LOGIC ---
+        // =================================================================================
+        
+        async function fetchProducts() {
+            const loading = document.getElementById('loading');
+            loading.style.display = 'block';
+
+            const { data: products, error } = await supabase
+                .from(PRODUCTS_TABLE)
+                .select('*')
+                .order('id', { ascending: false });
+
+            loading.style.display = 'none';
+
+            if (error) {
+                console.error('Error fetching products:', error);
+                displayMessage(`Error loading products: ${error.message}`, 'error', true);
+                return;
+            }
+
+            allProducts = products || []; 
+            // Reset page on fresh fetch
+            currentPage = 1;
+            applyFiltersAndPagination(); 
+        }
+        
+        function applyFiltersAndPagination() {
+            // 1. Apply Search and Category Filter
+            const searchTerm = searchInput.value.toLowerCase().trim();
+            
+            filteredProducts = allProducts.filter(product => {
+                const searchMatch = product.name.toLowerCase().includes(searchTerm) ||
+                                    (product.description && product.description.toLowerCase().includes(searchTerm)) ||
+                                    (product.location && product.location.toLowerCase().includes(searchTerm));
+
+                const categoryMatch = !selectedCategory || product.category === selectedCategory;
+                
+                return searchMatch && categoryMatch;
+            });
+            
+            // 2. Render Current Page
+            renderCurrentPage();
+        }
+        
+        function renderCurrentPage() {
+            const totalPages = Math.ceil(filteredProducts.length / productsPerPage);
+            
+            // Ensure currentPage doesn't exceed totalPages (or is at least 1)
+            if (currentPage > totalPages && totalPages > 0) {
+                currentPage = totalPages;
+            } else if (currentPage < 1 && totalPages > 0) {
+                 currentPage = 1;
+            } else if (totalPages === 0) {
+                currentPage = 1; // Display page 1 of 0 if no results
+            }
+
+            const start = (currentPage - 1) * productsPerPage;
+            const end = start + productsPerPage;
+            const productsToShow = filteredProducts.slice(start, end);
+            
+            productGrid.innerHTML = '';
+            
+            if (productsToShow.length === 0 && filteredProducts.length > 0) {
+                 // Should only happen if the filtering is wrong, but as a fallback
+                 productGrid.innerHTML = '<p style="text-align:center; padding: 20px; width: 100%;">No products found on this page.</p>';
+            } else if (filteredProducts.length === 0) {
+                productGrid.innerHTML = '<p style="text-align:center; padding: 20px; width: 100%;">No products match your current search/filter criteria.</p>';
+                pageInfo.textContent = 'Page 0 of 0';
+                prevPageBtn.disabled = true;
+                nextPageBtn.disabled = true;
+                return;
+            }
+
+            productsToShow.forEach(renderProductCard);
+            updatePaginationControls(totalPages);
+        }
+
+        function updatePaginationControls(totalPages) {
+            pageInfo.textContent = `Page ${currentPage} of ${totalPages}`;
+            prevPageBtn.disabled = currentPage === 1;
+            nextPageBtn.disabled = currentPage === totalPages || totalPages === 0;
+            
+            // Scroll to the top of the product grid on page change
+            productGrid.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
 
         function renderProductCard(product) {
-            const formattedPrice = product.price.toLocaleString('en-NG', { style: 'currency', currency: 'NGN' });
-            const imageUrl = product.imageUrl && (product.imageUrl.startsWith('data:image/') || product.imageUrl.startsWith('http')) ? product.imageUrl : 'https://placehold.co/400x300/E0E0E0/666666?text=Image+Not+Found';
+            const card = document.createElement('div');
+            card.className = 'product-card';
+            
+            const imageSrc = product.image_url || 'https://via.placeholder.com/400x200?text=EKSU+MARKET'; 
+            
+            let conditionTagClass = 'tag-new';
+            if (product.condition && product.condition.includes('Used')) {
+                conditionTagClass = 'tag-used';
+            }
 
-            return `
-                <div class="bg-white p-4 rounded-xl shadow-md border border-gray-100 flex flex-col product-item transform transition duration-300 hover:scale-102 hover:shadow-lg group" data-product-id="${product.id}">
-                    <div class="cursor-pointer product-card-content">
-                        <img src="${imageUrl}" alt="${product.name}" class="product-image" onerror="this.onerror=null;this.src='https://placehold.co/400x300/E0E0E0/666666?text=Image+Not+Found';">
-                        <div class="product-info">
-                            <h3 class="product-name">${product.name}</h3>
-                            <p class="product-price">Price: ${formattedPrice}</p>
-                        </div>
+            const cleanNumber = product.whatsapp_number ? product.whatsapp_number.replace(/[^\d+]/g, '') : '';
+            const whatsappLink = cleanNumber 
+                ? `https://wa.me/${cleanNumber}?text=Hello!%20I%20am%20interested%20in%20your%20product:%20${encodeURIComponent(product.name)}.`
+                : '#'; 
+
+            card.innerHTML = `
+                <img src="${imageSrc}" alt="${product.name}">
+                <div class="product-info">
+                    <h2>${product.name}</h2>
+                    <div class="tag-row">
+                        <span class="product-tag">${product.category || 'Uncategorized'}</span>
+                        <span class="product-tag ${conditionTagClass}">${product.condition || 'Unknown'}</span>
+                        ${product.is_negotiable ? '<span class="product-tag tag-neg">NEGOTIABLE</span>' : ''}
                     </div>
+                    
+                    <span class="product-price">₦${product.price ? product.price.toLocaleString() : '0'}</span>
+                    
+                    <span class="tag-location">📍 ${product.location || 'Unknown Location'}</span>
 
-                    <button class="bg-green-500 text-white px-4 py-2 rounded-lg mt-auto text-sm hover:bg-green-600 transition duration-200 flex items-center justify-center space-x-2 w-full whatsapp-btn" data-product-id="${product.id}">
-                       
-                  <i class='fas fa-cart-arrow-down' style='font-size:24px'></i>     <span>Buy</span>
-                    </button>
+                    <a href="${whatsappLink}" target="_blank" class="whatsapp-btn" ${cleanNumber ? '' : 'disabled'} >
+                        <i class="fab fa-whatsapp"></i> Chat on WhatsApp
+                    </a>
                 </div>
             `;
+            productGrid.appendChild(card);
         }
 
-        function updateProductDisplay() {
-            if (filteredProducts.length === 0) {
-                noProductsMessage.classList.remove('hidden');
-                productsContainer.innerHTML = '';
-            } else {
-                noProductsMessage.classList.add('hidden');
-                const sortedProducts = [...filteredProducts].sort((a, b) => b.timestamp - a.timestamp);
-                productsContainer.innerHTML = sortedProducts.map(renderProductCard).join('');
-            }
-        }
-
-        function redirectToWhatsApp(productId) {
-            const product = products.find(p => p.id === productId);
-            if (product && product.sellerWhatsApp) {
-                const formattedPrice = product.price.toLocaleString('en-NG', { style: 'currency', currency: 'NGN' });
-                const whatsappMessage = encodeURIComponent(`Hello, I'm interested in your ${product.name} (Price: ${formattedPrice}) listed on Global Marketplace. Is it still available?`);
-                const whatsappLink = `https://wa.me/${product.sellerWhatsApp}?text=${whatsappMessage}`;
-
-                window.open(whatsappLink, '_blank');
-                showMessage(`Redirecting to WhatsApp for ${product.name}`, 'info');
-
-            } else {
-                showMessage('Seller contact information not available for this product.', 'error');
-                console.warn(`Product with ID ${productId} not found or missing WhatsApp number.`);
-            }
-        }
-
-        function openProductDetails(productId) {
-            const product = products.find(p => p.id === productId);
-            if (!product) {
-                showMessage('Product details not found.', 'error');
-                return;
-            }
-
-            modalProductName.textContent = product.name;
-            modalProductImage.src = product.imageUrl && (product.imageUrl.startsWith('data:image/') || product.imageUrl.startsWith('http')) ? product.imageUrl : 'https://placehold.co/600x400/E0E0E0/666666?text=Image+Not+Found';
-            modalProductPrice.textContent = `Price: ${product.price.toLocaleString('en-NG', { style: 'currency', currency: 'NGN' })}`;
-            modalProductCondition.textContent = product.condition || 'N/A';
-            modalProductNegotiable.textContent = product.negotiable ? 'Yes' : 'No';
-            modalProductLocation.textContent = product.location || 'N/A';
-            modalProductPayment.textContent = product.paymentOption || 'N/A';
-            modalProductDescription.textContent = product.description || 'No description provided.';
-
-            modalWhatsAppBtn.onclick = () => redirectToWhatsApp(product.id);
-
-            productDetailModal.style.display = 'flex';
-        }
-
-        function closeProductDetails() {
-            productDetailModal.style.display = 'none';
-        }
-
-        // --- IndexedDB Functions ---
-        function openDatabase() {
-            return new Promise((resolve, reject) => {
-                const request = indexedDB.open(DB_NAME, DB_VERSION);
-
-                request.onupgradeneeded = (event) => {
-                    const db = event.target.result;
-                    if (!db.objectStoreNames.contains(STORE_NAME)) {
-                        const objectStore = db.createObjectStore(STORE_NAME, { keyPath: 'id' });
-                        objectStore.createIndex('timestamp', 'timestamp', { unique: false });
-                        objectStore.createIndex('category', 'category', { unique: false });
-                        objectStore.createIndex('sellerId', 'sellerId', { unique: false });
-                        console.log('IndexedDB object store created/updated.');
-                    }
-                };
-
-                request.onsuccess = (event) => {
-                    db = event.target.result;
-                    console.log('IndexedDB opened successfully.');
-                    resolve(db);
-                };
-
-                request.onerror = (event) => {
-                    console.error('IndexedDB error:', event.target.errorCode);
-                    showMessage('Error opening local database.', 'error');
-                    reject(event.target.error);
-                };
-            });
-        }
-
-        function addOrUpdateProduct(product) {
-            return new Promise((resolve, reject) => {
-                if (!db) {
-                    console.warn('IndexedDB not initialized. Cannot save product.');
-                    return resolve();
-                }
-                const transaction = db.transaction([STORE_NAME], 'readwrite');
-                const objectStore = transaction.objectStore(STORE_NAME);
-                const request = objectStore.put(product);
-
-                request.onsuccess = () => {
-                    resolve();
-                };
-
-                request.onerror = (event) => {
-                    console.error('Error adding/updating product in IndexedDB:', event.target.error);
-                    reject(event.target.error);
-                };
-            });
-        }
-
-        function deleteProductFromDB(productId) {
-            return new Promise((resolve, reject) => {
-                if (!db) {
-                    console.warn('IndexedDB not initialized. Cannot delete product.');
-                    return resolve();
-                }
-                const transaction = db.transaction([STORE_NAME], 'readwrite');
-                const objectStore = transaction.objectStore(STORE_NAME);
-                const request = objectStore.delete(productId);
-
-                request.onsuccess = () => {
-                    resolve();
-                };
-
-                request.onerror = (event) => {
-                    console.error('Error deleting product from IndexedDB:', event.target.error);
-                    reject(event.target.error);
-                };
-            });
-        }
-
-        function getAllProductsFromDB() {
-            return new Promise((resolve, reject) => {
-                if (!db) {
-                    console.warn('IndexedDB not initialized.');
-                    return resolve([]);
-                }
-                const transaction = db.transaction([STORE_NAME], 'readonly');
-                const objectStore = transaction.objectStore(STORE_NAME);
-                const request = objectStore.getAll();
-
-                request.onsuccess = (event) => {
-                    resolve(event.target.result);
-                };
-
-                request.onerror = (event) => {
-                    console.error('Error getting all products from IndexedDB:', event.target.error);
-                    reject(event.target.error);
-                };
-            });
-        }
-
-        async function loadProductsFromIndexedDB() {
-            loadingIndicator.classList.remove('hidden');
-            try {
-                products = await getAllProductsFromDB();
-                if (products.length > 0) {
-                    console.log("Loaded products from IndexedDB.");
-                    applyFiltersAndSearch();
-                } else {
-                    console.log("No products in IndexedDB.");
-                    // The WebSocket will handle the initial population
-                }
-            } catch (error) {
-                console.error('Failed to load products from IndexedDB:', error);
-                showMessage('Failed to load products from local cache.', 'error');
-            } finally {
-                // The loading indicator will be hidden by the WebSocket's ALL_PRODUCTS message
-                // This prevents a flash of content before server data arrives.
-            }
-        }
-
-        // --- WebSocket Implementation ---
-        function connectWebSocket() {
-            if (!WEBSOCKET_SERVER_URL) {
-                console.log('WebSocket connection URL is not set. Skipping WebSocket connection.');
-                loadingIndicator.classList.add('hidden');
-                statusIndicator.classList.remove('connected');
-                statusIndicator.classList.add('disconnected');
-                return;
-            }
-
-            console.log('Attempting to connect WebSocket...');
-            loadingIndicator.classList.remove('hidden');
-            
-            statusIndicator.classList.remove('connected');
-            statusIndicator.classList.add('disconnected');
-
-            ws = new WebSocket(WEBSOCKET_SERVER_URL);
-
-            ws.onopen = () => {
-                console.log('WebSocket connected to server.');
-                statusIndicator.classList.remove('disconnected');
-                statusIndicator.classList.add('connected');
-                showMessage('Connected to marketplace server.', 'success');
-                // Request all products from the server immediately upon connection
-                ws.send(JSON.stringify({ type: 'GET_ALL_PRODUCTS', payload: {} }));
-            };
-
-            ws.onmessage = async (event) => {
-                let message;
-                try {
-                    message = JSON.parse(event.data);
-                    console.log('Received message from WebSocket:', message.type, message.payload);
-                } catch (e) {
-                    console.error('Error parsing WebSocket message JSON:', e, event.data);
-                    showMessage('Error receiving data from server: Invalid format.', 'error');
-                    return;
-                }
-
-                try {
-                    switch (message.type) {
-                        case 'ALL_PRODUCTS':
-                            if (Array.isArray(message.payload)) {
-                                console.log(`Received ${message.payload.length} products from server.`);
-                                products = message.payload;
-                                await Promise.all(message.payload.map(p => addOrUpdateProduct(p)));
-                                applyFiltersAndSearch();
-                                showMessage('Product listings synced with server.', 'info');
-                            } else {
-                                console.error('ALL_PRODUCTS payload is not an array:', message.payload);
-                                showMessage('Server sent malformed product data.', 'error');
-                            }
-                            loadingIndicator.classList.add('hidden'); // Hide loading spinner here
-                            break;
-
-                        case 'PRODUCT_ADDED':
-                            if (message.payload && typeof message.payload === 'object') {
-                                products.unshift(message.payload);
-                                await addOrUpdateProduct(message.payload);
-                                applyFiltersAndSearch();
-                                showMessage(`New product "${message.payload.name}" advertised!`, 'success');
-                            } else {
-                                console.error('PRODUCT_ADDED payload is malformed:', message.payload);
-                            }
-                            break;
-
-                        case 'PRODUCT_UPDATED':
-                            if (message.payload && typeof message.payload === 'object' && message.payload.id) {
-                                const updatedProduct = message.payload;
-                                const index = products.findIndex(p => p.id === updatedProduct.id);
-                                if (index !== -1) {
-                                    products[index] = updatedProduct;
-                                } else {
-                                    products.unshift(updatedProduct);
-                                }
-                                await addOrUpdateProduct(updatedProduct);
-                                applyFiltersAndSearch();
-                                showMessage(`Product "${updatedProduct.name}" updated.`, 'info');
-                            } else {
-                                console.error('PRODUCT_UPDATED payload is malformed or missing ID:', message.payload);
-                            }
-                            break;
-
-                        case 'PRODUCT_DELETED':
-                            if (message.payload && message.payload.id) {
-                                const deletedId = message.payload.id;
-                                products = products.filter(p => p.id !== deletedId);
-                                await deleteProductFromDB(deletedId);
-                                applyFiltersAndSearch();
-                                showMessage(`Product with ID ${deletedId} deleted.`, 'info');
-                            } else {
-                                console.error('PRODUCT_DELETED payload is malformed or missing ID:', message.payload);
-                            }
-                            break;
-
-                        case 'MY_PRODUCTS_LIST':
-                            if (Array.isArray(message.payload)) {
-                                renderMyProducts(message.payload);
-                                showMessage('Your product listings loaded.', 'success');
-                            } else {
-                                console.error('MY_PRODUCTS_LIST payload is not an array:', message.payload);
-                            }
-                            break;
-
-                        case 'ADD_PRODUCT_SUCCESS':
-                        case 'UPDATE_PRODUCT_SUCCESS':
-                        case 'DELETE_PRODUCT_SUCCESS':
-                            console.log(`Operation ${message.type} successful for ID:`, message.payload);
-                            if (message.type === 'ADD_PRODUCT_SUCCESS') {
-                                showMessage('Your product has been listed!', 'success');
-                                sellProductForm.reset();
-                                imagePreview.innerHTML = `<span class="placeholder">Image Preview</span>`;
-                                currentImageBase64 = null;
-                                showBuyerMarketplace();
-                            } else if (message.type === 'DELETE_PRODUCT_SUCCESS') {
-                                showMessage('Product deleted successfully from server.', 'success');
-                                renderMyProducts();
-                                applyFiltersAndSearch();
-                            } else if (message.type === 'UPDATE_PRODUCT_SUCCESS') {
-                                showMessage('Product updated successfully on server.', 'success');
-                                showMyProducts();
-                            }
-                            break;
-
-                        case 'ERROR':
-                            showMessage(`Server Error: ${message.payload}`, 'error');
-                            console.error('Server Error:', message.payload);
-                            loadingIndicator.classList.add('hidden'); // Hide loading spinner on error
-                            break;
-
-                        default:
-                            console.warn('Frontend received unknown message type:', message.type, message);
-                            showMessage('Received unknown server message.', 'info');
-                    }
-                } catch (error) {
-                    console.error('Error processing WebSocket message payload:', error, message);
-                    showMessage('Error processing server data.', 'error');
-                }
-            };
-
-            ws.onclose = () => {
-                console.log('WebSocket disconnected. Attempting to reconnect in 5 seconds...');
-                statusIndicator.classList.remove('connected');
-                statusIndicator.classList.add('disconnected');
-                showMessage('Disconnected from server. Reconnecting...', 'error');
-                loadingIndicator.classList.remove('hidden');
-                setTimeout(connectWebSocket, 5000);
-            };
-
-            ws.onerror = (error) => {
-                console.error('WebSocket error:', error);
-                statusIndicator.classList.remove('connected');
-                statusIndicator.classList.add('disconnected');
-                showMessage('WebSocket connection error!', 'error');
-            };
-        }
-
-        // --- View/Section Management (New) ---
-        function hideAllSections() {
-            buyerMarketplaceSection.classList.add('hidden');
-            sellProductSection.classList.add('hidden');
-            myProductsSection.classList.add('hidden');
-        }
-
-        function showBuyerMarketplace() {
-            hideAllSections();
-            buyerMarketplaceSection.classList.remove('hidden');
-            categoriesBar.classList.remove('hidden');
-            currentCategory = 'All';
-            renderCategories();
-            applyFiltersAndSearch();
-            closeSideNav();
-            setActiveMenuLink('buyerMarketplaceSection');
-        }
-
-        function showSellProductForm(productToEdit = null) {
-            hideAllSections();
-            sellProductSection.classList.remove('hidden');
-            categoriesBar.classList.add('hidden');
-            populateSellFormCategories();
-            closeSideNav();
-            
-            sellProductForm.reset();
-            imagePreview.innerHTML = `<span class="placeholder">Image Preview</span>`;
-            currentImageBase64 = null;
-
-            if (productToEdit) {
-                sellProductForm.dataset.editingId = productToEdit.id;
-                sellFormProductName.value = productToEdit.name;
-                sellFormProductDescription.value = productToEdit.description;
-                sellFormProductPrice.value = productToEdit.price;
-                sellFormProductCategory.value = productToEdit.category;
-                sellFormProductCondition.value = productToEdit.condition;
-                sellFormProductNegotiable.value = String(productToEdit.negotiable);
-                sellFormProductLocation.value = productToEdit.location;
-                sellFormProductPaymentOption.value = productToEdit.paymentOption;
-                sellFormSellerWhatsApp.value = productToEdit.sellerWhatsApp;
-                currentImageBase64 = productToEdit.imageUrl;
-                if (currentImageBase64) {
-                    imagePreview.innerHTML = `<img src="${currentImageBase64}" alt="Image Preview">`;
-                }
-                sellProductForm.querySelector('button[type="submit"]').textContent = 'Update Product';
-                showMessage(`Editing product "${productToEdit.name}"`, 'info');
-            } else {
-                sellProductForm.removeAttribute('data-editing-id');
-                sellProductForm.querySelector('button[type="submit"]').textContent = 'List Product';
-            }
-            setActiveMenuLink('sellProductSection');
-        }
-
-        async function showMyProducts() {
-            hideAllSections();
-            myProductsSection.classList.remove('hidden');
-            categoriesBar.classList.add('hidden');
-            closeSideNav();
-            
-            if (ws && ws.readyState === WebSocket.OPEN) {
-                console.log(`Requesting my products for sellerId: ${CLIENT_ID}`);
-                ws.send(JSON.stringify({ type: 'GET_MY_PRODUCTS', payload: { sellerId: CLIENT_ID } }));
-            } else {
-                console.warn('WebSocket not connected. Showing my products from local cache.');
-                renderMyProducts(products.filter(p => p.sellerId === CLIENT_ID));
-                showMessage('Showing your products from local cache. Not synced with server.', 'info');
-            }
-            setActiveMenuLink('myProductsSection');
-        }
-
-        function closeSideNav() {
-            sideNav.style.width = "0";
-            hamburgerMenu.classList.remove('active');
-        }
-
-        // --- Category Bar Functions ---
-        function renderCategories() {
-            const categoriesForBar = CATEGORIES;
-            categoriesBar.innerHTML = categoriesForBar.map(category => `
-                <span class="category-item ${category === currentCategory ? 'active' : ''} ${category === 'All' ? 'all' : ''}" data-category="${category}">
-                    ${category}
-                </span>
-            `).join('');
-
-            document.querySelectorAll('.category-item').forEach(item => {
-                item.addEventListener('click', () => {
-                    currentCategory = item.dataset.category;
-                    renderCategories();
-                    applyFiltersAndSearch();
-                });
-            });
-        }
-
-        function populateSellFormCategories() {
-            sellFormProductCategory.innerHTML = '<option value="">Select a Category</option>';
-            CATEGORIES.filter(c => c !== 'All').forEach(category => {
-                const option = document.createElement('option');
-                option.value = category;
-                option.textContent = category;
-                sellFormProductCategory.appendChild(option);
-            });
-        }
-
-        // --- Search and Filter Functions ---
-        function applyFiltersAndSearch() {
-            const searchTerm = searchInput.value.toLowerCase().trim();
-            const minPrice = parseFloat(minPriceInput.value);
-            const maxPrice = parseFloat(maxPriceInput.value);
-
-            currentCategoryTitle.textContent = currentCategory === 'All' ? '' : `(${currentCategory})`;
-
-            filteredProducts = products.filter(product => {
-                const matchesCategory = currentCategory === 'All' || product.category === currentCategory;
-                const matchesSearch = searchTerm === '' ||
-                                      product.name.toLowerCase().includes(searchTerm) ||
-                                      product.description.toLowerCase().includes(searchTerm);
-                const matchesMinPrice = isNaN(minPrice) || product.price >= minPrice;
-                const matchesMaxPrice = isNaN(maxPrice) || product.price <= maxPrice;
-
-                return matchesCategory && matchesSearch && matchesMinPrice && matchesMaxPrice;
-            });
-
-            updateProductDisplay();
-            updateClearSearchButtonVisibility();
-        }
-
-        function clearFilters() {
-            searchInput.value = '';
-            minPriceInput.value = '';
-            maxPriceInput.value = '';
-            currentCategory = 'All';
-            renderCategories();
-            applyFiltersAndSearch();
-            showMessage('Filters cleared.', 'info');
-            priceFilterControls.classList.add('hidden-filters');
-            toggleFiltersBtn.textContent = 'Show Filters';
-            toggleFiltersBtn.prepend(document.createElement('i')).classList.add('fas', 'fa-filter', 'mr-2');
-        }
-
-        function updateClearSearchButtonVisibility() {
-            clearSearchBtn.style.display = searchInput.value.trim() !== '' ? 'flex' : 'none';
-        }
-
-        // --- Event Listeners for Search & Filters ---
-        searchInput.addEventListener('input', applyFiltersAndSearch);
-        clearSearchBtn.addEventListener('click', () => {
-            searchInput.value = '';
-            applyFiltersAndSearch();
+        // =================================================================================
+        // --- EVENT LISTENERS ---
+        // =================================================================================
+        
+        // Search Input Listener
+        searchInput.addEventListener('input', () => {
+             currentPage = 1; // Reset to page 1 on new search
+             applyFiltersAndPagination();
         });
-        applyFiltersBtn.addEventListener('click', applyFiltersAndSearch);
-        clearFiltersBtn.addEventListener('click', clearFilters);
-
-        toggleFiltersBtn.addEventListener('click', () => {
-            priceFilterControls.classList.toggle('hidden-filters');
-            if (priceFilterControls.classList.contains('hidden-filters')) {
-                toggleFiltersBtn.textContent = 'Show Filters';
-                toggleFiltersBtn.prepend(document.createElement('i')).classList.add('fas', 'fa-filter', 'mr-2');
-            } else {
-                toggleFiltersBtn.textContent = 'Hide Filters';
-                toggleFiltersBtn.prepend(document.createElement('i')).classList.add('fas', 'fa-filter-slash', 'mr-2');
+        
+        // Filter Pills Listener
+        filterPillsContainer.addEventListener('click', (event) => {
+            const target = event.target;
+            if (target.classList.contains('filter-pill')) {
+                // Remove 'active' from all pills
+                document.querySelectorAll('.filter-pill').forEach(p => p.classList.remove('active'));
+                
+                // Set 'active' on the clicked pill
+                target.classList.add('active');
+                
+                // Update global category state
+                selectedCategory = target.getAttribute('data-category');
+                
+                currentPage = 1; // Reset to page 1 on new filter
+                applyFiltersAndPagination();
+            }
+        });
+        
+        // Pagination Listeners
+        prevPageBtn.addEventListener('click', () => {
+            if (currentPage > 1) {
+                currentPage--;
+                renderCurrentPage();
             }
         });
 
-        // --- Event Delegation for Product Card Clicks ---
-        productsContainer.addEventListener('click', (event) => {
-            const productItem = event.target.closest('.product-item');
-            if (!productItem) return;
-
-            const productId = productItem.dataset.productId;
-
-            if (event.target.closest('.whatsapp-btn')) {
-                redirectToWhatsApp(productId);
-            } else {
-                openProductDetails(productId);
+        nextPageBtn.addEventListener('click', () => {
+            const totalPages = Math.ceil(filteredProducts.length / productsPerPage);
+            if (currentPage < totalPages) {
+                currentPage++;
+                renderCurrentPage();
+            }
+        });
+        
+        // Toggle Filters on Mobile
+        filterToggleBtn.addEventListener('click', () => {
+            const pills = document.getElementById('filterPillsContainer');
+            // Simple toggle for mobile view if the user clicks the filter icon
+            if (window.innerWidth < 768) {
+                pills.style.display = pills.style.display === 'flex' ? 'none' : 'flex';
+                // Adjust for overflow-x on toggle
+                pills.style.flexWrap = pills.style.display === 'flex' ? 'wrap' : 'nowrap';
             }
         });
 
-        // --- Sell Product Form Logic ---
-        sellProductBtn.addEventListener('click', () => showSellProductForm(null));
-        cancelSellProductBtn.addEventListener('click', showBuyerMarketplace);
-        closeModalBtn.addEventListener('click', closeProductDetails);
-
-        productImageUpload.addEventListener('change', (event) => {
-            const file = event.target.files[0];
-            if (file) {
-                if (!file.type.startsWith('image/')) {
-                    showMessage('Please upload an image file (e.g., JPG, PNG, GIF).', 'error');
-                    productImageUpload.value = '';
-                    imagePreview.innerHTML = `<span class="placeholder">Image Preview</span>`;
-                    currentImageBase64 = null;
-                    return;
-                }
-
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    const img = new Image();
-                    img.onload = () => {
-                        const canvas = document.createElement('canvas');
-                        const ctx = canvas.getContext('2d');
-                        let width = img.width;
-                        let height = img.height;
-                        const maxSize = 800;
-
-                        if (width > height) {
-                            if (width > maxSize) {
-                                height *= maxSize / width;
-                                width = maxSize;
-                            }
-                        } else {
-                            if (height > maxSize) {
-                                width *= maxSize / height;
-                                height = maxSize;
-                            }
-                        }
-
-                        canvas.width = width;
-                        canvas.height = height;
-                        ctx.drawImage(img, 0, 0, width, height);
-
-                        currentImageBase64 = canvas.toDataURL('image/jpeg', 0.5);
-                        imagePreview.innerHTML = `<img src="${currentImageBase64}" alt="Image Preview">`;
-                    };
-                    img.src = e.target.result;
-                };
-                reader.onerror = () => {
-                    showMessage('Error reading file.', 'error');
-                    currentImageBase64 = null;
-                    imagePreview.innerHTML = `<span class="placeholder">Error loading image</span>`;
-                };
-                reader.readAsDataURL(file);
-            } else {
-                currentImageBase64 = null;
-                imagePreview.innerHTML = `<span class="placeholder">Image Preview</span>`;
-            }
-        });
-
-        sellProductForm.addEventListener('submit', async function(event) {
-            event.preventDefault();
-
-            if (this.dataset.submitting === 'true') {
-                return;
-            }
-            this.dataset.submitting = 'true';
-
-            const isEditing = this.dataset.editingId;
-            const productId = isEditing || `client_${Date.now()}`;
-
-            const productData = {
-                id: productId,
-                name: sellFormProductName.value,
-                description: sellFormProductDescription.value,
-                price: parseFloat(sellFormProductPrice.value),
-                category: sellFormProductCategory.value,
-                condition: sellFormProductCondition.value,
-                negotiable: sellFormProductNegotiable.value === 'true',
-                location: sellFormProductLocation.value,
-                paymentOption: sellFormProductPaymentOption.value,
-                sellerWhatsApp: sellFormSellerWhatsApp.value,
-                imageUrl: currentImageBase64 || 'https://placehold.co/400x300/E0E0E0/666666?text=No+Image',
-                timestamp: Date.now(),
-                sellerId: CLIENT_ID
-            };
-
-            if (ws && ws.readyState === WebSocket.OPEN) {
-                if (isEditing) {
-                    ws.send(JSON.stringify({ type: 'UPDATE_PRODUCT', payload: productData }));
-                    showMessage('Updating your product...', 'info');
-                } else {
-                    ws.send(JSON.stringify({ type: 'ADD_PRODUCT', payload: productData }));
-                    showMessage('Listing your product...', 'info');
-                }
-            } else {
-                try {
-                    if (isEditing) {
-                        const index = products.findIndex(p => p.id === productId);
-                        if (index !== -1) {
-                            products[index] = productData;
-                        }
-                    } else {
-                        products.unshift(productData);
-                    }
-                    await addOrUpdateProduct(productData);
-                    showMessage('Product listed/updated successfully locally!', 'success');
-                } catch (error) {
-                    console.error('Error listing/updating product locally:', error);
-                    showMessage('Failed to list/update product locally.', 'error');
-                }
-            }
-
-            sellProductForm.reset();
-            imagePreview.innerHTML = `<span class="placeholder">Image Preview</span>`;
-            currentImageBase64 = null;
-            delete this.dataset.submitting;
-            showMyProducts();
-        });
-
-        // --- My Products Logic ---
-        function renderMyProducts(myProductsData = null) {
-            const productsToRender = myProductsData || products.filter(p => p.sellerId === CLIENT_ID);
-            const sortedMyProducts = [...productsToRender].sort((a, b) => b.timestamp - a.timestamp);
-
-            if (sortedMyProducts.length === 0) {
-                myProductsList.innerHTML = '';
-                noMyProductsMessage.classList.remove('hidden');
-            } else {
-                noMyProductsMessage.classList.add('hidden');
-                myProductsList.innerHTML = sortedMyProducts.map(product => {
-                    const formattedPrice = product.price.toLocaleString('en-NG', { style: 'currency', currency: 'NGN' });
-                    const imageUrl = product.imageUrl && (product.imageUrl.startsWith('data:image/') || product.imageUrl.startsWith('http')) ? product.imageUrl : 'https://placehold.co/80x80/E0E0E0/666666?text=Image';
-
-                    return `
-                        <div class="product-management-card" data-product-id="${product.id}">
-                            <img src="${imageUrl}" alt="${product.name}" onerror="this.onerror=null;this.src='https://placehold.co/80x80/E0E0E0/666666?text=Image';">
-                            <div class="info">
-                                <h3>${product.name}</h3>
-                                <p class="text-gray-500 text-sm">${formattedPrice} | ${product.location} | ${product.condition}</p>
-                            </div>
-                            <div class="actions">
-                                <button class="bg-yellow-500 text-white px-3 py-1 rounded-md text-sm hover:bg-yellow-600 edit-btn" data-product-id="${product.id}">Edit</button>
-                                <button class="bg-red-500 text-white px-3 py-1 rounded-md text-sm hover:bg-red-600 delete-btn" data-product-id="${product.id}">Delete</button>
-                            </div>
-                        </div>
-                    `;
-                }).join('');
-
-                myProductsList.querySelectorAll('.edit-btn').forEach(button => {
-                    button.addEventListener('click', (event) => {
-                        const productId = event.target.dataset.productId;
-                        const productToEdit = products.find(p => p.id === productId);
-                        if (productToEdit) {
-                            showSellProductForm(productToEdit);
-                        }
-                    });
-                });
-
-                myProductsList.querySelectorAll('.delete-btn').forEach(button => {
-                    button.addEventListener('click', async (event) => {
-                        const productId = event.target.dataset.productId;
-                        if (confirm('Are you sure you want to delete this product listing?')) {
-                            if (ws && ws.readyState === WebSocket.OPEN) {
-                                console.log('Sending DELETE_PRODUCT to server:', productId);
-                                ws.send(JSON.stringify({ type: 'DELETE_PRODUCT', payload: { id: productId } }));
-                            } else {
-                                showMessage('No server connection. Deleting product locally.', 'info');
-                                try {
-                                    products = products.filter(p => p.id !== productId);
-                                    await deleteProductFromDB(productId);
-                                    showMessage('Product deleted successfully locally.', 'success');
-                                    renderMyProducts();
-                                    applyFiltersAndSearch();
-                                } catch (error) {
-                                    console.error('Error deleting product locally:', error);
-                                    showMessage('Failed to delete product locally.', 'error');
-                                }
-                            }
-                        }
-                    });
-                });
-            }
-        }
-
-        // --- Initial Setup ---
-        window.onload = async () => {
-            setActiveMenuLink('buyerMarketplaceSection');
-            await openDatabase();
-
-            // Load products from IndexedDB first for a fast initial display
-            await loadProductsFromIndexedDB();
-
-            // Then, connect WebSocket to get the latest server data and listen for updates
-            connectWebSocket();
-
-            startRotatingFooterMessages();
-            renderCategories();
-            populateSellFormCategories();
-            showBuyerMarketplace();
-        };
-
-        // --- Hamburger Menu and Side Nav Toggle ---
-        hamburgerMenu.addEventListener('click', () => {
-            if (sideNav.style.width === "250px") {
-                sideNav.style.width = "0";
-                hamburgerMenu.classList.remove('active');
-            } else {
-                sideNav.style.width = "250px";
-                hamburgerMenu.classList.add('active');
-            }
-        });
-
-        closeNavBtn.addEventListener('click', closeSideNav);
-
-        function setActiveMenuLink(activeSectionId) {
-            document.querySelectorAll('#mySidenav a').forEach(link => {
-                link.classList.remove('active-menu-link');
-            });
-
-            let targetLink;
-            if (activeSectionId === 'buyerMarketplaceSection') {
-                targetLink = document.querySelector('#mySidenav a[onclick*="showBuyerMarketplace"]');
-            } else if (activeSectionId === 'myProductsSection') {
-                targetLink = document.querySelector('#mySidenav a[onclick*="showMyProducts"]');
-            } else if (activeSectionId === 'sellProductSection') {
-                targetLink = document.querySelector('#mySidenav a[onclick*="showSellProductForm"]');
-            }
-            
-            if (targetLink) {
-                targetLink.classList.add('active-menu-link');
-            }
-        }
+        // Initialize the page
+        fetchProducts();
+        
     </script>
 </body>
 </html>

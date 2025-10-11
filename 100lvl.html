@@ -8,17 +8,17 @@
         body {
             font-family: Arial, sans-serif;
             line-height: 1.6;
-            margin: 0; /* Reset default body margin */
+            margin: 0; 
             display: flex;
-            flex-direction: column; /* Arrange content and footer vertically */
-            min-height: 100vh; /* Ensure body takes full viewport height */
+            flex-direction: column; 
+            min-height: 100vh; 
             background-color: #f4f4f4;
             color: #333;
         }
         .container {
-            flex: 1; /* Allows content to grow and push footer down */
+            flex: 1; 
             max-width: 800px;
-            margin: 20px auto; /* Top/bottom margin, auto left/right */
+            margin: 20px auto; 
             background: #fff;
             padding: 30px;
             border-radius: 8px;
@@ -37,19 +37,19 @@
             margin-bottom: 8px;
             padding: 10px 15px;
             border-radius: 4px;
-            transition: background-color 0.3s ease; /* Smooth hover effect */
+            transition: background-color 0.3s ease; 
         }
         li:hover {
-            background-color: #dcdcdc; /* Lighter on hover */
+            background-color: #dcdcdc; 
         }
         li a {
-            text-decoration: none; /* Remove underline from links */
-            color: #333; /* Make link color match text */
-            display: block; /* Make the entire list item clickable */
+            text-decoration: none; 
+            color: #333; 
+            display: block; 
             font-weight: bold;
         }
         li a:hover {
-            color: #007bff; /* Change link color on hover */
+            color: #007bff; 
         }
 
         #facultyNameDisplay {
@@ -71,18 +71,24 @@
             margin-top: 20px;
         }
 
-        /* --- Bottom Navigation Menu Styles (MATCHING IMAGE) --- */
+        /* NEW: Separator style for clarity */
+        .separator {
+            border-top: 2px solid #ddd;
+            margin: 30px 0;
+        }
+
+        /* --- Bottom Navigation Menu Styles (Existing) --- */
         .bottom-nav {
-            background-color: #ffffff; /* White background */
-            color: #555; /* Default text color, looks greyish in image */
-            padding: 5px 0; /* Reduced padding to match compact look */
+            background-color: #ffffff; 
+            color: #555; 
+            padding: 5px 0; 
             text-align: center;
             position: sticky;
             bottom: 0;
             width: 100%;
-            box-shadow: 0 -2px 10px rgba(0,0,0,0.05); /* Subtle shadow */
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.05); 
             margin-top: auto;
-            border-top: 1px solid #eee; /* Slight border on top */
+            border-top: 1px solid #eee; 
         }
         .bottom-nav ul {
             list-style: none;
@@ -91,46 +97,81 @@
             display: flex;
             justify-content: space-around;
             align-items: center;
-            height: 60px; /* Fixed height for the menu bar */
+            height: 60px; 
         }
         .bottom-nav li {
-            background-color: transparent; /* Ensure no background from default li style */
+            background-color: transparent; 
             margin-bottom: 0;
             padding: 0;
             border-radius: 0;
             flex-grow: 1;
         }
         .bottom-nav a {
-            display: flex; /* Use flex for vertical alignment of icon and text */
-            flex-direction: column; /* Stack icon above text */
-            align-items: center; /* Center horizontally */
-            justify-content: center; /* Center vertically */
-            color: #555; /* Default link color */
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            justify-content: center; 
+            color: #555; 
             text-decoration: none;
-            height: 100%; /* Make link fill the li height */
-            padding: 5px 0; /* Padding for internal content */
-            font-size: 0.85em; /* Smaller text size for compact look */
-            transition: color 0.3s ease; /* Smooth transition for text color */
+            height: 100%; 
+            padding: 5px 0; 
+            font-size: 0.85em; 
+            transition: color 0.3s ease; 
         }
         .bottom-nav a:hover {
-            color: #007bff; /* Hover color (example blue) */
+            color: #007bff; 
         }
-        /* Icon styling (assuming you'll use Font Awesome or similar) */
         .bottom-nav a i {
-            font-size: 1.5em; /* Larger icon size */
-            margin-bottom: 4px; /* Space between icon and text */
-            color: #777; /* Default icon color */
+            font-size: 1.5em; 
+            margin-bottom: 4px; 
+            color: #777; 
             transition: color 0.3s ease;
         }
         .bottom-nav a:hover i {
-            color: #007bff; /* Icon color on hover */
+            color: #007bff; 
         }
-        /* Active state for the menu item */
         .bottom-nav a.active {
-            color: #007bff; /* Active text color */
+            color: #007bff; 
         }
         .bottom-nav a.active i {
-            color: #007bff; /* Active icon color */
+            color: #007bff; 
+        }
+        
+        /* Styles for the manual input section */
+        #manualCourseInput {
+            margin: 0 0 30px 0; 
+            padding: 20px;
+            border: 1px dashed #0056b3; 
+            border-radius: 8px;
+            text-align: center;
+            background-color: #e6f0ff; 
+        }
+        #courseTitleInput {
+            padding: 10px;
+            width: 90%;
+            max-width: 450px;
+            margin: 10px 0;
+            border: 1px solid #007bff;
+            border-radius: 4px;
+            font-size: 1em;
+            box-sizing: border-box;
+        }
+        #manualStartButton {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1.1em;
+            transition: background-color 0.3s ease;
+            display: block;
+            width: 90%;
+            max-width: 250px;
+            margin: 15px auto 0;
+        }
+        #manualStartButton:hover {
+            background-color: #218838;
         }
     </style>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
@@ -139,19 +180,42 @@
 
     <div class="container">
         <h1>Welcome to 100 Level!</h1>
-        <p id="loadingMessage">Loading your faculty courses...</p>
-        <div id="contentDisplay" style="display: none;">
-            <h2 id="facultyNameDisplay"></h2>
-            <h3>Common 100-Level Courses:</h3>
-            <ul id="courseList">
-                </ul>
+        
+        <div id="manualCourseInput">
+            <p>Enter a course title or topic to start an instant quiz:</p>
+            <input type="text" id="courseTitleInput" placeholder="e.g., GST 101, BIO 101">
+            <button id="manualStartButton">Start Quiz</button>
         </div>
+        
+        <p id="loadingMessage">Loading courses...</p>
+        
+        <div id="userFacultyCourses" style="display: none;">
+            <h2 id="facultyNameDisplay"></h2>
+            <h3 id="facultyFirstSemesterTitle"></h3>
+            <ul id="facultyFirstSemesterList"></ul>
+            
+            <h3 id="facultySecondSemesterTitle"></h3>
+            <ul id="facultySecondSemesterList"></ul>
+            
+            <div class="separator"></div>
+        </div>
+        
+        <div id="allAvailableCourses" style="display: none;">
+            <h2>Browse All 100-Level Courses</h2>
+            
+            <h3 id="allFirstSemesterTitle"></h3>
+            <ul id="allFirstSemesterList"></ul>
+            
+            <h3 id="allSecondSemesterTitle"></h3>
+            <ul id="allSecondSemesterList"></ul>
+        </div>
+        
         <p id="errorMessage" style="display: none;"></p>
     </div>
 
     <nav class="bottom-nav">
         <ul>
-            <li><a href="index.html" class="active">
+            <li><a href="index.html">
                 <i class="fas fa-home"></i>
                 Home
             </a></li>
@@ -175,122 +239,184 @@
     </nav>
 
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const loadingMessage = document.getElementById('loadingMessage');
-            const contentDisplay = document.getElementById('contentDisplay');
-            const facultyNameDisplay = document.getElementById('facultyNameDisplay');
-            const courseList = document.getElementById('courseList');
-            const errorMessage = document.getElementById('errorMessage');
+    document.addEventListener('DOMContentLoaded', function() {
+        const loadingMessage = document.getElementById('loadingMessage');
+        const userFacultyCoursesDiv = document.getElementById('userFacultyCourses');
+        const allAvailableCoursesDiv = document.getElementById('allAvailableCourses');
+        const facultyNameDisplay = document.getElementById('facultyNameDisplay');
+        
+        const facultyFirstSemesterList = document.getElementById('facultyFirstSemesterList');
+        const facultySecondSemesterList = document.getElementById('facultySecondSemesterList');
+        const facultyFirstSemesterTitle = document.getElementById('facultyFirstSemesterTitle');
+        const facultySecondSemesterTitle = document.getElementById('facultySecondSemesterTitle');
 
-            const userFaculty = localStorage.getItem('faculty');
-            const normalizedUserFaculty = userFaculty ? userFaculty.trim() : null;
+        const allFirstSemesterList = document.getElementById('allFirstSemesterList');
+        const allSecondSemesterList = document.getElementById('allSecondSemesterList');
+        const allFirstSemesterTitle = document.getElementById('allFirstSemesterTitle');
+        const allSecondSemesterTitle = document.getElementById('allSecondSemesterTitle');
+        
+        const errorMessage = document.getElementById('errorMessage');
+        const courseTitleInput = document.getElementById('courseTitleInput');
+        const manualStartButton = document.getElementById('manualStartButton');
 
-            // Define the course data for all faculties with simplified keys
-            const facultyCourses = {
-                "Agriculture": [ // Corrected from "Agricultural Sciences"
-                    "BIO 101: General Biology I", "BIO 102: General Biology II",
-                    "CHM 101: General Chemistry I", "CHM 102: General Chemistry II",
-                    "PHY 101: General Physics I",
-                    "MTH 101: General Mathematics I", "MTH 102: General Mathematics II"
-                ],
-                "Arts": [
-                    "ENG 101: Introduction to English Language", "LIT 101: Introduction to Literature",
-                    "PHL 101: Introduction to Philosophy",
-                    "HIS 101: Introduction to History I", "HIS 102: Introduction to History II"
-                ],
-                "Medicine": [ // MERGED FACULTY: Basic Medical Sciences + Clinical Sciences
-                    "BIO 101: General Biology I", "BIO 102: General Biology II",
-                    "CHM 101: General Chemistry I", "CHM 102: General Chemistry II",
-                    "PHY 101: General Physics I", "PHY 102: General Physics II",
-                    "MTH 101: General Mathematics I", "MTH 102: General Mathematics II"
-                ],
-                "Education": [
-                    "EDU 101: Introduction to Education", "EDU 102: Foundations of Education",
-                    "EDU 103: Educational Psychology", "EDU 104: Sociology of Education"
-                ],
-                "Engineering": [
-                    "MTH 101: General Mathematics I", "MTH 102: General Mathematics II",
-                    "PHY 101: General Physics I", "PHY 102: General Physics II",
-                    "CHM 101: General Chemistry I", "CHM 102: General Chemistry II",
-                    "ENG 101: Introduction to Engineering"
-                ],
-                "Environmental Sciences": [
-                    "MTH 101: General Mathematics I", "MTH 102: General Mathematics II",
-                    "PHY 101: General Physics I", "PHY 102: General Physics II",
-                    "CHM 101: General Chemistry I", "CHM 102: General Chemistry II"
-                ],
-                "Law": [
-                    "LAW 101: Introduction to Law I", "LAW 102: Introduction to Law II",
-                    "LAW 103: Legal Methods I", "LAW 104: Legal Methods II"
-                ],
-                "Management Sciences": [
-                    "ACC 101: Principles of Accounting I", "ACC 102: Principles of Accounting II",
-                    "BUS 101: Introduction to Business I", "BUS 102: Introduction to Business II",
-                    "ECO 101: Principles of Economics I", "ECO 102: Principles of Economics II",
-                    "MTH 101: General Mathematics I", "MTH 102: General Mathematics II"
-                ],
-                "Science": [
-                    "BIO 101: General Biology I", "BIO 102: General Biology II",
-                    "CHM 101: General Chemistry I", "CHM 102: General Chemistry II",
-                    "PHY 101: General Physics I", "PHY 102: General Physics II",
-                    "MTH 101: General Mathematics I", "MTH 102: General Mathematics II"
-                ],
-                "Social Sciences": [
-                    "ECO 101: Principles of Economics I", "ECO 102: Principles of Economics II",
-                    "POL 101: Introduction to Political Science",
-                    "SOC 101: Introduction to Sociology",
-                    "PSY 101: Introduction to Psychology"
-                ],
-                "Petroleum Studies": [] // Added for consistency, though no 100L courses provided yet
-            };
+        const userFaculty = localStorage.getItem('faculty');
+        const normalizedUserFaculty = userFaculty ? userFaculty.trim() : null;
 
-            if (normalizedUserFaculty && facultyCourses[normalizedUserFaculty]) {
-                loadingMessage.style.display = 'none';
-                contentDisplay.style.display = 'block';
+        // --- Course Data ---
+        const facultyCourses100L = {
+            "Agriculture": {
+                firstSemester: ["BIO 101: General Biology I", "CHM 101: General Chemistry I", "PHY 101: General Physics I", "MTH 101: General Mathematics I", "GST 101: Use of English I"],
+                secondSemester: ["BIO 102: General Biology II", "CHM 102: General Chemistry II", "MTH 102: General Mathematics II", "GST 102: Use of English II"]
+            },
+            "Arts": {
+                firstSemester: ["ENG 101: Introduction to English Language", "PHL 101: Introduction to Philosophy", "HIS 101: Introduction to History I", "GST 101: Use of English I"],
+                secondSemester: ["LIT 101: Introduction to Literature", "HIS 102: Introduction to History II", "GST 102: Use of English II"]
+            },
+            "Medicine": { 
+                firstSemester: ["BIO 101: General Biology I", "CHM 101: General Chemistry I", "PHY 101: General Physics I", "MTH 101: General Mathematics I", "GST 101: Use of English I"],
+                secondSemester: ["BIO 102: General Biology II", "CHM 102: General Chemistry II", "PHY 102: General Physics II", "MTH 102: General Mathematics II", "GST 102: Use of English II"]
+            },
+            "Education": {
+                firstSemester: ["EDU 101: Introduction to Education", "EDU 103: Educational Psychology", "GST 101: Use of English I"],
+                secondSemester: ["EDU 102: Foundations of Education", "EDU 104: Sociology of Education", "GST 102: Use of English II"]
+            },
+            "Engineering": {
+                firstSemester: ["MTH 101: General Mathematics I", "PHY 101: General Physics I", "CHM 101: General Chemistry I", "ENG 101: Introduction to Engineering", "GST 101: Use of English I"],
+                secondSemester: ["MTH 102: General Mathematics II", "PHY 102: General Physics II", "CHM 102: General Chemistry II", "GST 102: Use of English II"]
+            },
+            "Environmental Sciences": {
+                firstSemester: ["MTH 101: General Mathematics I", "PHY 101: General Physics I", "CHM 101: General Chemistry I", "GST 101: Use of English I"],
+                secondSemester: ["MTH 102: General Mathematics II", "PHY 102: General Physics II", "CHM 102: General Chemistry II", "GST 102: Use of English II"]
+            },
+            "Law": {
+                firstSemester: ["LAW 101: Introduction to Law I", "LAW 103: Legal Methods I", "GST 101: Use of English I"],
+                secondSemester: ["LAW 102: Introduction to Law II", "LAW 104: Legal Methods II", "GST 102: Use of English II"]
+            },
+            "Management Sciences": {
+                firstSemester: ["ACC 101: Principles of Accounting I", "BUS 101: Introduction to Business I", "ECO 101: Principles of Economics I", "MTH 101: General Mathematics I", "GST 101: Use of English I"],
+                secondSemester: ["ACC 102: Principles of Accounting II", "BUS 102: Introduction to Business II", "ECO 102: Principles of Economics II", "MTH 102: General Mathematics II", "GST 102: Use of English II"]
+            },
+            "Science": {
+                firstSemester: ["BIO 101: General Biology I", "CHM 101: General Chemistry I", "PHY 101: General Physics I", "MTH 101: General Mathematics I", "GST 101: Use of English I"],
+                secondSemester: ["BIO 102: General Biology II", "CHM 102: General Chemistry II", "PHY 102: General Physics II", "MTH 102: General Mathematics II", "GST 102: Use of English II"]
+            },
+            "Social Sciences": {
+                firstSemester: ["ECO 101: Principles of Economics I", "POL 101: Introduction to Political Science", "PSY 101: Introduction to Psychology", "GST 101: Use of English I"],
+                secondSemester: ["ECO 102: Principles of Economics II", "SOC 101: Introduction to Sociology", "GST 102: Use of English II"]
+            },
+            "Petroleum Studies": {
+                firstSemester: ["GST 101: Use of English I"],
+                secondSemester: ["GST 102: Use of English II"]
+            } 
+        };
 
-                facultyNameDisplay.textContent = `Faculty of ${normalizedUserFaculty}`;
-                const courses = facultyCourses[normalizedUserFaculty];
+        // --- Core Functions ---
 
-                // Populate the course list with clickable links
-                if (courses.length === 0) {
-                    const listItem = document.createElement('li');
-                    listItem.textContent = "No 100-level courses listed for this faculty.";
-                    listItem.style.fontStyle = "italic";
-                    listItem.style.color = "#888";
-                    courseList.appendChild(listItem);
-                } else {
-                    courses.forEach(courseText => {
-                        const listItem = document.createElement('li');
-                        const link = document.createElement('a');
+        function handleCourseClick(event) {
+            event.preventDefault(); 
+            const selectedCourseName = event.currentTarget.textContent.trim();
+            localStorage.setItem('selectedCourse', selectedCourseName);
+            window.location.href = 'aiexam.html'; 
+        }
 
-                        const courseCodeMatch = courseText.match(/^([A-Z0-9 ]+)[-:]?/);
-                        let courseCode = '';
-                        if (courseCodeMatch && courseCodeMatch[1]) {
-                            courseCode = courseCodeMatch[1].trim().replace(/\s/g, '').toLowerCase();
-                        } else {
-                            courseCode = courseText.split(' ')[0].trim().toLowerCase();
-                        }
-
-                         link.href = `cbt.html?subject=${courseCode}`;
-                        link.textContent = courseText;
-
-                        listItem.appendChild(link);
-                        courseList.appendChild(listItem);
-                    });
-                }
+        function handleManualCourseStart() {
+            const courseText = courseTitleInput.value.trim();
+            if (courseText) {
+                localStorage.setItem('selectedCourse', courseText);
+                window.location.href = 'aiexam.html'; 
             } else {
-                loadingMessage.style.display = 'none';
-                errorMessage.style.display = 'block';
-                if (!normalizedUserFaculty) {
-                    errorMessage.textContent = "Error: Your faculty was not found in localStorage. Please ensure it's set correctly.";
-                    console.error("Faculty not found in localStorage.");
-                } else {
-                    errorMessage.textContent = `Error: No 100-level course data available for "${normalizedUserFaculty}". Please check the faculty name or data.`;
-                    console.error(`No course data found for faculty: ${normalizedUserFaculty}`);
+                alert("Please enter a course code or topic title to start the quiz.");
+            }
+        }
+        
+        // Function to populate a course list
+        function populateCourseList(courseArray, targetUl) {
+            targetUl.innerHTML = ''; // Clear previous list
+            if (!courseArray || courseArray.length === 0) {
+                const listItem = document.createElement('li');
+                listItem.textContent = "No courses listed for this semester in this category.";
+                listItem.style.fontStyle = "italic";
+                listItem.style.color = "#888";
+                targetUl.appendChild(listItem);
+                return;
+            }
+            // De-duplicate and sort the array
+            const uniqueSortedCourses = [...new Set(courseArray)].sort();
+            
+            uniqueSortedCourses.forEach(courseText => {
+                const listItem = document.createElement('li');
+                const link = document.createElement('a');
+
+                link.href = "#"; 
+                link.textContent = courseText;
+                link.addEventListener('click', handleCourseClick); 
+
+                listItem.appendChild(link);
+                targetUl.appendChild(listItem);
+            });
+        }
+        
+        // Function to aggregate all courses
+        function getAllCourses() {
+            const allFirstSem = [];
+            const allSecondSem = [];
+            
+            for (const faculty in facultyCourses100L) {
+                const data = facultyCourses100L[faculty];
+                if (data.firstSemester) {
+                    allFirstSem.push(...data.firstSemester);
+                }
+                if (data.secondSemester) {
+                    allSecondSem.push(...data.secondSemester);
                 }
             }
-        });
+
+            return {
+                firstSemester: allFirstSem,
+                secondSemester: allSecondSem
+            };
+        }
+
+        // --- Execution Logic ---
+        
+        loadingMessage.style.display = 'none';
+        allAvailableCoursesDiv.style.display = 'block'; // Always show all courses section
+
+        // 1. Handle User's Specific Faculty (Display on top if found)
+        if (normalizedUserFaculty && facultyCourses100L[normalizedUserFaculty]) {
+            
+            const facultyData = facultyCourses100L[normalizedUserFaculty];
+            
+            userFacultyCoursesDiv.style.display = 'block';
+            facultyNameDisplay.textContent = `Your Courses: Faculty of ${normalizedUserFaculty}`;
+            facultyFirstSemesterTitle.textContent = "First Semester Courses:";
+            facultySecondSemesterTitle.textContent = "Second Semester Courses:";
+
+            populateCourseList(facultyData.firstSemester || [], facultyFirstSemesterList);
+            populateCourseList(facultyData.secondSemester || [], facultySecondSemesterList);
+
+        } else {
+            // User faculty not set or not found, hide the top section and show a message
+            userFacultyCoursesDiv.style.display = 'none';
+            errorMessage.style.display = 'block';
+            errorMessage.textContent = "Your faculty is not set. Browse all courses below or go to your Profile to set it for a personalized list.";
+            errorMessage.style.color = '#0056b3'; 
+        }
+
+        // 2. Display All Available Courses (Always displayed in its own section)
+        const allCourses = getAllCourses();
+        
+        allFirstSemesterTitle.textContent = "All First Semester Courses:";
+        allSecondSemesterTitle.textContent = "All Second Semester Courses:";
+        
+        populateCourseList(allCourses.firstSemester, allFirstSemesterList);
+        populateCourseList(allCourses.secondSemester, allSecondSemesterList);
+
+        // Event Listener for the manual input button
+        manualStartButton.addEventListener('click', handleManualCourseStart);
+    });
     </script>
+
 
 </body>
 </html>

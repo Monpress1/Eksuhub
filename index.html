@@ -5,6 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Dashboard</title>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#303f9f"> <link rel="icon" href="/images/icons/icon-192x192.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Dashboard">
   <style>
     body {
       font-family: 'Segoe UI', sans-serif;
@@ -93,6 +100,7 @@
     }
 
     .module-card {
+      position: relative; /* IMPORTANT for badge positioning */
       background-color: white;
       padding: 20px;
       border-radius: 12px;
@@ -101,7 +109,7 @@
       transition: transform 0.2s ease;
       cursor: pointer; /* Make it clickable */
     }
-
+    
     .module-card:hover {
       transform: translateY(-3px);
     }
@@ -129,6 +137,7 @@
       margin: 10px 0 0;
     }
 
+    /* Product Carousel styling */
     .news-carousel {
       position: relative;
       height: 200px;
@@ -150,6 +159,7 @@
       box-shadow: 0 2px 8px rgba(0,0,0,0.05);
       padding: 10px;
       align-items: center;
+      cursor: pointer; /* Make the entire slide clickable */
     }
 
     .news-slide.active {
@@ -172,6 +182,9 @@
       margin: 0 0 5px;
       font-size: 1rem;
       color: #1e3a8a;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis; /* Truncate long product names */
     }
 
     .news-slide p {
@@ -179,6 +192,52 @@
       font-size: 0.85rem;
       color: #6b7280;
     }
+    
+    /* NEW: Styling for the News Carousel Slides */
+    #newsCarousel {
+        height: 150px; /* Specific height for news carousel */
+        margin-bottom: 30px;
+    }
+    #newsCarousel .news-slide {
+        height: 100%; /* Fill the carousel height */
+        align-items: flex-start; /* Align content to the top */
+        padding: 15px;
+    }
+
+    #newsCarousel .news-slide img {
+        width: 100px; /* Bigger image */
+        height: 100px;
+        flex-shrink: 0; /* Don't allow image to shrink */
+    }
+
+    #newsCarousel .news-slide div {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+    
+    #newsCarousel .news-slide h4 {
+        font-size: 1.1rem;
+        color: #ff8f00; /* Use orange accent for news title */
+        white-space: normal; /* Allow title to wrap */
+        overflow: hidden;
+        text-overflow: ellipsis;
+        display: -webkit-box; 
+        -webkit-line-clamp: 2; /* Show max 2 lines of title */
+        -webkit-box-orient: vertical;
+        margin-bottom: 5px;
+    }
+
+    #newsCarousel .news-slide p {
+        font-size: 0.8rem;
+        margin-top: 5px;
+        color: #4b5563;
+        display: -webkit-box; 
+        -webkit-line-clamp: 2; /* Show max 2 lines of content */
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+    /* END NEW NEWS STYLING */
 
     .bottom-navigation {
       background-color: #ffffff;
@@ -202,11 +261,37 @@
       display: flex;
       flex-direction: column;
       align-items: center;
+      position: relative; /* Make it a positioning context for the badge */
     }
 
     .bottom-navigation i {
       font-size: 1.2rem;
       margin-bottom: 2px;
+    }
+    
+    /* NEW: Badge Styling for the bottom menu */
+    .menu-badge {
+      position: absolute;
+      top: 0px; /* Position it above the icon/text */
+      right: 50%;
+      transform: translateX(50%); /* Center it above the element */
+      background-color: #dc3545; /* Red circle */
+      color: white;
+      border-radius: 50%; /* Makes it a circle */
+      padding: 2px 5px; /* Smaller padding for menu */
+      font-size: 0.6rem; /* Smaller font size */
+      font-weight: bold;
+      line-height: 1;
+      min-width: 15px; /* Minimum size */
+      text-align: center;
+      box-shadow: 0 0 3px rgba(0, 0, 0, 0.2);
+    }
+    
+    /* 🔥 NEW: Styling for the badge on the main card - applies to all main card badges */
+    #cardNewChatCount, #marketplaceCard .menu-badge, #cardNewNewsCount {
+      top: -5px; 
+      right: 25%;
+      transform: translateX(50%);
     }
 
     /* Reused modal styles from signup-modal */
@@ -329,6 +414,89 @@
       from, to { border-color: transparent }
       50% { border-color: orange; }
     }
+    
+    /* ✅ PWA LOGIC START: Install Prompt CSS */
+    .pwa-prompt-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.7);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 2000; /* Very high z-index to cover everything */
+    }
+
+    .pwa-prompt-content {
+      background: white;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 5px 20px rgba(0, 0, 0, 0.4);
+      text-align: center;
+      width: 90%;
+      max-width: 350px;
+      animation: slideUp 0.3s ease-out;
+    }
+    
+    @keyframes slideUp {
+        from { transform: translateY(50px); opacity: 0; }
+        to { transform: translateY(0); opacity: 1; }
+    }
+
+    .pwa-prompt-content h2 {
+        margin-top: 0;
+        color: #303f9f;
+        font-size: 1.5rem;
+        margin-bottom: 20px;
+    }
+
+    .pwa-prompt-content p {
+        font-size: 1rem;
+        color: #4b5563;
+        line-height: 1.4;
+        margin-bottom: 15px;
+    }
+
+    .pwa-install-button {
+      background-color: #4CAF50; /* Green for Android/Install */
+      color: white;
+      padding: 12px 20px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 1.1rem;
+      font-weight: bold;
+      width: 100%;
+      margin-top: 15px;
+      transition: background-color 0.2s;
+    }
+
+    .pwa-install-button:hover {
+      background-color: #45a049;
+    }
+
+    .pwa-icon {
+        font-size: 2.5rem;
+        color: #ff8f00; /* Accent color */
+        margin-bottom: 10px;
+    }
+
+    .ios-step {
+        display: flex;
+        align-items: center;
+        text-align: left;
+        margin-bottom: 10px;
+        font-size: 0.95rem;
+    }
+    .ios-step i {
+        font-size: 1.5rem;
+        margin-right: 10px;
+        color: #303f9f;
+    }
+    /* ✅ PWA LOGIC END: Install Prompt CSS */
+
   </style>
 </head>
 <body>
@@ -361,51 +529,29 @@
         <i class="fas fa-users"></i>
         <h3>Community</h3>
         <p>Chat, Clubs, Lost & Found</p>
+        <span id="cardNewChatCount" class="menu-badge" style="display:none; top: -5px; right: 25%;">0</span> 
       </div>
       <div class="module-card" onclick="window.location.href='news.html'">
         <i class="fas fa-info-circle"></i>
         <h3>Information</h3>
         <p>News, Directory, Multilingual</p>
+        <span id="cardNewNewsCount" class="menu-badge" style="display:none; top: -5px; right: 25%;">0</span> 
       </div>
-      <div class="module-card" onclick="window.location.href='market.html'">
+      
+      <div class="module-card" id="marketplaceCard" onclick="handleMarketplaceClick(event)">
         <i class="fas fa-shopping-cart"></i>
         <h3>Marketplace</h3>
         <p>Buy & Sell, Listings</p>
       </div>
     </div>
-
-    <div class="news-carousel">
-      <div class="news-slide active">
-        <img src="img1.jpg" alt="News 1">
-        <div>
-          <h4>Eksu smartschool Wi-Fi Upgraded</h4>
-          <p>Faster internet now available across all faculties and hostels.</p>
-        </div>
-      </div>
-      <div class="news-slide">
-        <img src="img6.jpg" alt="News 2">
-        <div>
-          <h4>Interfaculty Sports</h4>
-          <p>Get ready for this semester's games. Sign up.</p>
-        </div>
-      </div>
-      
-    <a href="market.html">   <div class="news-slide">
-        <img src="img5.jpg" alt="News 4">
-        <div>
-          <h4>Eksu Marketplace</h4>
-          <p>Sell your products, buy from fellow students</p>
-        </div>
-      </div></a>
-      <div class="news-slide">
-        <img src="img2.jpg" alt="News 3">
-        <div>
-          <h4>Tech society</h4>
-          <p>Eksu Tech Hub. along banking area</p>
-        </div>
-      </div>
+    
+    <div class="news-carousel" id="productCarousel">
     </div>
-
+    
+    <h2 style="color: #303f9f; margin-top: 40px; border-bottom: 2px solid #303f9f; padding-bottom: 5px;">Latest News</h2>
+    <div class="news-carousel" id="newsCarousel" style="height: 150px; margin-bottom: 30px;">
+        <p id="newsLoadingMessage" style="text-align: center; line-height: 150px; color: #6b7280;">Loading latest news...</p>
+    </div>
     <div id="signupModal" class="signup-modal">
       <div class="signup-form">
         <h2>Welcome! Please sign up</h2>
@@ -481,28 +627,90 @@
     <div id="communityChoiceModal" class="signup-modal">
         <div class="choice-modal-content">
             <h2>Community Options</h2>
-            <button onclick="window.location.href='chat.html'">Chat</button>
-            <button onclick="alert('Clubs page coming soon!')">Clubs</button>
-            <button onclick="alert('Lost & Found page coming soon!')">Lost & Found</button>
-            <button onclick="alert('All EKSU Groups page coming soon!')">All EKSU Groups</button>
+            <button onclick="updateLastReadTime(); window.location.href='chat.html'">Chat</button> 
+            <button onclick="alert('Clubs page coming soon!')">Clubs <font style="font-size:10px;">(coming soon)</button>
+            <button onclick="alert('Lost & Found page coming soon!')">Lost & Found <font style="font-size:10px;">(coming soon)</font></button>
+            <button onclick="window.location='groups.html';">Eksu Groups</button>
+
+            
+            
             <button class="cancel-btn" onclick="closeCommunityChoiceModal()">Cancel</button>
         </div>
     </div>
+    
+    <div id="android-prompt-overlay" class="pwa-prompt-overlay" style="display:none;">
+      <div class="pwa-prompt-content">
+        <i class="fab fa-android pwa-icon"></i>
+        <h2>Install App</h2>
+        <p>Install the app for a faster, full-screen experience!</p>
+        <button id="pwa-install-button" class="pwa-install-button">
+            <i class="fas fa-download"></i> Install App
+        </button>
+      </div>
+    </div>
 
-
-  </div>
+    <div id="ios-prompt-overlay" class="pwa-prompt-overlay" style="display:none;">
+        <div class="pwa-prompt-content">
+            <i class="fab fa-apple pwa-icon"></i>
+            <h2>Add to Home Screen</h2>
+            <p>Follow these quick steps to install on your iPhone/iPad:</p>
+            <div class="ios-step">
+                <i class="fa-solid fa-arrow-up-from-bracket"></i>
+                <span>Tap the **Share** button at the bottom of the screen.</span>
+            </div>
+            <div class="ios-step">
+                <i class="fa-solid fa-plus-square"></i>
+                <span>Scroll down and tap **Add to Home Screen**.</span>
+            </div>
+            <button class="pwa-install-button" style="background-color: #6c757d;" onclick="document.getElementById('ios-prompt-overlay').style.display='none'">
+                Got It
+            </button>
+        </div>
+    </div>
+    </div>
 
   <div class="bottom-navigation">
     <a href="#"><i class="fas fa-home"></i>Home</a>
-    <a href="chat.html"><i class="fas fa-comments"></i>Chat</a>
-    <a href="news.html"><i class="fas fa-newspaper"></i>News</a>
-    <a href="market.html"><i class="fas fa-store"></i>Market</a>
+    <a href="chat.html" onclick="updateLastReadTime()">
+      <i class="fas fa-comments"></i>
+      Chat
+      <span id="menuNewChatCount" class="menu-badge" style="display:none;">0</span>
+    </a>
+    
+    <a href="news.html" onclick="updateLastReadNewsTime()">
+      <i class="fas fa-newspaper"></i>
+      News
+      <span id="menuNewNewsCount" class="menu-badge" style="display:none;">0</span> </a>
+    
+    <a href="market.html" onclick="handleMarketplaceClick(event)">
+      <i class="fas fa-store"></i>
+      Market
+      <span id="menuNewProductCount" class="menu-badge" style="display:none;">0</span>
+    </a>
+    
     <a href="profile.html"><i class="fas fa-user"></i>Profile</a>
   </div>
 
   <script>
-    const slides = document.querySelectorAll('.news-slide');
+    // =================================================================================
+    // --- SUPABASE CONFIGURATION (FOR MARKETPLACE COUNTER & CAROUSEL) ---
+    // IMPORTANT: REPLACE THESE WITH YOUR ACTUAL SUPABASE DETAILS!
+    const SUPABASE_URL = 'https://dyrsbfrvonajerbfrxzw.supabase.co'; 
+    const SUPABASE_AUTH_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR5cnNiZnJ2b25hamVyYmZyeHp3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk3NDk0ODAsImV4cCI6MjA3NTMyNTQ4MH0.mgj9f_ROkti_I3CeJ4ebYVhaLGy9Wamvj4XTtH_rB_I';
+    
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_AUTH_KEY);
+    const PRODUCTS_TABLE = 'products';
+    const ARTICLES_TABLE = 'articles';
+    // =================================================================================
+
+
+    const productCarousel = document.getElementById('productCarousel');
+    const newsCarousel = document.getElementById('newsCarousel');
+    let slides = [];
     let current = 0;
+    let newsSlides = [];
+    let currentNews = 0;
+
 
     function showSlide(index) {
       slides.forEach((slide, i) => {
@@ -510,11 +718,131 @@
         if (i === index) slide.classList.add('active');
       });
     }
+    
+    // --- Product Fetch and Carousel Initialization (Original) ---
+    async function fetchAndRenderProducts() {
+        try {
+            // Fetch up to 5 most recent products, ordered by creation time
+            const { data, error } = await supabase
+                .from(PRODUCTS_TABLE)
+                .select('name, price, image_url, id')
+                .order('created_at', { ascending: false })
+                .limit(5);
 
-    setInterval(() => {
-      current = (current + 1) % slides.length;
-      showSlide(current);
-    }, 4000);
+            if (error) throw error;
+            
+            productCarousel.innerHTML = ''; // Clear existing content
+            
+            data.forEach((product, index) => {
+                const slide = document.createElement('div');
+                slide.className = 'news-slide';
+                if (index === 0) {
+                    slide.classList.add('active'); // Activate the first slide
+                }
+                
+                // Construct the HTML for the product slide
+                slide.innerHTML = `
+                    <img src="${product.image_url || 'placeholder.jpg'}" alt="${product.name}">
+                    <div>
+                        <h4>${product.name}</h4>
+                        <p>₦${(product.price || 0).toLocaleString()} <span style="color:#283593; font-weight:bold; font-size:0.75rem;"></span></p>
+                    </div>
+                `;
+                slide.onclick = (e) => { 
+                    // Use handleMarketplaceClick for consistent behavior and badge removal
+                    handleMarketplaceClick(e); 
+                    // Redirect to the specific product page after a short delay (for UX consistency with the async update)
+                    setTimeout(() => {
+                        window.location.href = 'market.html?product_id=' + product.id; 
+                    }, 50);
+                };
+
+                productCarousel.appendChild(slide);
+            });
+            
+            // Set up the carousel cycling
+            slides = document.querySelectorAll('#productCarousel .news-slide');
+            if (slides.length > 1) {
+                // Only cycle if there is more than one product
+                if (window._carouselIntervalId) clearInterval(window._carouselIntervalId);
+                window._carouselIntervalId = setInterval(() => {
+                    current = (current + 1) % slides.length;
+                    showSlide(current);
+                }, 4000);
+            }
+
+        } catch (e) {
+            console.error('Could not fetch products for carousel:', e);
+            productCarousel.innerHTML = '<div style="padding:15px; text-align:center; color:#dc3545;">Could not load recent products.</div>';
+        }
+    }
+    // --- End Product Carousel Logic ---
+
+    // --- News Fetch and Carousel Initialization (Original) ---
+    async function fetchAndRenderNews() {
+        const newsLoadingMessage = document.getElementById('newsLoadingMessage');
+        try {
+            // Fetch up to 3 most recent articles, ordered by creation time
+            const { data, error } = await supabase
+                .from(ARTICLES_TABLE)
+                .select('id, title, content, image_url, created_at')
+                .order('created_at', { ascending: false })
+                .limit(3);
+
+            if (error) throw error;
+            
+            newsLoadingMessage.style.display = 'none'; // Hide loading message
+            newsCarousel.innerHTML = ''; // Clear existing content
+            
+            data.forEach((article, index) => {
+                const slide = document.createElement('div');
+                slide.className = 'news-slide';
+                if (index === 0) {
+                    slide.classList.add('active'); // Activate the first slide
+                }
+                
+                // Get a short content snippet (first 100 chars)
+                const snippet = article.content.substring(0, 100) + (article.content.length > 100 ? '...' : '');
+
+                // Construct the HTML for the news slide
+                slide.innerHTML = `
+                    <img src="${article.image_url || 'https://via.placeholder.com/100x100?text=EKSU+News'}" alt="${article.title}">
+                    <div>
+                        <h4>${article.title}</h4>
+                        <p>${snippet}</p>
+                        <p style="font-size:0.7rem; color:#999; margin-top:5px;">${new Date(article.created_at).toLocaleDateString()}</p>
+                    </div>
+                `;
+                slide.onclick = () => { 
+                    // Update the last read time, then redirect
+                    updateLastReadNewsTime();
+                    window.location.href = `news.html?id=${article.id}`; 
+                };
+
+                newsCarousel.appendChild(slide);
+            });
+            
+            // Set up the news carousel cycling
+            newsSlides = document.querySelectorAll('#newsCarousel .news-slide');
+            if (newsSlides.length > 1) {
+                if (window._newsCarouselIntervalId) clearInterval(window._newsCarouselIntervalId);
+                window._newsCarouselIntervalId = setInterval(() => {
+                    currentNews = (currentNews + 1) % newsSlides.length;
+                    // Reusing the existing showSlide logic for newsSlides
+                    newsSlides.forEach((slide, i) => {
+                        slide.classList.remove('active');
+                        if (i === currentNews) slide.classList.add('active');
+                    });
+                }, 5000); // Cycle news every 5 seconds
+            }
+
+        } catch (e) {
+            console.error('Could not fetch news for carousel:', e);
+            newsLoadingMessage.style.display = 'none';
+            newsCarousel.innerHTML = '<div style="padding:15px; text-align:center; color:#dc3545;">Could not load recent news.</div>';
+        }
+    }
+    // --- End News Carousel Logic ---
 
     const signupModal = document.getElementById('signupModal');
     const welcomeMessageElement = document.getElementById('welcomeMessage');
@@ -535,11 +863,16 @@
     // --- NEW for Academics and Community Choice Modals ---
     const academicsChoiceModal = document.getElementById('academicsChoiceModal');
     const communityChoiceModal = document.getElementById('communityChoiceModal');
+    
+    // ✅ PWA LOGIC START: Get PWA elements
+    const pwaInstallButton = document.getElementById("pwa-install-button");
+    const androidPromptOverlay = document.getElementById('android-prompt-overlay');
+    const iosPromptOverlay = document.getElementById('ios-prompt-overlay');
+    let deferredPrompt;
+    // ✅ PWA LOGIC END: Get PWA elements
 
 
-    // --- EKSU Courses Data ---
-    // IMPORTANT: This list is simplified. You MUST expand this to be comprehensive
-    // with all faculties and their actual departments/courses from EKSU.
+    // --- EKSU Courses Data (Kept intact) ---
     const eksuCourses = {
         "Agriculture": [
             "Agricultural Economics and Extension Services",
@@ -631,7 +964,7 @@
         ]
     };
 
-    // --- Functions for Profile Setup Dropdowns ---
+    // --- Functions for Profile Setup Dropdowns (Original) ---
     function populateFaculties() {
         profileFacultySelect.innerHTML = '<option value="" disabled selected>Select Faculty</option>';
         for (const faculty in eksuCourses) {
@@ -658,7 +991,7 @@
     profileFacultySelect.addEventListener('change', populateCourses);
 
 
-    // --- Functions for Exam Selection Modal Dropdowns ---
+    // --- Functions for Exam Selection Modal Dropdowns (Original) ---
     function populateExamFaculties() {
         examFacultySelect.innerHTML = '<option value="" disabled selected>Select Faculty</option>';
         for (const faculty in eksuCourses) {
@@ -685,12 +1018,11 @@
     examFacultySelect.addEventListener('change', populateExamDepartments);
 
 
-    // --- Core Signup/Profile Logic ---
+    // --- Core Signup/Profile Logic (Original) ---
     const storedSignedUp = localStorage.getItem('signedUp');
     const storedName = localStorage.getItem('name');
     const storedLevel = localStorage.getItem('level');
-    const storedFaculty = localStorage.getItem('faculty');
-    const storedDepartment = localStorage.getItem('department');
+
 
     function typeWelcomeMessage(name) {
       welcomeMessageElement.textContent = "";
@@ -710,12 +1042,242 @@
       }, 100);
     }
 
+    // --- MARKETPLACE TRACKING FUNCTIONS (Original) ---
+    
+    // This function runs on page load to check for new products
+    async function checkNewProducts() {
+        const lastCount = parseInt(localStorage.getItem('lastMarketProductCount') || '0');
+        const countElement = document.getElementById('menuNewProductCount'); 
+        
+        try {
+            // Get the current total count of products in the table
+            const { count, error } = await supabase
+                .from(PRODUCTS_TABLE)
+                .select('*', { count: 'exact', head: true });
+
+            if (error) throw error;
+
+            const currentCount = count;
+            
+            if (currentCount > lastCount) {
+                const newProducts = currentCount - lastCount;
+                countElement.textContent = newProducts;
+                countElement.style.display = 'block';
+                console.log(`New products detected: ${newProducts}`);
+            } else {
+                countElement.style.display = 'none';
+            }
+            
+            // If it's the very first time loading and we have products, save the count
+            if (lastCount === 0 && currentCount > 0) {
+                 localStorage.setItem('lastMarketProductCount', currentCount.toString());
+            }
+
+        } catch (e) {
+            console.error('Could not check product count:', e);
+            countElement.style.display = 'none';
+        }
+    }
+
+    // This function runs when the user clicks the Marketplace card OR the menu link
+    async function handleMarketplaceClick(event) {
+        // Prevent default navigation for the menu link and the main card
+        if (event && event.preventDefault) {
+             event.preventDefault();
+        }
+
+        const countElement = document.getElementById('menuNewProductCount'); 
+        
+        try {
+            // 1. Get the current count and save it as the 'last viewed' count
+            const { count, error } = await supabase
+                .from(PRODUCTS_TABLE)
+                .select('*', { count: 'exact', head: true });
+
+            if (!error) {
+                // Update localStorage with the new count immediately
+                localStorage.setItem('lastMarketProductCount', count.toString());
+                countElement.style.display = 'none'; // Hide the badge
+            }
+        } catch(e) {
+            console.error("Error updating product count before redirect:", e);
+            // Non-blocking: continue with redirect even on error
+        }
+
+        // 2. Redirect the user 
+        window.location.href = 'market.html';
+    }
+    
+    // =================================================================================
+    // --- CHAT TRACKING LOGIC (Key section for the request) ---
+    // =================================================================================
+
+    /**
+     * Checks the Supabase 'messages' table for new messages since the last read time.
+     */
+    async function checkNewChats() {
+        // Get the timestamp when the user last read the chat
+        const lastReadTime = localStorage.getItem('last_read_chat_time');
+        
+        // If user has never read chat, don't show a badge on first load.
+        if (!lastReadTime) {
+            document.getElementById('menuNewChatCount').style.display = 'none';
+            document.getElementById('cardNewChatCount').style.display = 'none';
+            return;
+        }
+
+        // Convert stored timestamp to ISO string for Supabase query
+        // The lastReadTime stored in local storage is a string representation of the Date.now() timestamp (milliseconds since epoch)
+        const lastReadISO = new Date(parseInt(lastReadTime)).toISOString(); 
+        const chatBadgeMenu = document.getElementById('menuNewChatCount'); 
+        const chatBadgeCard = document.getElementById('cardNewChatCount'); 
+        
+        try {
+            // Query for messages created AFTER the last read time
+            // The 'messages' table has 'created_at' column, which is perfect for this.
+            const { count, error } = await supabase
+                .from('messages')
+                .select('*', { count: 'exact', head: true })
+                .gt('created_at', lastReadISO);
+
+            if (error) throw error;
+            
+            const newChats = count;
+            
+            if (newChats > 0) {
+                // Update both the bottom menu badge and the main card badge
+                chatBadgeMenu.textContent = newChats;
+                chatBadgeMenu.style.display = 'block';
+                
+                chatBadgeCard.textContent = newChats;
+                chatBadgeCard.style.display = 'block';
+            } else {
+                chatBadgeMenu.style.display = 'none';
+                chatBadgeCard.style.display = 'none';
+            }
+
+        } catch (e) {
+            console.error('Could not check new chat count:', e);
+            chatBadgeMenu.style.display = 'none';
+            chatBadgeCard.style.display = 'none';
+        }
+    }
+
+    /**
+     * Updates the last read timestamp and clears the badges.
+     * This function is called when the user clicks the Chat link or button.
+     */
+    function updateLastReadTime() {
+        // 1. Set the new last read time to now.
+        localStorage.setItem('last_read_chat_time', Date.now().toString());
+
+        // 2. Hide the badges immediately.
+        document.getElementById('menuNewChatCount').style.display = 'none';
+        document.getElementById('cardNewChatCount').style.display = 'none';
+        
+        // 3. Clear the interval that periodically checks for new chats
+        if (window._chatCheckInterval) {
+            clearInterval(window._chatCheckInterval);
+        }
+    }
+    // =================================================================================
+    // --- END CHAT TRACKING LOGIC ---
+    // =================================================================================
+
+    // =================================================================================
+    // --- NEWS TRACKING LOGIC (UPDATED WITH CARD BADGE) ---
+    // =================================================================================
+
+    /**
+     * Checks the Supabase 'articles' table for new articles since the last read time.
+     */
+    async function checkNewNews() {
+        // Get the timestamp when the user last read the news
+        const lastReadTime = localStorage.getItem('last_read_news_time');
+        
+        const newsBadgeMenu = document.getElementById('menuNewNewsCount'); 
+        const newsBadgeCard = document.getElementById('cardNewNewsCount');
+        
+        // If user has never read news, don't show a badge on first load.
+        if (!lastReadTime) {
+            newsBadgeMenu.style.display = 'none';
+            newsBadgeCard.style.display = 'none'; 
+            return;
+        }
+
+        const lastReadISO = new Date(parseInt(lastReadTime)).toISOString();
+        
+        try {
+            // Query for articles created AFTER the last read time
+            const { count, error } = await supabase
+                .from(ARTICLES_TABLE)
+                .select('*', { count: 'exact', head: true })
+                .gt('created_at', lastReadISO);
+
+            if (error) throw error;
+            
+            const newArticles = count;
+            
+            if (newArticles > 0) {
+                newsBadgeMenu.textContent = newArticles;
+                newsBadgeMenu.style.display = 'block';
+                
+                newsBadgeCard.textContent = newArticles;
+                newsBadgeCard.style.display = 'block'; 
+            } else {
+                newsBadgeMenu.style.display = 'none';
+                newsBadgeCard.style.display = 'none'; 
+            }
+
+        } catch (e) {
+            console.error('Could not check new news count:', e);
+            newsBadgeMenu.style.display = 'none';
+            newsBadgeCard.style.display = 'none';
+        }
+    }
+
+    /**
+     * Updates the last read timestamp and clears the news badge.
+     */
+    function updateLastReadNewsTime() {
+        // 1. Set the new last read time to now.
+        localStorage.setItem('last_read_news_time', Date.now().toString());
+
+        // 2. Hide the badges immediately.
+        document.getElementById('menuNewNewsCount').style.display = 'none';
+        document.getElementById('cardNewNewsCount').style.display = 'none';
+        
+        // 3. Clear the interval that periodically checks for new news
+        if (window._newsCheckInterval) {
+            clearInterval(window._newsCheckInterval);
+        }
+    }
+    // =================================================================================
+    // --- END NEWS TRACKING LOGIC (UPDATED WITH CARD BADGE) ---
+    // =================================================================================
+
+
+    // --- INITIALIZATION (Updated to ensure chat check starts) ---
     if (!storedSignedUp) {
       signupModal.style.display = 'flex';
       populateFaculties();
     } else {
       typeWelcomeMessage(storedName);
       userLevelDisplay.textContent = storedLevel ? `Level: ${storedLevel}` : '';
+      
+      // Feature Checks
+      checkNewProducts();
+      checkNewNews(); 
+      // Key Chat Check
+      checkNewChats(); 
+      
+      // Carousel Loads
+      fetchAndRenderProducts(); 
+      fetchAndRenderNews();
+      
+      // Periodic Checks
+      window._newsCheckInterval = setInterval(checkNewNews, 15000); 
+      window._chatCheckInterval = setInterval(checkNewChats, 15000); // <-- This runs the chat counter every 15s
     }
 
     function handleSignup() {
@@ -739,6 +1301,20 @@
       typeWelcomeMessage(name);
       userLevelDisplay.textContent = level ? `Level: ${level}` : '';
       alert('Sign up complete! Welcome!');
+      
+      // Run dashboard features after successful signup (Updated)
+      checkNewProducts();
+      fetchAndRenderProducts();
+      
+      checkNewNews();
+      fetchAndRenderNews();
+      
+      // Key Chat Check
+      checkNewChats(); 
+      
+      // Periodic Checks
+      window._newsCheckInterval = setInterval(checkNewNews, 15000); 
+      window._chatCheckInterval = setInterval(checkNewChats, 15000); // <-- This starts the chat counter on signup
     }
 
     function reRegister() {
@@ -760,7 +1336,7 @@
       alert('You can re-register now. Please fill out the form.');
     }
 
-    // --- NEW Modal Control Functions ---
+    // --- Modal Control Functions (Original) ---
 
     // Academics Modal
     function openAcademicsChoiceModal() {
@@ -830,7 +1406,99 @@
     function closeCommunityChoiceModal() {
         communityChoiceModal.style.display = 'none';
     }
+    
+    // =================================================================================
+    // ✅ PWA LOGIC START: Service Worker and Install Prompt Handling
+    // =================================================================================
 
+    // 1. Register the service worker for PWA
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker
+          .register('/sw.js')
+          .then(() => {
+            console.log('Service Worker registered');
+          })
+          .catch(err => {
+            console.error('SW registration failed', err);
+          });
+      });
+    }
+
+    // 2. PWA install logic for Android/Desktop
+    window.addEventListener('beforeinstallprompt', (e) => {
+      // Prevents the default browser prompt
+      e.preventDefault();       
+      deferredPrompt = e;
+      
+      // Check if it's not iOS and not already installed (standalone mode)
+      if (!isiOS() && !isInStandaloneMode()) {
+        androidPromptOverlay.style.display = 'flex'; // Show your custom Android/Desktop prompt overlay
+      }
+      console.log('PWA Install prompt saved.');
+    });
+
+    pwaInstallButton.addEventListener('click', async () => {
+      if (!deferredPrompt) {
+        console.warn('Prompt is not available.');
+        return; 
+      }
+      deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
+      console.log(`User response to the install prompt: ${outcome}`);
+      deferredPrompt = null;
+      androidPromptOverlay.style.display = 'none'; // Hide the prompt after user choice
+    });
+    
+    window.addEventListener('appinstalled', () => {
+        androidPromptOverlay.style.display = 'none'; // Ensure prompt is hidden if install succeeds
+    });
+
+    // 3. iOS Home Screen Prompt Logic
+    function isiOS() {
+        const userAgent = window.navigator.userAgent.toLowerCase();
+        return /iphone|ipad|ipod/.test(userAgent);
+    }
+    
+    function isInStandaloneMode() {
+        // This checks if the app is already installed and opened from the home screen
+        return ('standalone' in window.navigator) && (window.navigator.standalone);
+    }
+
+    window.addEventListener('load', () => {
+        // Check if it's iOS and NOT in standalone mode
+        if (isiOS() && !isInStandaloneMode()) {
+            // Show the iOS-specific prompt after a short delay
+            setTimeout(() => {
+                // Ensure the Android prompt is not showing (for cross-platform browsers on iOS)
+                if (androidPromptOverlay.style.display !== 'flex') {
+                    iosPromptOverlay.style.display = 'flex';
+                }
+            }, 3000); // 3-second delay
+        }
+    });
+
+    // =================================================================================
+    // ✅ PWA LOGIC END
+    // =================================================================================
+async function notify(title, body) {
+  if (!("Notification" in window)) {
+    console.warn("This browser does not support notifications.");
+    return;
+  }
+
+  if (Notification.permission === "granted") {
+    new Notification(title, { body, icon: "/icons/icon-192x192.png" });
+  } else if (Notification.permission !== "denied") {
+    const permission = await Notification.requestPermission();
+    if (permission === "granted") {
+      new Notification(title, { body, icon: "/icons/icon-192x192.png" });
+    }
+  }
+}
+
+// Example:
+notify("Welcome to EKSUHub 🎓", "Stay tuned for campus updates!");
   </script>
 </body>
 </html>

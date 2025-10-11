@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Eksu Hub News - Article</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+<style>
+    /* ==================================== */
+    /* --- Root Variables & Base Styling --- */
+    /* ==================================== */
+    :root {
+        --primary-color: #1f3b7d; /* Deep Blue */
+        --secondary-color: #ff8c00; /* Orange */
+        --highlight-color: #5cb8f8; /* Light Blue */
+        --text-color: #333;
+        --subtle-text: #6c757d; /* Darker gray for better readability */
+        --border-radius: 12px;
+        --card-bg: #ffffff;
+        --comment-bg: #f9f9f9; /* Light background for comment cards */
+        --shadow-light: 0 1px 3px rgba(0, 0, 0, 0.05);
+    }
+
+    body { 
+        font-family: 'Inter', sans-serif; 
+        margin: 0; 
+        padding: 0; 
+        background-color: #f4f7f9; 
+        color: var(--text-color);
+    }
+    
+    .header { 
+        background-color: var(--card-bg); 
+        color: var(--text-color); 
+        padding: 20px 0; 
+        text-align: center; 
+        margin-bottom: 20px; 
+        position: relative; 
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05); 
+    }
+    .header h1 { 
+        margin: 0; 
+        font-size: 1.6em; 
+        font-weight: 700; 
+        color: var(--highlight-color); 
+    }
+
+    .back-button {
+        position: absolute;
+        left: 20px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--highlight-color); 
+        font-size: 1.4em;
+        text-decoration: none;
+        cursor: pointer;
+        padding: 5px; 
+        transition: color 0.2s;
+    }
+    .back-button:hover {
+        color: var(--secondary-color); 
+    }
+    
+    .container { 
+        max-width: 800px; 
+        margin: 20px auto; 
+        padding: 30px; 
+        background: var(--card-bg); 
+        border-radius: 16px; 
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1); 
+    }
+
+    /* Article Content Styles */
+    .article-full-img, .article-video { 
+        width: 100%; 
+        max-height: 450px;
+        object-fit: cover; 
+        border-radius: var(--border-radius); 
+        margin-bottom: 30px; 
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    }
+    .article-full h2 { 
+        font-size: 2.8em; 
+        margin-top: 0; 
+        color: var(--text-color); 
+        line-height: 1.2;
+    }
+    .article-full .meta { 
+        color: var(--subtle-text); 
+        font-size: 1em; 
+        margin-bottom: 25px; 
+        padding-bottom: 10px;
+        border-bottom: 1px solid #eee;
+    }
+    .article-full p { 
+        line-height: 1.7; 
+        color: #444; 
+        margin-bottom: 25px; 
+        white-space: pre-wrap; 
+        font-size: 1.1em;
+    }
+
+    /* Share Button Style */
+    .share-actions { 
+        display: flex; 
+        justify-content: flex-end; 
+        padding: 20px 0 0; 
+        border-top: 1px solid #f0f0f0; 
+        margin-top: 30px; 
+    }
+    .share-button {
+        background-color: var(--secondary-color); 
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 1em;
+        font-weight: 600;
+        transition: background-color 0.3s;
+    }
+    .share-button:hover {
+        background-color: #e67e00; 
+    }
+
+    /* ==================================== */
+    /* --- MODERN COMMENT SECTION STYLES --- */
+    /* ==================================== */
+    .comments-section {
+        margin-top: 40px;
+        padding-top: 20px;
+        border-top: 2px solid #e0e0e0;
+    }
+    .comments-section h3 {
+        font-size: 1.8em;
+        color: var(--primary-color);
+        margin-bottom: 25px;
+    }
+
+    /* Comment Form */
+    .comment-form-container {
+        background-color: var(--comment-bg); /* Use light gray background */
+        padding: 25px;
+        border-radius: 10px;
+        margin-bottom: 30px;
+        box-shadow: var(--shadow-light); /* Subtle shadow */
+    }
+    .comment-form-container p {
+        font-size: 0.9em;
+        color: var(--subtle-text);
+        margin-bottom: 15px;
+    }
+    .comment-form-container strong {
+        color: var(--primary-color);
+    }
+    .comment-form-container textarea {
+        width: 100%;
+        min-height: 100px;
+        padding: 15px;
+        border-radius: 8px;
+        border: 1px solid #ddd;
+        margin-bottom: 15px;
+        box-sizing: border-box;
+        resize: vertical;
+        font-size: 1em;
+        transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .comment-form-container textarea:focus {
+        border-color: var(--highlight-color);
+        box-shadow: 0 0 0 3px rgba(92, 184, 248, 0.2); /* Focus ring effect */
+        outline: none;
+    }
+    .comment-form-container button {
+        background-color: var(--primary-color);
+        color: white;
+        border: none;
+        padding: 12px 25px;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: background-color 0.3s;
+        float: right;
+        font-weight: 600;
+    }
+    .comment-form-container button:hover {
+        background-color: #152d61;
+    }
+
+    /* Comment List Card Styling */
+    .comment-list-container {
+        display: flex;
+        flex-direction: column;
+        gap: 15px; /* Space between comment cards */
+    }
+
+    .comment-item {
+        background-color: var(--card-bg); /* White background for definition */
+        border: 1px solid #e9ecef;
+        border-radius: 10px;
+        padding: 15px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05); /* Slightly stronger shadow */
+        transition: transform 0.1s;
+    }
+    .comment-item:hover {
+        transform: translateY(-2px);
+    }
+
+    .comment-meta {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 10px;
+        border-bottom: 1px solid #f0f0f0;
+        padding-bottom: 8px;
+    }
+    .comment-meta strong {
+        color: var(--secondary-color); /* Highlight username */
+        font-weight: 700;
+        font-size: 1.1em;
+    }
+    .comment-meta span {
+        color: var(--subtle-text);
+        font-size: 0.85em;
+        /* Use a separator for clean layout */
+        margin-left: auto; /* Push date to the right */
+        padding-left: 8px;
+    }
+    .comment-content {
+        color: var(--text-color);
+        line-height: 1.5;
+        margin: 0;
+        font-size: 1em;
+    }
+
+    /* No Comments Message */
+    #commentsList p {
+        text-align: center;
+        color: var(--subtle-text);
+        padding: 20px;
+        background-color: #e9ecef;
+        border-radius: 8px;
+    }
+
+    /* Error Styles */
+    .error-message {
+        text-align: center;
+        padding: 40px;
+        background-color: #fff0f0;
+        border: 1px dashed var(--secondary-color);
+        color: #d9534f;
+        border-radius: 8px;
+        margin-top: 40px;
+    }
+</style>
+
+</head>
+<body>
+    <div class="header">
+        <a href="news.html" class="back-button" title="Back to News Feed">
+            <i class="fas fa-arrow-left"></i>
+        </a>
+        <h1>Eksu Hub News</h1>
+    </div>
+
+    <div class="container">
+        <div id="articleContainer">
+            <p style="text-align: center; color: var(--highlight-color);">Please wait, fetching article content...</p>
+        </div>
+        
+        <div class="share-actions">
+             <button class="share-button" id="shareButton">
+                <i class="fas fa-share-alt"></i> Share This Article
+            </button>
+        </div>
+
+        <div class="comments-section">
+            <h3>Comments (<span id="commentCount">0</span>)</h3>
+
+            <div class="comment-form-container">
+                <p>Posting as: <strong id="anonymousUsername">Loading...</strong></p>
+                <textarea id="commentTextarea" placeholder="Join the discussion... Type your comment here." maxlength="500"></textarea>
+                <button id="submitCommentBtn">Post Comment</button>
+                <div style="clear: both;"></div>
+            </div>
+
+            <div id="commentsList" class="comment-list-container">
+    <p>Loading comments...</p>
+</div>
+
+
+        </div>
+        </div>
+
+    <script>
+        // --- Supabase Initialization ---
+        const SUPABASE_URL = 'https://dyrsbfrvonajerbfrxzw.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR5cnNiZnJ2b25hamVyYmZyeHp3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk3NDk0ODAsImV4cCI6MjA3NTMyNTQ4MH0.mgj9f_ROkti_I3CeJ4ebYVhaLGy9Wamvj4XTtH_rB_I';
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        // ------------------------------------------------
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const articleId = urlParams.get('id');
+
+        // DOM Elements
+        const articleContainer = document.getElementById('articleContainer');
+        const shareButton = document.getElementById('shareButton');
+        const anonymousUsernameElement = document.getElementById('anonymousUsername');
+        const commentTextarea = document.getElementById('commentTextarea');
+        const submitCommentBtn = document.getElementById('submitCommentBtn');
+        const commentsList = document.getElementById('commentsList');
+        const commentCountElement = document.getElementById('commentCount');
+        
+        // ANONYMOUS USER DATA
+        let ANONYMOUS_USERNAME = '';
+        const USERNAME_KEY = 'eksu_anon_username';
+        const ADJECTIVES = [
+            'Curious', 'Smart', 'Dull', 'Brave', 'Quiet', 'Witty', 'Salty', 'Spotted', 
+            'Quick', 'Calm', 'Fierce', 'Gentle', 'Humble', 'Jolly', 'Lazy', 'Vivid'
+        ];
+        const ANIMALS = [
+            'Eagle', 'Bear', 'Rat', 'Dog', 'Fox', 'Lion', 'Tiger', 'Shark', 'Wolf', 
+            'Panda', 'Koala', 'Zebra', 'Mule', 'Hawk', 'Badger', 'Cobra'
+        ];
+
+
+        let articleTitle = "Eksu Hub News Article"; 
+        let articleUrl = window.location.href; 
+
+        // =================================================================================
+        // --- USER GENERATION & INIT ---
+        // =================================================================================
+
+        function generateUniqueUsername() {
+            const adj = ADJECTIVES[Math.floor(Math.random() * ADJECTIVES.length)];
+            const animal = ANIMALS[Math.floor(Math.random() * ANIMALS.length)];
+            const number = Math.floor(Math.random() * 99) + 1;
+            return `${adj}${animal}${number}`;
+        }
+
+        function initializeUser() {
+            let storedUsername = localStorage.getItem(USERNAME_KEY);
+            
+            if (!storedUsername) {
+                storedUsername = generateUniqueUsername();
+                localStorage.setItem(USERNAME_KEY, storedUsername);
+            }
+            
+            ANONYMOUS_USERNAME = storedUsername;
+            anonymousUsernameElement.textContent = ANONYMOUS_USERNAME;
+        }
+
+        // =================================================================================
+        // --- MAIN INITIALIZATION ---
+        // =================================================================================
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initializeUser();
+            
+            if (articleId) {
+                loadArticleDetails(articleId);
+                loadComments(articleId); // NEW: Load comments after article load starts
+            } else {
+                articleContainer.innerHTML = `
+                    <div class="error-message">
+                        <h3>Article Not Found Error</h3>
+                        <p>The link is broken. The **Article ID** is missing from the URL address.</p>
+                    </div>
+                `;
+                shareButton.disabled = true;
+            }
+            
+            // Set up listeners
+            shareButton.addEventListener('click', () => {
+                shareArticle(articleTitle, articleUrl);
+            });
+            submitCommentBtn.addEventListener('click', submitComment);
+        });
+        
+        // =================================================================================
+        // --- ARTICLE DETAIL LOADING ---
+        // =================================================================================
+
+        async function loadArticleDetails(id) {
+            const { data: article, error } = await supabase
+                .from('articles')
+                .select('id, created_at, title, content, image_url, video_url') 
+                .eq('id', id)
+                .single();
+
+            if (error || !article) {
+                const message = error ? `Supabase Error: ${error.message}` : 'No matching article found.';
+                articleContainer.innerHTML = `<div class="error-message"><h3>Article Load Error</h3><p>${message}</p></div>`;
+                shareButton.disabled = true;
+                return;
+            }
+
+            articleTitle = article.title;
+            
+            const imageSrc = article.image_url || 'https://via.placeholder.com/800x400?text=No+Image';
+            const date = new Date(article.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+
+            let videoHtml = '';
+            if (article.video_url) {
+                videoHtml = `<video class="article-video" controls src="${article.video_url}" preload="metadata">Your browser does not support the video tag.</video>`;
+            }
+            
+            articleContainer.innerHTML = `
+                <div class="article-full">
+                    <img class="article-full-img" src="${imageSrc}" alt="${article.title}">
+                    
+                    ${videoHtml} <h2>${article.title}</h2>
+                    <div class="meta">Published: ${date}</div>
+                    <p>${article.content}</p>
+                </div>
+            `;
+        }
+
+        // =================================================================================
+        // --- COMMENT LOGIC ---
+        // =================================================================================
+        
+        async function loadComments(id) {
+            commentsList.innerHTML = '<p>Loading comments...</p>';
+            try {
+                // Fetch comments ordered by newest first (created_at DESC)
+                const { data: comments, error, count } = await supabase
+                    .from('comments')
+                    .select('id, username, content, created_at', { count: 'exact' })
+                    .eq('article_id', id)
+                    .order('created_at', { ascending: false });
+
+                if (error) throw error;
+
+                // Update count display
+                commentCountElement.textContent = count;
+                
+                if (comments.length === 0) {
+                    commentsList.innerHTML = '<p>Be the first to comment on this article!</p>';
+                    return;
+                }
+
+                commentsList.innerHTML = '';
+                comments.forEach(comment => renderComment(comment));
+
+            } catch (error) {
+                console.error('Error fetching comments:', error);
+                commentsList.innerHTML = '<p style="color: red;">Failed to load comments.</p>';
+            }
+        }
+        
+        function renderComment(comment) {
+            const date = new Date(comment.created_at).toLocaleString('en-US', { dateStyle: 'short', timeStyle: 'short' });
+
+            const commentDiv = document.createElement('div');
+            commentDiv.className = 'comment-item';
+            commentDiv.innerHTML = `
+                <div class="comment-meta">
+                    <strong>${comment.username}</strong>
+                    <span>| ${date}</span>
+                </div>
+                <p class="comment-content">${comment.content}</p>
+            `;
+            // Insert the newest comment at the top of the list
+            commentsList.insertBefore(commentDiv, commentsList.firstChild);
+        }
+
+        async function submitComment() {
+            const content = commentTextarea.value.trim();
+            if (content.length < 5) {
+                alert('Comment must be at least 5 characters long.');
+                return;
+            }
+            if (!articleId) {
+                alert('Error: Article ID is missing.');
+                return;
+            }
+
+            submitCommentBtn.disabled = true;
+            submitCommentBtn.textContent = 'Posting...';
+
+            try {
+                const { data, error } = await supabase
+                    .from('comments')
+                    .insert({
+                        article_id: articleId,
+                        username: ANONYMOUS_USERNAME,
+                        content: content
+                    })
+                    .select() // Select the created row to get the created_at timestamp
+                    .single();
+
+                if (error) throw error;
+
+                // 1. Render the new comment instantly at the top
+                renderComment(data);
+
+                // 2. Update the count
+                commentCountElement.textContent = parseInt(commentCountElement.textContent) + 1;
+                
+                // 3. Clear form and provide success feedback
+                commentTextarea.value = '';
+                alert('Comment posted successfully!');
+                
+                // If the list was empty, remove the "Be the first" message
+                if (commentsList.querySelector('p') && commentsList.querySelector('p').textContent.includes('Be the first')) {
+                    commentsList.innerHTML = '';
+                }
+
+            } catch (error) {
+                console.error('Error submitting comment:', error);
+                alert('Failed to post comment. Please try again.');
+            } finally {
+                submitCommentBtn.disabled = false;
+                submitCommentBtn.textContent = 'Post Comment';
+            }
+        }
+        
+        // =================================================================================
+        // --- UTILITY FUNCTIONS (SHARE) ---
+        // =================================================================================
+        
+        function shareArticle(title, url) {
+            if (navigator.share) {
+                navigator.share({
+                    title: title,
+                    url: url
+                }).catch((error) => console.error('Error sharing:', error));
+            } else {
+                alert(`Share this link:\n\n${title}\n${url}`);
+                navigator.clipboard.writeText(`${title} - Read more: ${url}`);
+            }
+        }
+    </script>
+</body>
+</html>

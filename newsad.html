@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - Post News (Supabase Final)</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        /* CSS for simple styling */
+        body { font-family: Arial, sans-serif; margin: 20px; background-color: #f4f4f9; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); }
+        h1 { color: #333; border-bottom: 2px solid #eee; padding-bottom: 10px; }
+        label { display: block; margin-top: 15px; margin-bottom: 5px; font-weight: bold; }
+        input[type="text"], textarea, input[type="file"] { width: 100%; padding: 10px; margin-bottom: 20px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+        textarea { height: 200px; resize: vertical; }
+        button { background-color: #007bff; color: white; padding: 12px 20px; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; transition: background-color 0.3s; }
+        button:hover { background-color: #0056b3; }
+        #message { margin-top: 20px; padding: 10px; border-radius: 4px; display: none; }
+        .success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .warning { background-color: #fff3cd; color: #856404; border: 1px solid #ffeeba; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Post New Article (Supabase Final)</h1>
+        <p class="warning">
+            **Status**: RLS is configured. The code now sanitizes filenames to prevent "Invalid Key" errors.
+        </p>
+        
+        <form id="newsForm">
+            <label for="title">Article Title</label>
+            <input type="text" id="title" name="title" required>
+
+            <label for="imageFile">Upload Image (news-media bucket) - **Reduced to 40% Quality**</label>
+            <input type="file" id="imageFile" name="imageFile" accept="image/*">
+
+            <label for="videoFile">Upload Video (Optional)</label>
+            <input type="file" id="videoFile" name="videoFile" accept="video/*">
+            
+            <label for="content">Article Content (Text)</label>
+            <textarea id="content" name="content" required></textarea>
+            
+            <button type="submit" id="submitButton">Publish Article</button>
+        </form>
+
+        <div id="message"></div>
+        <p style="margin-top: 30px;"><a href="news.html">Go to News Reader Platform</a></p>
+    </div>
+
+    <script>
+        // --- Supabase Initialization ---
+        // NOTE: If you are still getting "Invalid API key" error, you MUST replace SUPABASE_ANON_KEY with your Service Role Key
+        const SUPABASE_URL = 'https://dyrsbfrvonajerbfrxzw.supabase.co';
+        // Placeholder for the correct key (replace this if needed based on the previous error)
+        const SUPABASE_AUTH_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR5cnNiZnJ2b25hamVyYmZyeHp3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk3NDk0ODAsImV4cCI6MjA3NTMyNTQ4MH0.mgj9f_ROkti_I3CeJ4ebYVhaLGy9Wamvj4XTtH_rB_I';
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_AUTH_KEY);
+        // ------------------------------------------------
+
+        // --- NEW IMAGE COMPRESSION FUNCTION (0.4 Quality) ---
+        function compressImage(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onerror = reject;
+                reader.onload = (event) => {
+                    const img = new Image();
+                    img.onerror = reject;
+                    img.onload = () => {
+                        const canvas = document.createElement('canvas');
+                        // Simple resize to make the compression more noticeable
+                        const MAX_WIDTH = 1200; 
+                        let width = img.width;
+                        let height = img.height;
+
+                        if (width > MAX_WIDTH) {
+                            height = height * (MAX_WIDTH / width);
+                            width = MAX_WIDTH;
+                        }
+                        
+                        canvas.width = width;
+                        canvas.height = height;
+
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+                        // Export as JPEG with 0.4 quality (the compression part)
+                        canvas.toBlob((blob) => {
+                            // Create a proper File object from the Blob to keep the .name property
+                            const compressedFile = new File([blob], file.name, {
+                                type: blob.type
+                            });
+                            resolve(compressedFile);
+                        }, 'image/jpeg', 0.4); 
+                    };
+                    img.src = event.target.result;
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+        
+        // --- FILENAME SANITIZATION FUNCTION ---
+        function sanitizeFilename(name){ 
+            // keep extension 
+            const idx = name.lastIndexOf('.'); 
+            const base = idx === -1 ? name : name.slice(0, idx); 
+            const ext = idx === -1 ? '' : name.slice(idx); 
+            const safe = base 
+                .normalize('NFKD') // decompose accents 
+                .replace(/[^\w\s-]/g, '') // remove invalid chars (including those dashes)
+                .trim() 
+                .replace(/\s+/g, '-') // spaces -> hyphen 
+                .replace(/-+/g,'-'); // collapse hyphens 
+            return `${safe}${ext}`; 
+        }
+
+        function displayMessage(text, className, isError = false) {
+            const messageDiv = document.getElementById('message');
+            messageDiv.textContent = text;
+            messageDiv.className = className;
+            messageDiv.style.display = 'block';
+            if (!isError) {
+                 setTimeout(() => { messageDiv.style.display = 'none'; }, 5000);
+            }
+        }
+
+        document.getElementById('newsForm').addEventListener('submit', async function(event) {
+            event.preventDefault(); 
+
+            const title = document.getElementById('title').value;
+            const content = document.getElementById('content').value;
+            // Get files from the new HTML input fields
+            const imageFile = document.getElementById('imageFile').files[0];
+            const videoFile = document.getElementById('videoFile').files[0];
+            
+            const submitButton = document.getElementById('submitButton');
+
+            if (!title || !content) {
+                displayMessage('Title and Content are required.', 'error', true);
+                return;
+            }
+
+            submitButton.disabled = true;
+            displayMessage('Publishing article...', '');
+
+            let imageUrl = null;
+            let videoUrl = null; // New variable for video URL
+            
+            try {
+                // 1. --- IMAGE FILE UPLOAD LOGIC (With Compression) ---
+                if (imageFile) {
+                    displayMessage('Compressing and uploading image...', 'warning');
+
+                    // 1a. Compress the image (reduces size and sets 0.4 quality)
+                    const compressedImage = await compressImage(imageFile);
+                    
+                    // 1b. Upload the compressed image
+                    const safeFileName = sanitizeFilename(compressedImage.name);
+                    const filePath = `articles/${Date.now()}-${safeFileName}`;
+                    
+                    const { error: uploadError } = await supabase.storage
+                        .from('news-media') 
+                        .upload(filePath, compressedImage, { // Use compressedImage here
+                            cacheControl: '3600',
+                            upsert: false 
+                        });
+
+                    if (uploadError) {
+                        console.error('Upload Error Details (Image):', uploadError);
+                        throw new Error(`STORAGE UPLOAD FAILED (Image): ${uploadError.message}.`); 
+                    }
+
+                    const { data: publicUrlData } = supabase.storage
+                        .from('news-media')
+                        .getPublicUrl(filePath);
+                    
+                    imageUrl = publicUrlData.publicUrl;
+                    displayMessage(`Image uploaded successfully.`, 'success');
+                }
+
+                // 2. --- VIDEO FILE UPLOAD LOGIC ---
+                if (videoFile) {
+                    displayMessage('Uploading video...', 'warning');
+                    
+                    const safeFileName = sanitizeFilename(videoFile.name);
+                    const filePath = `videos/${Date.now()}-${safeFileName}`; // Store videos separately
+                    
+                    const { error: uploadError } = await supabase.storage
+                        .from('news-media') 
+                        .upload(filePath, videoFile, { 
+                            cacheControl: '3600',
+                            upsert: false 
+                        });
+
+                    if (uploadError) {
+                        console.error('Upload Error Details (Video):', uploadError);
+                        throw new Error(`STORAGE UPLOAD FAILED (Video): ${uploadError.message}.`); 
+                    }
+
+                    const { data: publicUrlData } = supabase.storage
+                        .from('news-media')
+                        .getPublicUrl(filePath);
+                    
+                    videoUrl = publicUrlData.publicUrl;
+                    displayMessage(`Video uploaded successfully. Proceeding to database insert.`, 'success');
+                }
+
+                // 3. --- DATABASE INSERT LOGIC (Now includes video_url) ---
+                const articleData = {
+                    title: title,
+                    content: content,
+                    image_url: imageUrl,
+                    video_url: videoUrl // NEW: Include the video URL
+                };
+
+                const { data: insertData, error: insertError } = await supabase
+                    .from('articles')
+                    .insert([articleData])
+                    .select();
+
+                if (insertError) {
+                    const specificError = insertError.message.includes('row violates row-level security policy')
+                        ? `DB INSERT FAILED: RLS policy on 'articles' denied the request.`
+                        : `DB INSERT FAILED: ${insertError.message}`;
+                    
+                    throw new Error(specificError);
+                }
+
+                displayMessage(`Article "${title}" successfully published! (ID: ${insertData[0].id})`, 'success');
+                document.getElementById('newsForm').reset();
+
+            } catch (error) {
+                console.error('Final Publishing Error:', error);
+                
+                const displayMessageText = error.message.includes('RLS') || error.message.includes('STORAGE') || error.message.includes('DB INSERT') || error.message.includes('Invalid key')
+                    ? error.message 
+                    : `An unknown error occurred: ${error.message}`;
+
+                displayMessage(displayMessageText, 'error', true);
+            } finally {
+                submitButton.disabled = false;
+            }
+        });
+        
+    </script>
+</body>
+</html>

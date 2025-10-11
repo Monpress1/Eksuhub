@@ -1,0 +1,831 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CBT - AI Generated Quiz</title>
+    <style>
+        /* CSS Styling */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(to right, lightblue, purple); /* Gradient background */
+            color: #333;
+            flex-direction: column; /* For profile section below quiz */
+            padding: 20px; /* Add some padding for overall content */
+            box-sizing: border-box;
+        }
+
+        .quiz-container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+            width: 90%;
+            max-width: 600px;
+            text-align: center;
+            margin-bottom: 40px; /* Space between quiz and profile */
+            position: relative; /* Needed for absolute positioning of next button */
+            min-height: 400px; /* Ensure enough space for the button at the bottom */
+        }
+
+        .start-screen h1 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        .start-button, .option-button, .action-button, .next-button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1.1em;
+            margin: 10px 5px;
+            transition: background-color 0.3s ease;
+        }
+
+        .start-button:hover, .option-button:not(.selected):hover, .action-button:hover, .next-button:hover {
+            background-color: #0056b3;
+        }
+
+        /* Input field for course title */
+        #course-input {
+            padding: 10px;
+            margin: 15px 0 20px;
+            width: 80%;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 1.1em;
+            box-sizing: border-box;
+        }
+
+        /* NEW: Progress Bar Styles */
+        #progressBarContainer {
+            width: 80%;
+            max-width: 450px;
+            margin: 20px auto 0;
+            height: 20px;
+            background-color: #e0e0e0;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.2);
+        }
+        #progressBar {
+            height: 100%;
+            width: 0;
+            background-color: #007bff;
+            border-radius: 10px;
+            transition: width 0.4s ease; /* Smooth transition for updates */
+            text-align: center;
+            line-height: 20px;
+            color: white;
+            font-size: 0.8em;
+        }
+
+        .quiz-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+
+        .timer {
+            color: orangered;
+        }
+
+        .question-text {
+            font-size: 1.4em;
+            margin-bottom: 25px;
+            color: #444;
+        }
+
+        .options-container {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 70px;
+        }
+
+        .option-button {
+            background-color: #f0f0f0;
+            color: #333;
+            border: 1px solid #ddd;
+            width: 100%;
+            text-align: left;
+            padding: 10px 18px;
+            font-size: 1em;
+        }
+
+        .option-button.selected {
+            background-color: green; /* Turn green when picked */
+            color: white;
+            border-color: green;
+        }
+
+        .next-button {
+            position: absolute; /* Position relative to .quiz-container */
+            bottom: 20px;
+            right: 30px;
+            background-color: #28a745; /* Green color */
+            padding: 10px 20px;
+            font-size: 1em;
+        }
+
+        .next-button:hover {
+            background-color: #218838; /* Darker green on hover */
+        }
+
+        .results-screen h2 {
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .results-screen p {
+            font-size: 1.2em;
+            margin-bottom: 15px;
+        }
+
+        .results-buttons {
+            margin-top: 30px;
+        }
+
+        .profile-container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            width: 90%;
+            max-width: 600px;
+            text-align: center;
+        }
+
+        .profile-container h2 {
+            color: #333;
+            margin-bottom: 25px;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 10px;
+        }
+
+        .quiz-history-item {
+            border: 1px solid #eee;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            background-color: #f9f9f9;
+            text-align: left;
+        }
+
+        .quiz-history-item p {
+            margin: 5px 0;
+            font-size: 0.95em;
+        }
+
+        .clear-history-button {
+            background-color: #dc3545; /* Red color for clear history */
+            margin-top: 20px;
+        }
+
+        .clear-history-button:hover {
+            background-color: #c82333;
+        }
+
+        /* Hidden states */
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="quiz-container">
+        <div id="start-screen" class="start-screen">
+            <h1 id="start-subject-title">AI Quiz Generator</h1>
+            <p>Enter a course title (e.g., **Bio 101**, **Introduction to Chemistry**, **History of Computers**):</p>
+            <input type="text" id="course-input" placeholder="Course Title (e.g. Bio 101)">
+            
+            <div id="progressBarContainer" class="hidden">
+                <div id="progressBar">0%</div>
+            </div>
+            <p id="loading-message" style="color: blue; font-weight: bold;" class="hidden">Generating questions, please wait...</p>
+            
+            <p id="error-message" style="color: red; font-weight: bold;" class="hidden">Failed to generate questions. Please try again.</p>
+            <button id="start-quiz-button" class="start-button">Generate & Start Quiz</button>
+            <p style="margin-top: 20px;">GOOD LUCK.</p>
+        </div>
+
+        <div id="quiz-screen" class="hidden">
+            <div class="quiz-header">
+                <span id="question-counter">Question 1/X</span>
+                <span id="timer" class="timer">20s</span>
+            </div>
+            <p id="question-text" class="question-text">Question will appear here...</p>
+            <div id="options-container" class="options-container">
+            </div>
+            <button id="next-question-button" class="next-button">Next Question</button>
+        </div>
+
+        <div id="results-screen" class="hidden">
+            <h2>Quiz Complete!</h2>
+            <p>You scored: <span id="score-display">0</span>/<span id="total-questions-display">0</span></p>
+            <p>Percentage: <span id="percentage-display">0%</span></p>
+            <div class="results-buttons">
+                <button id="show-failed-answers-button" class="action-button">See Failed Answers</button>
+                <button id="new-quiz-button" class="action-button">Start New Quiz</button>
+            </div>
+            <div id="failed-answers-container" class="hidden" style="margin-top: 20px; text-align: left;">
+                <h3>Questions You Missed:</h3>
+                <ul id="missed-questions-list" style="list-style-type: none; padding: 0;"></ul>
+            </div>
+        </div>
+    </div>
+
+    <div id="profile-section" class="profile-container hidden">
+        <h2>Quiz History</h2>
+        <div id="quiz-history-display">
+            <p id="no-history-message">No quiz history available yet.</p>
+        </div>
+        <button id="clear-history-button" class="action-button clear-history-button hidden">Clear History</button>
+    </div>
+
+    <script>
+        // ========= CONFIGURATION - DO NOT EXPOSE IN PRODUCTION =========
+        // NOTE: Replace with your actual key or use a secure backend.
+        const GEMINI_KEY = "AIzaSyA8IEtJhgsH-SSoZ-XrSWbcwj3_9G1ANOk"; 
+        const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_KEY}`; 
+        // ===============================================================
+
+        // Elements
+        const startScreen = document.getElementById('start-screen');
+        const quizScreen = document.getElementById('quiz-screen');
+        const resultsScreen = document.getElementById('results-screen');
+        const startQuizButton = document.getElementById('start-quiz-button');
+        const courseInput = document.getElementById('course-input');
+        const loadingMessage = document.getElementById('loading-message');
+        const errorMessage = document.getElementById('error-message');
+        const questionText = document.getElementById('question-text');
+        const optionsContainer = document.getElementById('options-container');
+        const questionCounter = document.getElementById('question-counter');
+        const timerDisplay = document.getElementById('timer');
+        const nextQuestionButton = document.getElementById('next-question-button');
+        const scoreDisplay = document.getElementById('score-display');
+        const totalQuestionsDisplay = document.getElementById('total-questions-display');
+        const percentageDisplay = document.getElementById('percentage-display');
+        const showFailedAnswersButton = document.getElementById('show-failed-answers-button');
+        const newQuizButton = document.getElementById('new-quiz-button');
+        const failedAnswersContainer = document.getElementById('failed-answers-container');
+        const missedQuestionsList = document.getElementById('missed-questions-list');
+        const startSubjectTitle = document.getElementById('start-subject-title');
+
+        // Progress Bar Element
+        const progressBarContainer = document.getElementById('progressBarContainer');
+        const progressBar = document.getElementById('progressBar');
+
+        // Profile elements
+        const profileSection = document.getElementById('profile-section');
+        const quizHistoryDisplay = document.getElementById('quiz-history-display');
+        const clearHistoryButton = document.getElementById('clear-history-button');
+        const noHistoryMessage = document.getElementById('no-history-message');
+
+        // Variables for quiz state
+        let currentQuizSubject = null; 
+        let currentQuizQuestions = []; 
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let timeLeft = 20;
+        let timerInterval;
+        let startTime; 
+        let userAnswers = [];
+        let currentSelectedOptionButton = null; 
+        let currentSelectedAnswerText = null; 
+        let progressInterval; // New variable for smooth progress
+
+        const QUIZ_DURATION_PER_QUESTION = 20;
+        const NUM_QUESTIONS_TO_ASK = 20;
+
+        // Helper function to update the progress bar display
+        function updateProgressBar(percentage) {
+            progressBar.style.width = `${percentage}%`;
+            progressBar.textContent = `${percentage}%`;
+        }
+
+        // Simulates smooth progress between two values over a fixed time
+        function simulateProgress(startPercent, endPercent, durationMs) {
+            clearInterval(progressInterval);
+            let current = startPercent;
+            const step = (endPercent - startPercent) / (durationMs / 100); // Progress per 100ms
+            
+            return new Promise(resolve => {
+                progressInterval = setInterval(() => {
+                    current += step;
+                    if (current >= endPercent) {
+                        clearInterval(progressInterval);
+                        updateProgressBar(endPercent);
+                        resolve();
+                        return;
+                    }
+                    updateProgressBar(Math.floor(current));
+                }, 100);
+            });
+        }
+        
+        // --- AI Question Generation Logic ---
+        async function generateAndLoadQuestions() {
+            const subject = courseInput.value.trim();
+            if (!subject) {
+                alert("Please enter a course title.");
+                return;
+            }
+            
+            // Set up UI for loading
+            currentQuizSubject = subject.toUpperCase();
+            startSubjectTitle.textContent = `${currentQuizSubject} CBT`;
+            startQuizButton.disabled = true;
+            loadingMessage.classList.remove('hidden');
+            errorMessage.classList.add('hidden');
+            progressBarContainer.classList.remove('hidden');
+            updateProgressBar(0);
+
+            currentQuizQuestions = [];
+            
+            try {
+                // 1. Initial simulation (e.g., setting up the request, network latency)
+                await simulateProgress(0, 40, 3000); // 3 seconds to reach 40%
+
+                const prompt = `
+                    Generate ${NUM_QUESTIONS_TO_ASK} multiple-choice questions for the course titled "${subject}".
+                    Each question must have exactly 4 options and one correct answer.
+                    The questions should be appropriate for an introductory/100-level course.
+                    The response MUST be a single JSON array object, adhering strictly to the following structure:
+                    [
+                        {
+                            "question": "The text of the question?",
+                            "options": ["Option A", "Option B", "Option C", "Option D"],
+                            "answer": "The text of the correct option (must match one of the options exactly)"
+                        },
+                        ... (repeat for all ${NUM_QUESTIONS_TO_ASK} questions)
+                    ]
+                    Do not include any introductory or concluding text, notes, or markdown formatting other than the JSON object itself.
+                `;
+
+                const requestBody = {
+                    contents: [{ role: "user", parts: [{ text: prompt }] }],
+                    generationConfig: { 
+                        temperature: 0.7,
+                    }
+                };
+
+                // 2. API Call (Simulate progress during fetch and generation)
+                const fetchPromise = fetch(GEMINI_API_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(requestBody),
+                });
+
+                // Start simulating progress from 40% to 70% during the actual fetch/generation
+                const progressPromise = simulateProgress(40, 70, 5000); // 5 seconds to reach 70%
+
+                // Wait for both the fetch and the progress simulation to finish
+                const response = await fetchPromise;
+                await progressPromise; // Ensures the simulation doesn't stop instantly if fetch is super fast
+
+                // 3. Post-fetch processing (Reading and parsing the response)
+                updateProgressBar(70); 
+
+                if (!response.ok) {
+                    const errorStatus = response.status;
+                    const errorText = await response.text();
+                    throw new Error(`API call failed with status ${errorStatus}: ${errorText.substring(0, 100)}...`);
+                }
+
+                const data = await response.json();
+                const responseText = data.candidates[0].content.parts[0].text.trim();
+                
+                // Simulate progress during parsing
+                await simulateProgress(70, 95, 500); // 0.5 seconds for parsing
+
+                let jsonString = responseText;
+                if (jsonString.startsWith('```json')) {
+                    jsonString = jsonString.substring(7);
+                }
+                if (jsonString.endsWith('```')) {
+                    jsonString = jsonString.substring(0, jsonString.length - 3);
+                }
+                jsonString = jsonString.trim();
+
+                const questions = JSON.parse(jsonString);
+
+                if (Array.isArray(questions) && questions.length > 0) {
+                    shuffleArray(questions);
+                    currentQuizQuestions = questions.slice(0, NUM_QUESTIONS_TO_ASK);
+                    
+                    // Final progress update
+                    updateProgressBar(100);
+                    
+                    // Wait briefly for progress bar to finish before starting quiz
+                    setTimeout(startQuiz, 500); 
+
+                } else {
+                    throw new Error("AI generated questions were not in the correct array format or were empty.");
+                }
+
+            } catch (err) {
+                console.error("Error generating or parsing questions:", err);
+                clearInterval(progressInterval); // Stop any running simulation
+                const displayMessage = err.message.includes('JSON') || err.message.includes('Unexpected token') 
+                    ? "The AI did not return valid JSON. Please try again with a simpler prompt." 
+                    : `Reason: ${err.message}. Please try again.`;
+                errorMessage.textContent = `Failed to generate questions for "${subject}". ${displayMessage}`;
+                errorMessage.classList.remove('hidden');
+                startQuizButton.disabled = false;
+                progressBarContainer.classList.add('hidden');
+                loadingMessage.classList.add('hidden');
+            }
+        }
+        // --- End AI Question Generation Logic ---
+
+
+        // Shuffle function to randomize questions
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
+
+        function startQuiz() {
+            startScreen.classList.add('hidden');
+            quizScreen.classList.remove('hidden');
+            profileSection.classList.add('hidden'); 
+            // Clear loading elements
+            clearInterval(progressInterval); 
+            loadingMessage.classList.add('hidden');
+            progressBarContainer.classList.add('hidden');
+
+            currentQuestionIndex = 0;
+            score = 0;
+            userAnswers = Array(currentQuizQuestions.length).fill(null); 
+            startTime = Date.now(); 
+            startQuizButton.disabled = false; 
+
+            displayQuestion();
+            startTimer();
+            updateNextButtonText(); 
+        }
+
+        function displayQuestion() {
+            // ... (rest of displayQuestion function is unchanged)
+            if (currentQuestionIndex < currentQuizQuestions.length) {
+                const question = currentQuizQuestions[currentQuestionIndex];
+                questionText.textContent = `Q${currentQuestionIndex + 1}. ${question.question}`;
+                optionsContainer.innerHTML = '';
+                currentSelectedOptionButton = null;
+                currentSelectedAnswerText = null;
+
+                const optionLabels = ['A', 'B', 'C', 'D'];
+                
+                const shuffledOptions = [...question.options];
+                shuffleArray(shuffledOptions);
+
+                shuffledOptions.forEach((option, index) => {
+                    const button = document.createElement('button');
+                    button.classList.add('option-button');
+                    button.textContent = `${optionLabels[index]}) ${option}`; 
+                    button.addEventListener('click', () => selectOption(button, option));
+                    optionsContainer.appendChild(button);
+                });
+
+                questionCounter.textContent = `Question ${currentQuestionIndex + 1}/${currentQuizQuestions.length}`;
+                timeLeft = QUIZ_DURATION_PER_QUESTION; // Reset timer for each question
+                timerDisplay.textContent = `${timeLeft}s`;
+                updateNextButtonText();
+                nextQuestionButton.disabled = true; // Disable next button until an option is selected
+            } else {
+                endQuiz();
+            }
+        }
+
+        function selectOption(button, selectedAnswer) {
+            if (currentSelectedOptionButton) {
+                currentSelectedOptionButton.classList.remove('selected');
+            }
+
+            button.classList.add('selected');
+            currentSelectedOptionButton = button;
+            currentSelectedAnswerText = selectedAnswer;
+            nextQuestionButton.disabled = false;
+        }
+
+        function updateNextButtonText() {
+            if (currentQuestionIndex === currentQuizQuestions.length - 1) {
+                nextQuestionButton.textContent = "Submit";
+            } else {
+                nextQuestionButton.textContent = "Next Question";
+            }
+        }
+
+        function nextQuestion() {
+            if (currentSelectedAnswerText === null) {
+                alert("Please select an answer before proceeding.");
+                return;
+            }
+            checkAnswer();
+            currentQuestionIndex++;
+            displayQuestion();
+            startTimer();
+        }
+
+        function checkAnswer() {
+            const question = currentQuizQuestions[currentQuestionIndex];
+            const isCorrect = (currentSelectedAnswerText === question.answer);
+
+            userAnswers[currentQuestionIndex] = {
+                question: question.question,
+                userAnswer: currentSelectedAnswerText || "No answer selected (Time out)",
+                correctAnswer: question.answer,
+                isCorrect: isCorrect,
+                options: question.options
+            };
+
+            if (isCorrect) {
+                score++;
+            }
+        }
+
+        function startTimer() {
+            clearInterval(timerInterval);
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                timerDisplay.textContent = `${timeLeft}s`;
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    if (currentSelectedAnswerText === null) {
+                        const question = currentQuizQuestions[currentQuestionIndex];
+                        userAnswers[currentQuestionIndex] = {
+                            question: question.question,
+                            userAnswer: "No answer selected (Time out)",
+                            correctAnswer: question.answer,
+                            isCorrect: false,
+                            options: question.options
+                        };
+                    }
+                    currentQuestionIndex++;
+                    displayQuestion();
+                }
+            }, 1000);
+        }
+
+        function endQuiz() {
+            clearInterval(timerInterval);
+            quizScreen.classList.add('hidden');
+            resultsScreen.classList.remove('hidden');
+            profileSection.classList.remove('hidden');
+
+            const totalQuestions = currentQuizQuestions.length;
+            scoreDisplay.textContent = score;
+            totalQuestionsDisplay.textContent = totalQuestions;
+            const percentage = (score / totalQuestions) * 100;
+            percentageDisplay.textContent = `${percentage.toFixed(2)}%`;
+
+            // Save quiz history
+            saveQuizHistory(currentQuizSubject, score, totalQuestions, percentage.toFixed(2), userAnswers);
+            
+            // Save missed questions array for specific review page/logic
+            const missedAnswers = userAnswers.filter(answer => answer && !answer.isCorrect);
+            localStorage.setItem('missedQuestionsReview', JSON.stringify(missedAnswers));
+            
+            displayQuizHistory();
+
+            missedQuestionsList.innerHTML = '';
+            failedAnswersContainer.classList.add('hidden');
+        }
+
+        function saveQuizHistory(subjectName, score, totalQuestions, percentage, answers) {
+            let history = JSON.parse(localStorage.getItem('quizHistory')) || [];
+            const endTime = Date.now();
+            const totalTimeSeconds = ((endTime - startTime) / 1000);
+            const timeTakenMinutes = (totalTimeSeconds / 60).toFixed(2);
+
+            history.push({
+                course: subjectName,
+                date: new Date().toLocaleString(),
+                score: score,
+                total: totalQuestions,
+                percentage: percentage,
+                timeTaken: timeTakenMinutes,
+                allAnswers: answers
+            });
+            localStorage.setItem('quizHistory', JSON.stringify(history));
+        }
+
+        function displayQuizHistory() {
+            const history = JSON.parse(localStorage.getItem('quizHistory')) || [];
+            quizHistoryDisplay.innerHTML = '';
+
+            if (history.length === 0) {
+                noHistoryMessage.classList.remove('hidden');
+                clearHistoryButton.classList.add('hidden');
+            } else {
+                noHistoryMessage.classList.add('hidden');
+                clearHistoryButton.classList.remove('hidden');
+                // Displaying from newest to oldest
+                [...history].reverse().forEach((entry, index) => { 
+                    const historyItem = document.createElement('div');
+                    historyItem.classList.add('quiz-history-item');
+                    // history.length - 1 - index calculates the original (un-reversed) array index
+                    historyItem.innerHTML = `
+                        <p><strong>Subject:</strong> ${entry.course}</p>
+                        <p><strong>Date:</strong> ${entry.date}</p>
+                        <p>Score: ${entry.score}/${entry.total} (${entry.percentage}%)</p>
+                        <p>Time Taken: ${entry.timeTaken} minutes</p>
+                        <button class="action-button" onclick="showSpecificFailedAnswers(${history.length - 1 - index})">Review Missed</button>
+                    `;
+                    quizHistoryDisplay.appendChild(historyItem);
+                });
+            }
+        }
+
+        // This is a global function for history review buttons
+        window.showSpecificFailedAnswers = function(historyIndex) {
+            const history = JSON.parse(localStorage.getItem('quizHistory')) || [];
+            const entry = history[historyIndex];
+
+            missedQuestionsList.innerHTML = '';
+            failedAnswersContainer.classList.remove('hidden');
+
+            if (entry && entry.allAnswers && entry.allAnswers.length > 0) {
+                const missed = entry.allAnswers.filter(answer => answer && !answer.isCorrect);
+
+                if (missed.length > 0) {
+                    missed.forEach((missedAnswer, idx) => {
+                        const listItem = document.createElement('li');
+                        
+                        const displayUserAnswer = missedAnswer.userAnswer;
+                        const displayCorrectAnswer = missedAnswer.correctAnswer;
+
+                        listItem.innerHTML = `
+                            <p><strong>Question ${idx + 1}:</strong> ${missedAnswer.question}</p>
+                            <p style="color: red;"><strong>Your Answer:</strong> ${displayUserAnswer}</p>
+                            <p style="color: green;"><strong>Correct Answer:</strong> ${displayCorrectAnswer}</p>
+                            <hr>
+                        `;
+                        missedQuestionsList.appendChild(listItem);
+                    });
+                } else {
+                    missedQuestionsList.innerHTML = '<li>Great job! You answered all questions correctly in this quiz.</li>';
+                }
+            } else {
+                missedQuestionsList.innerHTML = '<li>No answer data available for this quiz.</li>';
+            }
+        }
+
+        function clearQuizHistory() {
+            if (confirm("Are you sure you want to clear all quiz history?")) {
+                localStorage.removeItem('quizHistory');
+                localStorage.removeItem('missedQuestionsReview');
+                localStorage.removeItem('selectedCourse'); // Also clear the auto-start course
+                displayQuizHistory();
+                profileSection.classList.add('hidden');
+                resetStartScreen(); // Ensure screen state is clean
+            }
+        }
+
+        function resetStateVariables() {
+            currentQuizQuestions = [];
+            currentQuizSubject = null;
+            clearInterval(timerInterval);
+            clearInterval(progressInterval); // Clear progress interval
+            currentQuestionIndex = 0;
+            score = 0;
+            userAnswers = [];
+            currentSelectedOptionButton = null;
+            currentSelectedAnswerText = null;
+        }
+
+        function resetStartScreen() {
+            resetStateVariables();
+            
+            // Update UI to start screen
+            startScreen.classList.remove('hidden');
+            quizScreen.classList.add('hidden');
+            resultsScreen.classList.add('hidden');
+            
+            // Hide loading elements
+            loadingMessage.classList.add('hidden');
+            progressBarContainer.classList.add('hidden');
+            
+            // Profile section visibility
+            displayQuizHistory(); 
+            const history = JSON.parse(localStorage.getItem('quizHistory'));
+            if (history && history.length > 0) {
+                profileSection.classList.remove('hidden');
+            } else {
+                profileSection.classList.add('hidden');
+            }
+            
+            failedAnswersContainer.classList.add('hidden');
+            startSubjectTitle.textContent = "AI Quiz Generator";
+            courseInput.value = localStorage.getItem('selectedCourse') || ""; // Pre-populate from storage
+        }
+
+        function displayLastQuizResults() {
+            const history = JSON.parse(localStorage.getItem('quizHistory')) || [];
+            
+            if (history.length > 0) {
+                // Hide loading elements
+                loadingMessage.classList.add('hidden');
+                progressBarContainer.classList.add('hidden');
+                
+                const lastEntry = history[history.length - 1];
+                
+                // Hide start screen, show results screen
+                startScreen.classList.add('hidden');
+                quizScreen.classList.add('hidden');
+                resultsScreen.classList.remove('hidden');
+                profileSection.classList.remove('hidden');
+
+                // Populate results fields
+                scoreDisplay.textContent = lastEntry.score;
+                totalQuestionsDisplay.textContent = lastEntry.total;
+                percentageDisplay.textContent = `${lastEntry.percentage}%`;
+                
+                // Set the current subject title
+                startSubjectTitle.textContent = `${lastEntry.course} CBT`;
+                
+                // Populate the course input box 
+                courseInput.value = lastEntry.course; 
+                
+                // Re-use the display logic to show the missed questions for the LAST quiz
+                showSpecificFailedAnswers(history.length - 1);
+                
+                // Load the full answers array into state variables for possible future use
+                userAnswers = lastEntry.allAnswers; 
+                currentQuizQuestions = lastEntry.allAnswers.map(a => ({ 
+                    question: a.question, 
+                    options: a.options, 
+                    answer: a.correctAnswer 
+                }));
+                currentQuizSubject = lastEntry.course;
+
+                console.log("Displayed last quiz results from history.");
+                return true;
+            }
+            return false;
+        }
+
+        // Event Listeners
+        startQuizButton.addEventListener('click', generateAndLoadQuestions); 
+        nextQuestionButton.addEventListener('click', nextQuestion);
+        newQuizButton.addEventListener('click', resetStartScreen); 
+
+        showFailedAnswersButton.addEventListener('click', () => {
+            const history = JSON.parse(localStorage.getItem('quizHistory')) || [];
+            if (history.length > 0) {
+                showSpecificFailedAnswers(history.length - 1);
+            }
+        });
+
+        clearHistoryButton.addEventListener('click', clearQuizHistory);
+
+        // Initial setup on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            // 1. Check for 'selectedCourse' in localStorage
+            const storedCourse = localStorage.getItem('selectedCourse');
+            
+            // 2. If a course is selected, auto-start immediately (after 1 second delay as requested).
+            if (storedCourse) {
+                courseInput.value = storedCourse; // Set the input value
+                // Show the start screen, but disable the button and show the loader right away
+                startScreen.classList.remove('hidden');
+                startQuizButton.disabled = true;
+                
+                // Ensure the "Generating" message is shown before the delay
+                loadingMessage.classList.remove('hidden');
+                progressBarContainer.classList.remove('hidden');
+                
+                // The requested 1 second delay before the AI call
+                setTimeout(generateAndLoadQuestions, 1000); 
+                
+            } else {
+                // 3. If no course is selected, check for history.
+                const resultsDisplayed = displayLastQuizResults();
+
+                if (!resultsDisplayed) {
+                    // No course and no history, show the clean start screen
+                    resetStartScreen(); 
+                }
+            }
+            
+            // 4. Always display the full history panel at the bottom (if there is history)
+            displayQuizHistory(); 
+        });
+    </script>
+</body>
+</html>

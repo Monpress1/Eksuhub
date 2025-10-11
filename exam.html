@@ -3,40 +3,75 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Welcome to the University Portal</title>
+    <title>University Portal Loading</title>
     <style>
+        /* Base styles - Switched to White Background Theme */
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Consolas', 'Courier New', monospace;
             display: flex;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
             margin: 0;
-            background-color: #e0f2f7;
-            color: #333;
+            background-color: #ffffff; /* White background */
+            color: #333; /* Dark text */
             text-align: center;
+            overflow: hidden;
         }
         .message-box {
-            background: #fff;
+            background: #f7f7f7; /* Light grey box */
             padding: 30px 40px;
             border-radius: 10px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
             max-width: 400px;
+            border: 1px solid #ccc;
         }
         h1 {
-            color: #007bff;
+            color: #007bff; /* Blue title */
             margin-bottom: 20px;
+            text-transform: uppercase;
+            font-size: 1.5em;
         }
-        p {
+
+        /* Status Area */
+        #statusArea {
+            /* Increased height to accommodate four lines of text */
+            min-height: 8em; 
+            text-align: left;
+            margin-bottom: 15px;
             font-size: 1.1em;
             color: #555;
         }
+        .status-line {
+            white-space: nowrap;
+            overflow: hidden;
+            border-right: .15em solid transparent;
+            padding-bottom: 5px;
+        }
+        .typing-cursor {
+            border-right: .15em solid #007bff; /* Blue cursor */
+            animation: blink-caret .75s step-end infinite;
+        }
+
+        /* Glitch Effect - Subtler Version */
+        .glitch-subtle {
+            animation: subtle-glitch 0.2s 3 alternate;
+        }
+        @keyframes subtle-glitch {
+            0% { transform: translateX(0); text-shadow: 1px 0 #ff0000, -1px 0 #0000ff; opacity: 0.98; }
+            50% { transform: translateX(-1px); text-shadow: 0.5px 0 #ff0000, -0.5px 0 #0000ff; opacity: 1; }
+            100% { transform: translateX(1px); text-shadow: 1px 0 #ff0000, -1px 0 #0000ff; opacity: 0.98; }
+        }
+
+        /* Countdown */
         #countdown {
             font-size: 1.8em;
             font-weight: bold;
-            color: #dc3545;
+            color: #dc3545; /* Red for countdown */
             margin-top: 15px;
         }
+
+        /* Error/Button styles */
         .error-message {
             color: red;
             font-weight: bold;
@@ -56,55 +91,128 @@
         .btn:hover {
             background-color: #0056b3;
         }
+
+        /* Cursor blinking animation */
+        @keyframes blink-caret {
+            from, to { border-color: transparent }
+            50% { border-color: #007bff }
+        }
     </style>
 </head>
 <body>
 
-    <div class="message-box">
-        <h1>Loading Your level...</h1>
-        <p id="statusMessage">Please wait while we determine your current academic level.</p>
-        <p id="levelDisplay" style="font-size: 1.2em; font-weight: bold; color: #007bff;"></p>
-        <p id="countdown"></p>
+    <div class="message-box" id="messageBox">
+        <h1>Loading User Profile</h1>
+        <div id="statusArea">
+            <p id="nameStatus" class="status-line"></p>
+            <p id="facultyStatus" class="status-line"></p>
+            <p id="departmentStatus" class="status-line"></p>
+            <p id="levelStatus" class="status-line"></p>
+        </div>
+        <p id="countdown" style="display:none;"></p>
         <div id="errorSection" class="error-message" style="display:none;"></div>
     </div>
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            const statusMessage = document.getElementById('statusMessage');
-            const levelDisplay = document.getElementById('levelDisplay');
+            // DOM Elements
+            const nameStatusEl = document.getElementById('nameStatus');
+            const facultyStatusEl = document.getElementById('facultyStatus');
+            const departmentStatusEl = document.getElementById('departmentStatus');
+            const levelStatusEl = document.getElementById('levelStatus');
             const countdownDisplay = document.getElementById('countdown');
             const errorSection = document.getElementById('errorSection');
+            const messageBox = document.getElementById('messageBox');
 
+            // Data from Local Storage
+            const userData = {
+                name: localStorage.getItem('name'),
+                faculty: localStorage.getItem('faculty'),
+                department: localStorage.getItem('department'),
+                level: localStorage.getItem('level')
+            };
+
+            const userLevel = userData.level;
             let countdownValue = 3;
+            const typingSpeed = 25;
 
-            const userLevel = localStorage.getItem('level');
-            console.log("Checking user level from localStorage:", userLevel);
+            // --- Typewriter Function ---
+            function typeWriter(text, element, speed, callback) {
+                let i = 0;
+                element.textContent = '';
+                element.classList.add('typing-cursor');
 
-            if (userLevel) {
-                statusMessage.textContent = `. `;
-                levelDisplay.textContent = `Level: ${userLevel}`; // Display the level
-                countdownDisplay.textContent = countdownValue;
-
-                const timer = setInterval(() => {
-                    countdownValue--;
-                    countdownDisplay.textContent = countdownValue;
-
-                    if (countdownValue <= 0) {
-                        clearInterval(timer);
-                        const targetPage = `${userLevel}lvl.html`;
-                        console.log(`Redirecting to: ${targetPage}`);
-                        window.location.href = targetPage;
+                function type() {
+                    if (i < text.length) {
+                        element.textContent += text.charAt(i);
+                        i++;
+                        setTimeout(type, speed);
+                    } else {
+                        element.classList.remove('typing-cursor');
+                        if (callback) callback();
                     }
-                }, 1000);
+                }
+                type();
+            }
+            // ----------------------------------------
+
+            // --- Execution Flow ---
+            if (userLevel) {
+                // Sequence of statuses to display in order
+                const sequence = [
+                    { el: nameStatusEl, text: `Name: ${userData.name || 'N/A'}` },
+                    { el: facultyStatusEl, text: `Faculty: ${userData.faculty || 'N/A'}` },
+                    { el: departmentStatusEl, text: `Department: ${userData.department || 'N/A'}` },
+                    { el: levelStatusEl, text: `Level: ${userLevel}lvl` }
+                ];
+
+                let step = 0;
+
+                function runSequence() {
+                    if (step < sequence.length) {
+                        const current = sequence[step];
+
+                        typeWriter(current.text, current.el, typingSpeed, () => {
+                            // Apply brief glitch after each line completes
+                            messageBox.classList.add('glitch-subtle');
+                            setTimeout(() => {
+                                messageBox.classList.remove('glitch-subtle');
+                                step++;
+                                runSequence(); // Move to the next status line
+                            }, 300); // Glitch duration
+
+                        });
+                    } else {
+                        // Sequence Complete: Start Countdown
+                        countdownDisplay.style.display = 'block';
+                        countdownDisplay.textContent = `Redirecting in: ${countdownValue}`;
+
+                        const timer = setInterval(() => {
+                            countdownValue--;
+                            countdownDisplay.textContent = `Redirecting in: ${countdownValue}`;
+
+                            if (countdownValue <= 0) {
+                                clearInterval(timer);
+                                const targetPage = `${userLevel}lvl.html`;
+                                window.location.href = targetPage;
+                            }
+                        }, 1000);
+                    }
+                }
+
+                runSequence(); // Start the animation
 
             } else {
-                statusMessage.textContent = "Welcome!";
-                levelDisplay.style.display = 'none'; // Hide level display if not available
-                countdownDisplay.style.display = 'none';
-                errorSection.style.display = 'block';
-                errorSection.innerHTML = `It looks like your level isn't set. Please proceed to the setup page.
-                                        <button class="btn" onclick="window.location.href='setup.html'">Set My Level</button>`;
-                console.warn("User level not found in localStorage.");
+                // Scenario: Level not set
+                typeWriter("!!! PROFILE DATA NOT FOUND. ACCESS DENIED !!!", nameStatusEl, 50, () => {
+                    facultyStatusEl.style.display = 'none';
+                    departmentStatusEl.style.display = 'none';
+                    levelStatusEl.style.display = 'none';
+                    countdownDisplay.style.display = 'none';
+                    errorSection.style.display = 'block';
+                    errorSection.innerHTML = `It looks like your access level isn't set. Please proceed to the setup page.
+                                            <button class="btn" onclick="window.location.href='setup.html'">Set My Level</button>`;
+                });
             }
         });
     </script>

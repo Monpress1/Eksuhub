@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF Management Portal (Mobile Friendly)</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" integrity="sha512-z3gLpd7yknf1YoNbCzqRKc4qyor8gaKU1qmn+CShxbuBusANI9QpRohGBreCFkKx3c1q0W0wL9kGfaW6aQoBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <style>
+        /* Basic Reset and Variables */
+        :root {
+            --primary-color: #007bff; /* Download Blue */
+            --primary-hover: #0056b3;
+            --secondary-color: #28a745; /* Upload Green */
+            --secondary-hover: #1e7e34;
+            --background-color: #f0f2f5; /* Lighter background */
+            --text-color: #333;
+            --border-radius: 12px;
+            --box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+            --gap: 20px;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif; /* Modern font */
+            margin: 0;
+            padding: 0;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            text-align: center;
+            background: white;
+            padding: 30px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            max-width: 90%;
+            width: 700px;
+            margin: 20px; /* Add margin for mobile padding */
+        }
+
+        h1 {
+            color: var(--text-color);
+            margin-bottom: 30px;
+            font-size: 2.2em;
+            font-weight: 700;
+        }
+
+        /* --- Mobile-Friendly Button Group --- */
+        .button-group {
+            display: flex;
+            gap: var(--gap);
+            justify-content: center;
+            /* Default: Side-by-side for desktop */
+            flex-direction: row; 
+        }
+
+        .action-button {
+            text-decoration: none;
+            padding: 18px 25px; /* Larger padding for better touch targets */
+            border-radius: var(--border-radius);
+            font-size: 1.15em;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            flex-grow: 1; /* Allow buttons to grow and fill available space */
+            min-width: 150px; /* Minimum width for desktop side-by-side */
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .action-button i {
+            margin-right: 12px;
+            font-size: 1.5em; /* Larger icons */
+        }
+
+        /* Download Button Styling */
+        #download-btn {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        #download-btn:hover {
+            background-color: var(--primary-hover);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 15px rgba(0, 123, 255, 0.4);
+        }
+
+        /* Upload Button Styling */
+        #upload-btn {
+            background-color: var(--secondary-color);
+            color: white;
+        }
+
+        #upload-btn:hover {
+            background-color: var(--secondary-hover);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 15px rgba(40, 167, 69, 0.4);
+        }
+
+        /* --- Media Query for Mobile (Screen width less than 600px) --- */
+        @media (max-width: 600px) {
+            .container {
+                padding: 20px;
+            }
+            
+            .button-group {
+                /* Change layout to stack buttons vertically */
+                flex-direction: column;
+                gap: 15px; /* Slightly smaller gap when stacked */
+            }
+
+            .action-button {
+                width: 100%; /* Full width buttons for easy tapping */
+                min-width: unset; /* Remove min-width constraint */
+                padding: 15px; /* Adjust padding for full-width buttons */
+                font-size: 1.1em;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>PDF Management Portal</h1>
+        <p>Choose an action below to manage your documents.</p>
+
+        <div class="button-group">
+            <a id="download-btn" class="action-button" 
+               href="https://drive.google.com/drive/folders/1RsdcaF2PPCZrYSaG-KR8ucBsYjNp-7MH6R08oFuy825iUl7n7Nk0gn8A-kj52g5QPOBIM1Ys"
+               target="_blank" 
+               rel="noopener noreferrer" 
+               title="Access the shared Google Drive folder to download files.">
+                <i class="fas fa-cloud-download-alt"></i>
+                Download Files
+            </a>
+
+            <a id="upload-btn" class="action-button" 
+               href="https://docs.google.com/forms/d/e/1FAIpQLSdQcIX4ezqqmlzU6tqWthiKM-_cIF0VMPoF2qz7VxFqYJCbFQ/viewform?usp=header"
+               target="_blank" 
+               rel="noopener noreferrer" 
+               title="Open the Google Form to upload new PDF documents.">
+                <i class="fas fa-cloud-upload-alt"></i>
+                Upload Files
+            </a>
+        </div>
+        
+    </div>
+
+</body>
+</html>

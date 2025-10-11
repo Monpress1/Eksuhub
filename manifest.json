@@ -1,0 +1,21 @@
+{
+  "name": "EKSUHUB",
+  "short_name": "EKSUHUB",
+  "start_url": "/index.html",
+  "display": "standalone",
+  "background_color": "#0d0d2b",
+  "theme_color": "#3b82f6",
+  "description": "Your all-in-one campus portal for EKSU students.",
+  "icons": [
+    {
+      "src": "icons.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icons.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
