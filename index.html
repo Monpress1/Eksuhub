@@ -6,7 +6,15 @@
   <title>Dashboard</title>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  
+  <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
+<script>
+  window.OneSignalDeferred = window.OneSignalDeferred || [];
+  OneSignalDeferred.push(async function(OneSignal) {
+    await OneSignal.init({
+      appId: "d0551ffa-5bef-44c4-a74f-0a586ef17795",
+    });
+  });
+</script>
   <link rel="manifest" href="/manifest.json">
   <meta name="theme-color" content="#303f9f"> <link rel="icon" href="/images/icons/icon-192x192.png">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -514,7 +522,7 @@
       <use xlink:href="#gentle-wave" x="48" y="8" fill="rgba(255,255,255,0.7)" />
       <use xlink:href="#gentle-wave" x="4" y="25" fill="white" />
     </svg>
-  </div>
+  </div><div class='onesignal-customlink-container'></div>
 <br><br><br>
   <div class="container">
     <div class="quick-start" onclick="window.location.href='exam.html'">Quick Start Exam</div>
