@@ -522,8 +522,7 @@
       <use xlink:href="#gentle-wave" x="48" y="8" fill="rgba(255,255,255,0.7)" />
       <use xlink:href="#gentle-wave" x="4" y="25" fill="white" />
     </svg>
-  </div><div class='onesignal-customlink-container'></div>
-<br><br><br>
+  </div><br><br><br>
   <div class="container">
     <div class="quick-start" onclick="window.location.href='exam.html'">Quick Start Exam</div>
 
@@ -556,7 +555,8 @@
     <div class="news-carousel" id="productCarousel">
     </div>
     
-    <h2 style="color: #303f9f; margin-top: 40px; border-bottom: 2px solid #303f9f; padding-bottom: 5px;">Latest News</h2>
+    <h2 id="latestNewsTitle" style="color: #303f9f; margin-top: -91px; border-bottom: 2px solid #303f9f; padding-bottom: 5px;">Latest News</h2>
+    
     <div class="news-carousel" id="newsCarousel" style="height: 150px; margin-bottom: 30px;">
         <p id="newsLoadingMessage" style="text-align: center; line-height: 150px; color: #6b7280;">Loading latest news...</p>
     </div>
@@ -698,6 +698,7 @@
     
     <a href="profile.html"><i class="fas fa-user"></i>Profile</a>
   </div>
+<div class='onesignal-customlink-container'></div>
 
   <script>
     // =================================================================================
@@ -1489,24 +1490,11 @@
     // =================================================================================
     // ✅ PWA LOGIC END
     // =================================================================================
-async function notify(title, body) {
-  if (!("Notification" in window)) {
-    console.warn("This browser does not support notifications.");
-    return;
-  }
 
-  if (Notification.permission === "granted") {
-    new Notification(title, { body, icon: "/icons/icon-192x192.png" });
-  } else if (Notification.permission !== "denied") {
-    const permission = await Notification.requestPermission();
-    if (permission === "granted") {
-      new Notification(title, { body, icon: "/icons/icon-192x192.png" });
-    }
-  }
-}
-
-// Example:
-notify("Welcome to EKSUHub 🎓", "Stay tuned for campus updates!");
   </script>
 </body>
+</html>
+</html>
+</html>
+
 </html>
