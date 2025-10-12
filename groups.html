@@ -1,609 +1,255 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Dashboard</title>
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
-  <style>
-    body {
-      font-family: 'Segoe UI', sans-serif;
-      margin: 0;
-      background-color: #f4f6fa;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding-bottom: 60px; /* To prevent news from overlaying the bottom menu */
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EKSU Group Hub</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" integrity="sha512-z3gLpd7yknf1YoNbCzqRKc4qyor8gaKU1qmn+CShxbuBusANI9QpRohGBreCFkKx3c1q0W0wL9kGfaW6aQoBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <style>
+        /* Modern UI Variables */
+        :root {
+            --background-color: #f4f6f9; /* Light Gray Background */
+            --card-background: #ffffff;
+            --text-color: #333;
+            --primary-color: #007bff; /* Blue for general links */
+            --whatsapp-color: #25d366; /* WhatsApp Green */
+            --tiktok-color: #000000; /* Black for TikTok */
+            --border-radius: 12px;
+            --box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+            --gap: 15px;
+        }
 
-    .header {
-      background-color: #303f9f;
-      color: white;
-      padding: 24px;
-      width: 90%;
-      text-align: center;
-      animation: extendHeader 3s alternate;
-      position: fixed; /* Make the header fixed */
-      top: 0;
-      left: 50%;
-      transform: translateX(-50%);
-      z-index: 100; /* Ensure it stays on top */
-      overflow: hidden;
-      border-bottom-left-radius: 30px; /* Add a subtle curve */
-      border-bottom-right-radius: 30px; /* Add a subtle curve */
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1); /* Optional shadow for better separation */
-    }
+        body {
+            font-family: 'Inter', sans-serif; /* A modern, clean font */
+            margin: 0;
+            padding: 0;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            display: flex;
+            justify-content: center;
+            align-items: flex-start; /* Align to the top of the viewport */
+            min-height: 100vh;
+        }
 
-    .header h1 {
-      margin: 0;
-      font-size: 0.82rem;
-      font-family:fantasy;
-    }
+        .container {
+            width: 100%;
+            max-width: 600px;
+            margin: 30px 20px;
+        }
 
-    .header h2 {
-      margin: 5px 0 0;
-      font-size: 1.8rem;
-    }
+        /* --- Header and Back Button --- */
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 25px;
+        }
 
-    .header .user-level {
-      color: #fdd835;
-      font-size: 0.9rem;
-      margin-top: 2px;
-    }
+        .back-button {
+            text-decoration: none;
+            color: var(--text-color);
+            font-size: 1.1em;
+            font-weight: 500;
+            padding: 8px 10px;
+            border-radius: 8px;
+            transition: background-color 0.2s;
+        }
 
-    @keyframes extendHeader {
-      0% { transform: translateX(-50%) scaleX(1); }
-      50% { transform: translateX(-50%) scaleX(1.05); }
-      100% { transform: translateX(-50%) scaleX(1); }
-    }
+        .back-button:hover {
+            background-color: #e9ecef;
+        }
+        
+        h1 {
+            font-size: 1.8em;
+            font-weight: 700;
+            color: var(--text-color);
+            margin: 0;
+        }
 
-    .wave {
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      width: 100%;
-      height: 30px;
-      background-color: #303f9f;
-      clip-path: url(#wave);
-    }
+        /* --- Link Section Styling --- */
+        .link-section {
+            background: var(--card-background);
+            padding: 20px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            margin-bottom: 30px;
+        }
+        
+        .link-section h2 {
+            font-size: 1.4em;
+            color: var(--primary-color);
+            border-bottom: 2px solid #f0f0f0;
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+            text-align: left;
+        }
 
-    .container {
-      width: 90%;
-      max-width: 800px;
-      margin-top: 100px; /* Adjust margin to accommodate fixed header */
-      margin-bottom: 80px;
-    }
+        .link-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: var(--gap);
+            padding: 10px 0;
+            border-bottom: 1px dashed #e0e0e0;
+        }
 
-    .quick-start {
-      background-color: #dbeafe;
-      color: #1e3a8a;
-      padding: 20px;
-      text-align: center;
-      border-radius: 12px;
-      font-weight: bold;
-      font-size: 1rem;
-      margin-bottom: 20px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-      cursor: pointer; /* Make it clickable */
-    }
+        .link-item:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+        }
 
-    .grid-container {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-      gap: 20px;
-    }
+        .link-title {
+            font-weight: 600;
+            font-size: 1.1em;
+        }
 
-    .module-card {
-      background-color: white;
-      padding: 20px;
-      border-radius: 12px;
-      text-align: center;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-      transition: transform 0.2s ease;
-      cursor: pointer; /* Make it clickable */
-    }
+        .link-btn {
+            text-decoration: none;
+            color: var(--card-background);
+            padding: 8px 15px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            font-size: 0.95em;
+            font-weight: 500;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
 
-    .module-card:hover {
-      transform: translateY(-3px);
-    }
+        .link-btn i {
+            margin-right: 8px;
+            font-size: 1.2em;
+        }
+        
+        /* Specific Button Colors */
+        .whatsapp-btn {
+            background-color: var(--whatsapp-color);
+        }
+        .whatsapp-btn:hover {
+            background-color: #1da84d;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(37, 211, 102, 0.4);
+        }
 
-    .module-card i {
-      font-size: 2rem;
-      margin-bottom: 10px;
-      color: #ff8f00; /* Dark orange color */
-      display: block;
-      -webkit-text-stroke: 1px #ff8f00; /* Outline for webkit browsers */
-      text-stroke: 1px #ff8f00; /* Standard outline property */
-      -webkit-font-smoothing: antialiased; /* Improve font rendering */
-    }
+        .tiktok-btn {
+            background-color: var(--tiktok-color);
+        }
+        .tiktok-btn:hover {
+            background-color: #222;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        }
 
-    .module-card h3 {
-      margin-top: 0;
-      color: #1e3a8a;
-      font-size: 1.1rem;
-    }
+        /* --- Footer --- */
+        .footer-link {
+            text-align: center;
+            margin-top: 40px;
+            padding: 20px;
+            background: var(--card-background);
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+        }
+        
+        .my-whatsapp-btn {
+            background-color: var(--primary-color);
+            color: var(--white);
+            padding: 12px 25px;
+            font-size: 1em;
+            margin-top: 15px;
+            display: inline-flex;
+        }
 
-    .module-card p {
-      color: #6b7280;
-      font-size: 0.9rem;
-      line-height: 1.5;
-      margin: 10px 0 0;
-    }
-
-    .news-carousel {
-      position: relative;
-      height: 200px;
-      margin: 30px 0;
-      overflow: hidden;
-    }
-
-    .news-slide {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      opacity: 0;
-      transition: opacity 1s ease-in-out;
-      display: flex;
-      gap: 15px;
-      background-color: #fff;
-      border-radius: 12px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-      padding: 10px;
-      align-items: center;
-    }
-
-    .news-slide.active {
-      opacity: 1;
-      z-index: 1;
-    }
-
-    .news-slide img {
-      width: 80px;
-      height: 80px;
-      border-radius: 10px;
-      object-fit: cover;
-    }
-
-    .news-slide div {
-      flex: 1;
-    }
-
-    .news-slide h4 {
-      margin: 0 0 5px;
-      font-size: 1rem;
-      color: #1e3a8a;
-    }
-
-    .news-slide p {
-      margin: 0;
-      font-size: 0.85rem;
-      color: #6b7280;
-    }
-
-    .bottom-navigation {
-      background-color: #ffffff;
-      display: flex;
-      justify-content: space-around;
-      align-items: center;
-      padding: 10px 0;
-      width: 100%;
-      position: fixed; /* Make the bottom navigation fixed */
-      bottom: 0;
-      left: 0;
-      border-top: 1px solid #e5e7eb;
-      box-shadow: 0 -1px 3px rgba(0,0,0,0.05);
-      z-index: 100; /* Ensure it stays on top */
-    }
-
-    .bottom-navigation a {
-      text-decoration: none;
-      color: #4b5563;
-      font-size: 0.8rem;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
-
-    .bottom-navigation i {
-      font-size: 1.2rem;
-      margin-bottom: 2px;
-    }
-
-    /* Reused modal styles from signup-modal */
-    .signup-modal {
-      display: none;
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background-color: rgba(0, 0, 0, 0.5);
-      justify-content: center;
-      align-items: center;
-      z-index: 1000;
-    }
-
-    /* Reused form styles from signup-form */
-    .signup-form {
-      background-color: white;
-      padding: 20px;
-      border-radius: 8px;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-      text-align: center;
-      width: 90%;
-      max-width: 400px; /* Limit width for modals */
-    }
-
-    .signup-form label {
-      display: block;
-      margin-bottom: 8px;
-      font-weight: bold;
-      color: #374151;
-      text-align: left; /* Align labels to left within the form */
-    }
-
-    .signup-form input,
-    .signup-form select {
-      width: calc(100% - 20px); /* Account for padding */
-      padding: 10px;
-      margin-bottom: 15px;
-      border: 1px solid #d1d5db;
-      border-radius: 4px;
-      box-sizing: border-box;
-    }
-
-    .signup-form button {
-      background-color: #303f9f;
-      color: white;
-      padding: 10px 15px;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-      font-size: 1rem;
-      margin: 5px; /* Add margin for buttons */
-      width: auto; /* Allow buttons to size naturally */
-    }
-
-    .signup-form button:hover {
-      background-color: #283593;
-    }
-
-    /* Styles for the choice modals */
-    .choice-modal-content {
-        background-color: white;
-        padding: 20px;
-        border-radius: 8px;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        text-align: center;
-        width: 90%;
-        max-width: 350px; /* Slightly smaller for choice modals */
-    }
-    .choice-modal-content h2 {
-        color: #303f9f;
-        margin-bottom: 20px;
-    }
-    .choice-modal-content button {
-        background-color: #303f9f;
-        color: white;
-        padding: 12px 20px;
-        border: none;
-        border-radius: 5px;
-        cursor: pointer;
-        font-size: 1.1rem;
-        width: 100%; /* Make buttons full width */
-        margin-bottom: 10px; /* Space between buttons */
-        transition: background-color 0.2s;
-    }
-    .choice-modal-content button:hover {
-        background-color: #283593;
-    }
-    .choice-modal-content button.cancel-btn {
-        background-color: #6c757d; /* Grey for cancel */
-    }
-    .choice-modal-content button.cancel-btn:hover {
-        background-color: #5a6268;
-    }
-
-    #welcomeMessage {
-      overflow: hidden;
-      white-space: nowrap;
-      margin: 0 auto;
-      letter-spacing: .05em;
-      /* Initial state with blinking cursor */
-      border-right: .15em solid orange;
-      animation:
-        typing 2s steps(20, end),
-        blink-caret .75s step-end infinite;
-    }
-
-    #welcomeMessage.typing-complete {
-      border-right: none; /* Remove blinking cursor */
-    }
-
-    @keyframes typing {
-      from { width: 0 }
-      to { width: 100% }
-    }
-
-    @keyframes blink-caret {
-      from, to { border-color: transparent }
-      50% { border-color: orange; }
-    }
-  </style>
+        .my-whatsapp-btn:hover {
+            background-color: #0056b3;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(0, 123, 255, 0.4);
+        }
+    </style>
 </head>
 <body>
 
-  <div class="header">
+    <div class="container">
+        
+        <div class="header">
+            <a href="index.html" class="back-button" title="Go back to the previous page">
+                <i class="fas fa-arrow-left"></i> Back
+            </a>
+            <h1>EKSU Group Hub</h1>
+            <div></div> </div>
 
-    <h1 style="color:orange;"><font style="font-size:40px;">E</font>kiti State Universit<font style="font-size:20px; font-family:cursive;">y</font></h1>
-    <h2 id="welcomeMessage">School Groups</h2>
-    <p id="userLevel" class="user-level"></p>
-    <svg class="wave" viewBox="0 24 150 40" preserveAspectRatio="none" shape-rendering="auto">
-      <defs>
-        <path id="gentle-wave" d="M-120 47c30 0 58-18 88-18s 58 18 88 18 58-18 88-18 58 18 88 30 v44h-352z" />
-      </defs>
-      <use xlink:href="#gentle-wave" x="48" y="0" fill="rgba(255,255,255,0.7)" />
-      <use xlink:href="#gentle-wave" x="48" y="8" fill="rgba(255,255,255,0.7)" />
-      <use xlink:href="#gentle-wave" x="4" y="25" fill="white" />
-    </svg>
-  </div>
-<br><br><br>
-  <div class="container">
-    <div class="quick-start" onclick="">Quick-Search.🔍<br> <br><input type="text" style="height:30px; width:80%; border:none; border-radius:50px; background:#dbeafe; border-bottom:2px solid black; border-top:2px solid black; text-align:center;  justify-content:space-around; " placeholder="search for group"></div>
-
-    <div class="grid-container">
-      <div class="module-card" onclick="openAcademicsChoiceModal()">
-        <i class="fas fa-book-open"></i>
-        <h3>Whatsapp TVs</h3>
-        <p>whatsapp TV/Groups, for cruise and entertainment </p>
-      </div>
-      <div class="module-card" onclick="openCommunityChoiceModal()">
-        <i class="fas fa-users"></i>
-        <h3>Eksu Communities</h3>
-        <p>Society and communities in eksu</p>
-      </div>
-      <div class="module-card" onclick="window.location.href='news.html'">
-        <i class="fas fa-info-circle"></i>
-        <h3>School Updates</h3>
-        <p>Information vendors, School news, faculty updates</p>
-      </div>
-      <div class="module-card" onclick="window.location.href='market.html'">
-        <i class="fas fa-shopping-cart"></i>
-        <h3>Eksu Influencers</h3>
-        <p>Tiktok Celebrities</p>
-      </div>
-    </div>
-
-    <div class="news-carousel">
-      <div class="news-slide active">
-        <img src="img1.jpg" alt="News 1">
-        <div>
-          <h4>Eksu smartschool Wi-Fi Upgraded</h4>
-          <p>Faster internet now available across all faculties and hostels.</p>
-        </div>
-      </div>
-      <div class="news-slide">
-        <img src="img6.jpg" alt="News 2">
-        <div>
-          <h4>Interfaculty Sports</h4>
-          <p>Get ready for this semester's games. Sign up.</p>
-        </div>
-      </div>
-      
-    <a href="market.html">   <div class="news-slide">
-        <img src="img5.jpg" alt="News 4">
-        <div>
-          <h4>Eksu Marketplace</h4>
-          <p>Sell your products, buy from fellow students</p>
-        </div>
-      </div></a>
-      <div class="news-slide">
-        <img src="img2.jpg" alt="News 3">
-        <div>
-          <h4>Tech society</h4>
-          <p>Eksu Tech Hub. along banking area</p>
-        </div>
-      </div>
-    </div>
-
-    <div id="signupModal" class="signup-modal">
-      <div class="signup-form">
-        <h2>Welcome! Please sign up</h2>
-        <label for="name">Name:</label>
-        <input type="text" id="name" name="name" required>
-
-        <label for="profileFaculty">Faculty:</label>
-        <select id="profileFaculty" name="faculty" required>
-          <option value="" disabled selected>Select Faculty</option>
-        </select>
-
-        <label for="profileCourse">Department/Course of Study:</label>
-        <select id="profileCourse" name="department" required>
-          <option value="" disabled selected>Select Department/Course</option>
-        </select>
-
-        <label for="level">Level:</label>
-        <select id="level" name="level" required>
-          <option value="">Select Level</option>
-          <option value="100">100</option>
-          <option value="200">200</option>
-          <option value="300">300</option>
-          <option value="400">400</option>
-          <option value="500">500</option>
-        </select>
-
-        <button onclick="handleSignup()">Sign Up</button>
-      </div>
-    </div>
-
-    <div id="examSelectionModal" class="signup-modal">
-        <div class="signup-form">
-            <h2>Select Your Mock Exam</h2>
-            <label for="examFaculty">Faculty:</label>
-            <select id="examFaculty" required>
-              <option value="" disabled selected>Select Faculty</option>
-            </select>
-
-       
-
-            <label for="examCourseCode">Course Code (Optional):</label>
-            <input type="text" id="examCourseCode" placeholder="e.g., ZOO 311">
-
-            <div style="display: flex; justify-content: space-between; margin-top: 20px;">
-                <button onclick="closeExamSelectionModal()" style="background-color: #dc3545;">Cancel</button>
-                <button onclick="startMockExam()">Start Exam</button>
+        <div class="link-section">
+            <h2>WhatsApp Groups & Chats</h2>
+            
+            <div class="link-item">
+                <span class="link-title">Campus Amebo</span>
+                <a href="https://chat.whatsapp.com/EoEjPdkn405BANToJZDPKn" target="_blank" class="link-btn whatsapp-btn">
+                    <i class="fab fa-whatsapp"></i> Join Group
+                </a>
             </div>
+
+            <div class="link-item">
+                <span class="link-title">Eksu Tech Hub</span>
+                <a href="https://wa.me/2348159360009" target="_blank" class="link-btn whatsapp-btn">
+                    <i class="fab fa-whatsapp"></i> Chat Now
+                </a>
+            </div>
+
+            <div class="link-item">
+                <span class="link-title">Eksu Aspirant Group</span>
+                <a href="https://chat.whatsapp.com/LK1ShC93XL8DCwTZMauN6R" target="_blank" class="link-btn whatsapp-btn">
+                    <i class="fab fa-whatsapp"></i> Join Group
+                </a>
+            </div>
+            
+            <div class="link-item">
+                <span class="link-title">Eksu Hub</span>
+                <a href="https://chat.whatsapp.com/DrcFmnpcnIO8gwUIMz9M6w" target="_blank" class="link-btn whatsapp-btn">
+                    <i class="fab fa-whatsapp"></i> Join Group
+                </a>
+            </div>
+
+            <div class="link-item">
+                <span class="link-title">Adonis TV</span>
+                <a href="https://wa.me/2347076401108" target="_blank" class="link-btn whatsapp-btn">
+                    <i class="fab fa-whatsapp"></i> Chat Now
+                </a>
+            </div>
+
         </div>
+
+        <div class="link-section">
+            <h2>TikTok Profiles</h2>
+
+            <div class="link-item">
+                <span class="link-title">Finest Lecturer</span>
+                <a href="https://vm.tiktok.com/ZSH7XvHv8bTfr-lyjq1/" target="_blank" class="link-btn tiktok-btn">
+                    <i class="fab fa-tiktok"></i> View Profile
+                </a>
+            </div>
+
+            <div class="link-item">
+                <span class="link-title">Popsyadonis</span>
+                <a href="https://vm.tiktok.com/ZSH7XvjVha7yo-BCLod/" target="_blank" class="link-btn tiktok-btn">
+                    <i class="fab fa-tiktok"></i> View Profile
+                </a>
+            </div>
+            
+            <div class="link-item">
+                <span class="link-title">Adeshina</span>
+                <a href="https://vm.tiktok.com/ZSH7Xvb3AQcV9-jWf2B/" target="_blank" class="link-btn tiktok-btn">
+                    <i class="fab fa-tiktok"></i> View Profile
+                </a>
+            </div>
+
+        </div>
+
+        <div class="footer-link">
+            <p style="margin-bottom: 10px; color: var(--text-color);">Need support or have a link suggestion?</p>
+            <a href="https://wa.me/2347077575301" target="_blank" class="link-btn my-whatsapp-btn" style="min-width: 250px;">
+                <i class="fab fa-whatsapp"></i> Contact Eli Monpress 
+            </a>
+        </div>
+
     </div>
 
-    <div id="academicsChoiceModal" class="signup-modal">
-        <div class="choice-modal-content">
-            <h2>WA TVs</h2>
-           <a href="adonis link"> <button>Adonis Tv (Whatsapp)</button></a>
-          <a href="exam.html"><button>Campus Amebo</button></a>
-            
-                 <button onclick="window.location.href='pdf.html'">Past Questions (PDF)</button>
-          <a href="exam.html"><button>Mock Exam (CBE)</button></a>
-            
-            
-            <button onclick="window.location.href='pdf.html'">Past Questions (PDF)</button>
-          <a href="exam.html"><button>Mock Exam (CBE)</button></a>
-            <button class="cancel-btn" onclick="closeAcademicsChoiceModal()">Cancel</button>
-            <button onclick="window.location.href='pdf.html'">Past Questions (PDF)</button>
-          <a href="exam.html"><button>Mock Exam (CBE)</button></a>
-            <button class="cancel-btn" onclick="closeAcademicsChoiceModal()">Cancel</button>
-        </div>
-    </div>
-
-    <div id="communityChoiceModal" class="signup-modal">
-        <div class="choice-modal-content">
-            <h2>Community Options</h2>
-            <button>Eksu Tech Hub</button>
-            <button onclick="alert('Clubs page coming soon!')">Clubs</button>
-            <button onclick="alert('Lost & Found page coming soon!')">Lost & Found</button>
-            <button onclick="alert('All EKSU Groups page coming soon!')">All EKSU Groups</button>
-            <button class="cancel-btn" onclick="closeCommunityChoiceModal()">Cancel</button>
-        </div>
-    </div>
-
-
-  </div>
-
-  <div class="bottom-navigation">
-    <a href="#"><i class="fas fa-home"></i>Home</a>
-    <a href="chat.html"><i class="fas fa-comments"></i>Chat</a>
-    <a href="news.html"><i class="fas fa-newspaper"></i>News</a>
-    <a href="market.html"><i class="fas fa-store"></i>Market</a>
-    <a href="profile.html"><i class="fas fa-user"></i>Profile</a>
-  </div>
-  <script>
-    const slides = document.querySelectorAll('.news-slide');
-    let current = 0;
-
-    function showSlide(index) {
-      slides.forEach((slide, i) => {
-        slide.classList.remove('active');
-        if (i === index) slide.classList.add('active');
-      });
-    }
-
-    setInterval(() => {
-      current = (current + 1) % slides.length;
-      showSlide(current);
-    }, 4000);
-
-    
-    function typeWelcomeMessage(name) {
-      welcomeMessageElement.textContent = "";
-      let i = 0;
-      if (welcomeMessageElement._typingIntervalId) {
-        clearInterval(welcomeMessageElement._typingIntervalId);
-      }
-      welcomeMessageElement.classList.remove('typing-complete');
-
-      welcomeMessageElement._typingIntervalId = setInterval(() => {
-        welcomeMessageElement.textContent += name[i];
-        i++;
-        if (i === name.length) {
-          clearInterval(welcomeMessageElement._typingIntervalId);
-          welcomeMessageElement.classList.add('typing-complete');
-        }
-      }, 100);
-    }
-
-    
-    // --- NEW Modal Control Functions ---
-
-    // Academics Modal
-    function openAcademicsChoiceModal() {
-        academicsChoiceModal.style.display = 'flex';
-    }
-
-    function closeAcademicsChoiceModal() {
-        academicsChoiceModal.style.display = 'none';
-    }
-
-    function openExamSelectionModalFromAcademics() {
-        closeAcademicsChoiceModal(); // Close the academics choice modal first
-        openExamSelectionModal(); // Then open the exam selection modal
-    }
-
-    // Exam Selection Modal
-    function openExamSelectionModal() {
-        examSelectionModal.style.display = 'flex';
-        populateExamFaculties(); // Populate faculties when modal opens
-
-        // Pre-fill with user's saved profile data
-        const storedFaculty = localStorage.getItem('faculty');
-        const storedDepartment = localStorage.getItem('department');
-        const storedLevel = localStorage.getItem('level');
-
-        if (storedFaculty) {
-            examFacultySelect.value = storedFaculty;
-            populateExamDepartments(); // Populate departments based on pre-filled faculty
-            if (storedDepartment) {
-                examDepartmentSelect.value = storedDepartment;
-            }
-        }
-        if (storedLevel) {
-            examLevelSelect.value = storedLevel;
-        }
-        examCourseCodeInput.value = ''; // Clear previous course code
-    }
-
-    function closeExamSelectionModal() {
-        examSelectionModal.style.display = 'none';
-    }
-
-    function startMockExam() {
-        const faculty = examFacultySelect.value;
-        const department = examDepartmentSelect.value;
-        const level = examLevelSelect.value;
-        const courseCode = examCourseCodeInput.value.trim();
-
-        if (!faculty) { alert("Please select a Faculty for the exam."); return; }
-        if (!department) { alert("Please select a Department for the exam."); return; }
-        if (!level) { alert("Please select a Level for the exam."); return; }
-
-        let queryString = `?faculty=${encodeURIComponent(faculty)}&department=${encodeURIComponent(department)}&level=${encodeURIComponent(level)}`;
-        if (courseCode) {
-            queryString += `&courseCode=${encodeURIComponent(courseCode.toUpperCase())}`;
-        }
-
-        closeExamSelectionModal();
-        window.location.href = 'exam.html' + queryString; // Redirect to exam.html (or cbe.html if you rename it)
-    }
-
-    // Community Modal
-    function openCommunityChoiceModal() {
-        communityChoiceModal.style.display = 'flex';
-    }
-
-    function closeCommunityChoiceModal() {
-        communityChoiceModal.style.display = 'none';
-    }
-
-  </script>
 </body>
 </html>
