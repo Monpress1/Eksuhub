@@ -728,18 +728,24 @@
       });
     }
     
-    // --- Product Fetch and Carousel Initialization (Original) ---
+    // --- Product Fetch and Carousel Initialization (MODIFIED FOR RANDOM ORDER) ---
     async function fetchAndRenderProducts() {
         try {
-            // Fetch up to 5 most recent products, ordered by creation time
+            // Fetch up to 5 products.
+            // MODIFICATION: Using a random order to achieve a non-serial display.
             const { data, error } = await supabase
                 .from(PRODUCTS_TABLE)
                 .select('name, price, image_url, id')
-                .order('created_at', { ascending: false })
+                .order('id', { ascending: false }) // Initial sort for stable pagination, but then shuffled client-side for "random" look
                 .limit(5);
 
             if (error) throw error;
             
+            // Client-side shuffle for a random display of the fetched 5 most recent products
+            // This is a common and effective way to "randomize" within a small set in Supabase/PostgreSQL, 
+            // especially if you don't want to use the expensive "ORDER BY random()"
+            data.sort(() => Math.random() - 0.5);
+
             productCarousel.innerHTML = ''; // Clear existing content
             
             data.forEach((product, index) => {
@@ -939,7 +945,7 @@
             "Medicine and Surgery",
             "Nursing",
             "Physiology",
-          "MLS"
+            "MLS"
         ],
         "Science": [
             "Biochemistry",
@@ -1055,7 +1061,9 @@
     // --- MARKETPLACE TRACKING FUNCTIONS (Original) ---
     
     // This function runs on page load to check for new products
+    // It is also used by checkNewChats() to get the count
     async function checkNewProducts() {
+        let newProducts = 0; // Initialize a variable to hold the new product count
         const lastCount = parseInt(localStorage.getItem('lastMarketProductCount') || '0');
         const countElement = document.getElementById('menuNewProductCount'); 
         
@@ -1070,7 +1078,7 @@
             const currentCount = count;
             
             if (currentCount > lastCount) {
-                const newProducts = currentCount - lastCount;
+                newProducts = currentCount - lastCount; // Set the new product count
                 countElement.textContent = newProducts;
                 countElement.style.display = 'block';
                 console.log(`New products detected: ${newProducts}`);
@@ -1087,6 +1095,8 @@
             console.error('Could not check product count:', e);
             countElement.style.display = 'none';
         }
+        
+        return newProducts; // Return the count for the chat function to use
     }
 
     // This function runs when the user clicks the Marketplace card OR the menu link
@@ -1119,40 +1129,36 @@
     }
     
     // =================================================================================
-    // --- CHAT TRACKING LOGIC (Key section for the request) ---
+    // --- CHAT TRACKING LOGIC (MODIFIED FOR MULTIPLIER) ---
     // =================================================================================
 
     /**
-     * Checks the Supabase 'messages' table for new messages since the last read time.
+     * Calculates and displays the new chat count based on the new product count:
+     * New Chats = (New Products * 2) + 3
      */
     async function checkNewChats() {
-        // Get the timestamp when the user last read the chat
         const lastReadTime = localStorage.getItem('last_read_chat_time');
-        
-        // If user has never read chat, don't show a badge on first load.
-        if (!lastReadTime) {
-            document.getElementById('menuNewChatCount').style.display = 'none';
-            document.getElementById('cardNewChatCount').style.display = 'none';
-            return;
-        }
-
-        // Convert stored timestamp to ISO string for Supabase query
-        // The lastReadTime stored in local storage is a string representation of the Date.now() timestamp (milliseconds since epoch)
-        const lastReadISO = new Date(parseInt(lastReadTime)).toISOString(); 
         const chatBadgeMenu = document.getElementById('menuNewChatCount'); 
         const chatBadgeCard = document.getElementById('cardNewChatCount'); 
         
-        try {
-            // Query for messages created AFTER the last read time
-            // The 'messages' table has 'created_at' column, which is perfect for this.
-            const { count, error } = await supabase
-                .from('messages')
-                .select('*', { count: 'exact', head: true })
-                .gt('created_at', lastReadISO);
+        // If user has never read chat, don't show a badge on first load.
+        if (!lastReadTime) {
+            chatBadgeMenu.style.display = 'none';
+            chatBadgeCard.style.display = 'none';
+            // We set a last_read_chat_time to prevent subsequent loads from showing a badge
+            if(localStorage.getItem('signedUp') === 'true' && !lastReadTime) {
+                localStorage.setItem('last_read_chat_time', Date.now().toString());
+            }
+            return;
+        }
 
-            if (error) throw error;
+        try {
+            // 1. Get the new product count from the marketplace logic
+            const newProducts = await checkNewProducts(); 
             
-            const newChats = count;
+            // 2. Apply the custom multiplier logic: (New Products * 2) + 3
+            // We check if newProducts is > 0, otherwise the badge shouldn't show.
+            const newChats = newProducts > 0 ? (newProducts * 2) + 3 : 0;
             
             if (newChats > 0) {
                 // Update both the bottom menu badge and the main card badge
@@ -1167,7 +1173,7 @@
             }
 
         } catch (e) {
-            console.error('Could not check new chat count:', e);
+            console.error('Could not check new chat count (error in product check or calculation):', e);
             chatBadgeMenu.style.display = 'none';
             chatBadgeCard.style.display = 'none';
         }
@@ -1276,7 +1282,9 @@
       userLevelDisplay.textContent = storedLevel ? `Level: ${storedLevel}` : '';
       
       // Feature Checks
-      checkNewProducts();
+      // Note: checkNewProducts is now called inside checkNewChats, 
+      // but we still call it here to ensure the market badge is updated on load.
+      checkNewProducts(); 
       checkNewNews(); 
       // Key Chat Check
       checkNewChats(); 
@@ -1306,6 +1314,9 @@
       localStorage.setItem('faculty', faculty);
       localStorage.setItem('department', department);
       localStorage.setItem('level', level);
+      
+      // Initialize chat last read time on signup
+      localStorage.setItem('last_read_chat_time', Date.now().toString());
 
       signupModal.style.display = 'none';
       typeWelcomeMessage(name);
@@ -1494,8 +1505,4 @@
 
   </script>
 </body>
-</html>
-</html>
-</html>
-
 </html>
