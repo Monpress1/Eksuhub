@@ -9,329 +9,358 @@
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
     />
+    
+    <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
+<script>
+  window.OneSignalDeferred = window.OneSignalDeferred || [];
+  OneSignalDeferred.push(async function(OneSignal) {
+    await OneSignal.init({
+      appId: "d0551ffa-5bef-44c4-a74f-0a586ef17795",
+    });
+  });
+</script>
     <style>
-        /* ==================================== */
-        /* --- Root Variables & Base Styling --- */
-        /* ==================================== */
-        :root {
-            --primary-color: #1f3b7d; /* Deep Blue (Marketplace color) */
-            --secondary-color: #ff8c00; /* Orange */
-            --bg-color: #f4f7f9;
-            --card-bg: #ffffff;
-            --shadow-light: 0 2px 8px rgba(0, 0, 0, 0.05);
-            --shadow-medium: 0 5px 15px rgba(0, 0, 0, 0.1);
-            --border-radius: 12px;
-            --border-orangered: 1px solid orangered; /* NEW: Orangered border variable */
-        }
+     /* ==================================== */
+/* --- Root Variables & Base Styling --- */
+/* ==================================== */
+:root {
+    --primary-color: #1f3b7d; /* Deep Blue (Marketplace color) */
+    --secondary-color: #ff8c00; /* Orange */
+    --bg-color: #f4f7f9;
+    --card-bg: #ffffff;
+    --shadow-light: 0 2px 8px rgba(0, 0, 0, 0.05);
+    --shadow-medium: 0 5px 15px rgba(0, 0, 0, 0.1);
+    --border-radius: 12px;
+    --border-orangered: 1px solid orangered; /* Orangered border variable */
+}
 
-        body {
-            font-family: 'Inter', sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: var(--bg-color);
-            padding-bottom: 60px; /* Space for bottom nav */
-        }
+body {
+    font-family: 'Inter', sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: var(--bg-color);
+    padding-bottom: 60px; /* Space for bottom nav */
+}
 
-        /* ==================================== */
-        /* --- Modern Straight Header (Blue) --- */
-        /* ==================================== */
-        .header {
-            background-color: var(--primary-color); /* Kept Primary Blue as requested */
-            color: white;
-            padding: 15px 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: var(--shadow-medium);
-            position: relative;
-            z-index: 10;
-            height: 50px;
-            border-bottom: 3px solid var(--secondary-color);
-            clip-path: none;
-        }
+/* ==================================== */
+/* --- Modern Straight Header (Blue) --- */
+/* ==================================== */
+.header {
+    background-color: var(--primary-color); /* Kept Primary Blue as requested */
+    color: white;
+    padding: 15px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: var(--shadow-medium);
+    position: relative;
+    z-index: 10;
+    height: 50px;
+    border-bottom: 3px solid var(--secondary-color);
+    clip-path: none;
+}
 
-        .header-left {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
 
-        .header h1 {
-            margin: 0;
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: white;
-        }
+.header h1 {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: white;
+}
 
-        .header-logo-icon {
-            font-size: 1.5rem;
-            color: var(--secondary-color);
-        }
+.header-logo-icon {
+    font-size: 1.5rem;
+    color: var(--secondary-color);
+}
 
-        .back-btn {
-            font-size: 1.5rem;
-            cursor: pointer;
-            color: white;
-            text-decoration: none;
-            padding-right: 10px;
-        }
+.back-btn {
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: white;
+    text-decoration: none;
+    padding-right: 10px;
+}
 
-        .container {
-            max-width: 1000px;
-            margin: 0 auto;
-            padding: 0 20px;
-        }
+.container {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
 
-        /* ==================================== */
-        /* --- Slideshow Styling (Updated) --- */
-        /* ==================================== */
-        .trending-label {
-            font-size: 0.8rem;
-            font-weight: bold;
-            color: var(--secondary-color);
-            text-transform: uppercase;
-            padding: 5px 10px;
-            margin-top: 15px;
-            display: inline-block;
-            background-color: #fff3e0;
-            border-radius: 5px;
-        }
+/* ==================================== */
+/* --- Slideshow Styling (Updated) --- */
+/* ==================================== */
+.trending-label {
+    font-size: 0.8rem;
+    font-weight: bold;
+    color: var(--secondary-color);
+    text-transform: uppercase;
+    padding: 5px 10px;
+    margin-top: 15px;
+    display: inline-block;
+    background-color: #fff3e0;
+    border-radius: 5px;
+}
 
-        .slideshow-container {
-            margin: 10px 0 20px 0;
-            padding: 0 10px;
-            overflow: hidden;
-            position: relative;
-            /* NEW: Box shadow for the container */
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-            border-radius: var(--border-radius); /* Rounded the container edge */
-        }
-        .slideshow {
-            display: flex;
-            transition: transform 0.5s ease-in-out;
-            width: 100%;
-        }
-        .slide {
-            flex: 0 0 100%;
-            padding: 12px;
-            background-color: var(--card-bg);
-            border-radius: var(--border-radius);
-            /* NEW: Orangered border radius for the slide item */
-            border: var(--border-orangered);
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            overflow: hidden;
-        }
-        .slide img {
-            width: 70px;
-            height: 70px;
-            object-fit: cover;
-            border-radius: 6px;
-            flex-shrink: 0;
-        }
-        .slide-content h3 {
-            margin: 0;
-            font-size: 1rem;
-            color: var(--primary-color);
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
-        .slide-content p {
-            margin: 0;
-            font-size: 0.8rem;
-            color: #666;
-            display: -webkit-box;
-            -webkit-line-clamp: 2;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
-        }
+.slideshow-container {
+    margin: 10px 0 20px 0;
+    padding: 0 10px;
+    overflow: hidden;
+    position: relative;
+    /* NEW: Box shadow for the container */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    border-radius: var(--border-radius); /* Rounded the container edge */
+}
+.slideshow {
+    display: flex;
+    transition: transform 0.5s ease-in-out;
+    width: 100%;
+}
+.slide {
+    flex: 0 0 100%;
+    padding: 12px;
+    background-color: var(--card-bg);
+    border-radius: var(--border-radius);
+    /* border: var(--border-orangered); (Removed) */
+    border: 1px solid #eee; /* Added a subtle border */
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    overflow: hidden;
+    
+    /* === FIX: Remove the line/underline from the link text === */
+    text-decoration: none; 
+    color: inherit; /* Ensure text color is inherited properly */
+}
+.slide img {
+    width: 70px;
+    height: 70px;
+    object-fit: cover;
+    border-radius: 6px;
+    flex-shrink: 0;
+}
+.slide-content {
+    flex-grow: 1; /* Allow content to take available space */
+    min-width: 0; /* Fix flex-item overflow */
+}
+.slide-content h3 {
+    margin: 0;
+    font-size: 1rem;
+    color: var(--primary-color);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.slide-content p {
+    margin: 0;
+    font-size: 0.8rem;
+    color: #666;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
 
-        /* Demarcation Line */
-        .demarcation-line {
-            border: 0;
-            height: 1px;
-            background-image: linear-gradient(to right, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0));
-            margin: 20px 0;
-        }
+/* Styling for the comments on the slide */
+.slide-meta {
+    margin-top: 5px;
+    display: flex;
+    align-items: center;
+    font-size: 0.75rem;
+    color: #999;
+    gap: 10px;
+}
 
-        /* ==================================== */
-        /* --- Article List & Card Styling --- */
-        /* ==================================== */
-        .article-list {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 30px;
-        }
+/* Demarcation Line */
+.demarcation-line {
+    border: 0;
+    height: 1px;
+    background-image: linear-gradient(to right, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0));
+    margin: 20px 0;
+}
 
-        .article-card {
-            background: var(--card-bg);
-            border-radius: var(--border-radius);
-            border: 1px solid #eee;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
-            overflow: hidden;
-            transition: transform 0.2s, box-shadow 0.2s;
-            cursor: pointer;
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-        }
-        .article-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
-        }
-        .article-card img {
-            width: 100%;
-            height: 200px;
-            object-fit: cover;
-            background-color: #e0e0e0;
-        }
-        .article-content {
-            padding: 20px;
-            flex-grow: 1;
-            display: flex;
-            flex-direction: column;
-        }
-        .article-content h2 {
-            margin-top: 0;
-            font-size: 1.5em;
-            color: #333;
-            line-height: 1.2;
-        }
-        .article-content p {
-            color: #555;
-            font-size: 1em;
-            line-height: 1.5;
-            display: -webkit-box;
-            -webkit-line-clamp: 3;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
-            margin-bottom: 15px;
-        }
+/* ==================================== */
+/* --- Article List & Card Styling --- */
+/* ==================================== */
+.article-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 30px;
+}
 
-        /* ==================================== */
-        /* --- Article Card Interaction Styling --- */
-        /* ==================================== */
-        .meta {
-            margin-top: auto;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 0.9em;
-            color: #999;
-            padding-top: 15px;
-            border-top: 1px solid #f0f0f0;
-        }
+.article-card {
+    background: var(--card-bg);
+    border-radius: var(--border-radius);
+    border: 1px solid #eee;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+    transition: transform 0.2s, box-shadow 0.2s;
+    cursor: pointer;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+.article-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+}
+.article-card img {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    background-color: #e0e0e0;
+}
+.article-content {
+    padding: 20px;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+}
+.article-content h2 {
+    margin-top: 0;
+    font-size: 1.5em;
+    color: #333;
+    line-height: 1.2;
+}
+.article-content p {
+    color: #555;
+    font-size: 1em;
+    line-height: 1.5;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    margin-bottom: 15px;
+}
 
-        .interaction-bar {
-            display: flex;
-            gap: 15px;
-            align-items: center;
-        }
+/* ==================================== */
+/* --- Article Card Interaction Styling --- */
+/* ==================================== */
+.meta {
+    margin-top: auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.9em;
+    color: #999;
+    padding-top: 15px;
+    border-top: 1px solid #f0f0f0;
+}
 
-        .interaction-item {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            cursor: pointer;
-            color: #6c757d;
-            text-decoration: none;
-            font-weight: 500;
-        }
+.interaction-bar {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+}
 
-        .interaction-item:hover {
-            color: var(--primary-color);
-        }
+.interaction-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    cursor: pointer;
+    color: #6c757d;
+    text-decoration: none;
+    font-weight: 500;
+}
 
-        .like-button.liked {
-            color: #ff0055;
-            pointer-events: none;
-        }
+.interaction-item:hover {
+    color: var(--primary-color);
+}
 
-        .like-count,
-        .comment-count {
-            font-size: 0.9em;
-        }
+.like-button.liked {
+    color: #ff0055;
+    pointer-events: none;
+}
 
-        .share-button {
-            background: none;
-            border: none;
-            color: var(--primary-color);
-            cursor: pointer;
-            padding: 5px 10px;
-            font-size: 1.1em;
-            transition: color 0.2s;
-            font-weight: 600;
-        }
-        .share-button:hover {
-            color: var(--secondary-color);
-        }
+.like-count,
+.comment-count {
+    font-size: 0.9em;
+}
 
-        /* ==================================== */
-        /* --- Pagination & Bottom Nav --- */
-        /* ==================================== */
-        .pagination {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 30px 0;
-            gap: 15px;
-        }
-        .pagination button {
-            background-color: var(--primary-color);
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: background-color 0.3s;
-            font-weight: 600;
-        }
-        .pagination button:hover:not(:disabled) {
-            background-color: #152d61;
-        }
-        .pagination button:disabled {
-            background-color: #ccc;
-            cursor: not-allowed;
-        }
-        .pagination span {
-            font-weight: 600;
-            color: #666;
-        }
+.share-button {
+    background: none;
+    border: none;
+    color: var(--primary-color);
+    cursor: pointer;
+    padding: 5px 10px;
+    font-size: 1.1em;
+    transition: color 0.2s;
+    font-weight: 600;
+}
+.share-button:hover {
+    color: var(--secondary-color);
+}
 
-        .bottom-navigation {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            display: flex;
-            justify-content: space-around;
-            background-color: var(--card-bg);
-            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
-            z-index: 20;
-            padding: 5px 0;
-        }
+/* ==================================== */
+/* --- Pagination & Bottom Nav --- */
+/* ==================================== */
+.pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 30px 0;
+    gap: 15px;
+}
+.pagination button {
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    font-weight: 600;
+}
+.pagination button:hover:not(:disabled) {
+    background-color: #152d61;
+}
+.pagination button:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+}
+.pagination span {
+    font-weight: 600;
+    color: #666;
+}
 
-        .bottom-navigation a {
-            flex: 1;
-            text-align: center;
-            padding: 10px 0;
-            color: #6c757d;
-            text-decoration: none;
-            font-size: 0.75rem;
-        }
+.bottom-navigation {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    display: flex;
+    justify-content: space-around;
+    background-color: var(--card-bg);
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+    z-index: 20;
+    padding: 5px 0;
+}
 
-        .bottom-navigation a i {
-            display: block;
-            font-size: 1.2rem;
-            margin-bottom: 3px;
-        }
+.bottom-navigation a {
+    flex: 1;
+    text-align: center;
+    padding: 10px 0;
+    color: #6c757d;
+    text-decoration: none;
+    font-size: 0.75rem;
+}
 
-        .bottom-navigation a:hover,
-        .bottom-navigation a.active {
-            color: var(--primary-color);
-        }
+.bottom-navigation a i {
+    display: block;
+    font-size: 1.2rem;
+    margin-bottom: 3px;
+}
+
+.bottom-navigation a:hover,
+.bottom-navigation a.active {
+    color: var(--primary-color);
+}
+
     </style>
 </head>
 <body>
@@ -616,11 +645,17 @@
           slide.href = articleUrl;
           slide.style.width = '100%';
 
+          // Use the fetched commentCount
+          const commentCount = article.commentCount || 0;
+
           slide.innerHTML = `
             <img src="${article.image_url || 'https://via.placeholder.com/80?text=News'}" alt="${article.title}" />
             <div class="slide-content">
               <h3>${article.title}</h3>
               <p>${article.content}</p>
+              <div class="slide-meta">
+                <i class="far fa-comment"></i> ${commentCount} Comments
+              </div>
             </div>
           `;
           slideshowContainer.appendChild(slide);
