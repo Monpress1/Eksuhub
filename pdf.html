@@ -3,28 +3,29 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PDF Management Portal (Mobile Friendly)</title>
+    <title>PDF Portal (UI Refined)</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" integrity="sha512-z3gLpd7yknf1YoNbCzqRKc4qyor8gaKU1qmn+CShxbuBusANI9QpRohGBreCFkKx3c1q0W0wL9kGfaW6aQoBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <style>
         /* Basic Reset and Variables */
         :root {
-            --primary-color: #007bff; /* Download Blue */
-            --primary-hover: #0056b3;
-            --secondary-color: #28a745; /* Upload Green */
-            --secondary-hover: #1e7e34;
-            --background-color: #f0f2f5; /* Lighter background */
-            --text-color: #333;
-            --border-radius: 12px;
-            --box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
-            --gap: 20px;
+            --dark-blue-background: #102a50; /* Deep blue from UI image */
+            --main-blue: #235de8; /* Primary button blue */
+            --main-blue-hover: #1b45b6;
+            --light-blue-fill: #e6f0ff;
+            --white: #ffffff;
+            --text-color-light: #f0f8ff;
+            --border-radius: 25px; /* More rounded corners */
+            --gap: 25px;
+            --notice-color: #ff6347; /* Orangered */
         }
 
         body {
-            font-family: 'Roboto', sans-serif; /* Modern font */
+            font-family: 'Roboto', sans-serif;
             margin: 0;
             padding: 0;
-            background-color: var(--background-color);
-            color: var(--text-color);
+            background-color: var(--dark-blue-background);
+            color: var(--text-color-light);
+            /* Centering the container */
             display: flex;
             justify-content: center;
             align-items: center;
@@ -33,34 +34,38 @@
 
         .container {
             text-align: center;
-            background: white;
-            padding: 30px;
-            border-radius: var(--border-radius);
-            box-shadow: var(--box-shadow);
+            background: #1b3863; /* Slightly lighter container background */
+            padding: 40px 30px;
+            border-radius: 18px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
             max-width: 90%;
             width: 700px;
-            margin: 20px; /* Add margin for mobile padding */
+            margin: 20px auto; /* Ensure vertical centering and auto horizontal centering fallback */
         }
 
         h1 {
-            color: var(--text-color);
-            margin-bottom: 30px;
+            color: var(--white);
+            margin-bottom: 10px;
             font-size: 2.2em;
             font-weight: 700;
         }
+        
+        p {
+            color: var(--text-color-light);
+            margin-bottom: 30px;
+        }
 
-        /* --- Mobile-Friendly Button Group --- */
+        /* --- Button Group & Shared Styles --- */
         .button-group {
             display: flex;
             gap: var(--gap);
             justify-content: center;
-            /* Default: Side-by-side for desktop */
             flex-direction: row; 
         }
 
         .action-button {
             text-decoration: none;
-            padding: 18px 25px; /* Larger padding for better touch targets */
+            padding: 15px 35px;
             border-radius: var(--border-radius);
             font-size: 1.15em;
             font-weight: 600;
@@ -68,56 +73,141 @@
             align-items: center;
             justify-content: center;
             transition: all 0.3s ease;
-            flex-grow: 1; /* Allow buttons to grow and fill available space */
-            min-width: 150px; /* Minimum width for desktop side-by-side */
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            flex-grow: 1;
+            min-width: 150px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            position: relative;
+            overflow: hidden;
         }
 
         .action-button i {
-            margin-right: 12px;
-            font-size: 1.5em; /* Larger icons */
+            margin-right: 15px;
+            font-size: 1.6em;
+            line-height: 1;
+        }
+        
+        /* Side 'Cutouts' Styling */
+        .action-button::before,
+        .action-button::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 10px;
+            height: 100%;
+            border-radius: 5px;
+            z-index: 2;
         }
 
-        /* Download Button Styling */
-        #download-btn {
-            background-color: var(--primary-color);
-            color: white;
+        .action-button::before {
+            left: 0;
+            clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%, 30% 80%, 30% 20%);
         }
 
-        #download-btn:hover {
-            background-color: var(--primary-hover);
-            transform: translateY(-3px);
-            box-shadow: 0 8px 15px rgba(0, 123, 255, 0.4);
+        .action-button::after {
+            right: 0;
+            clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%, 70% 80%, 70% 20%);
         }
 
-        /* Upload Button Styling */
+        /* --- Upload Button (Primary Blue) --- */
         #upload-btn {
-            background-color: var(--secondary-color);
-            color: white;
+            background-color: var(--main-blue);
+            color: var(--white);
+        }
+        #upload-btn i {
+            color: var(--white);
+        }
+        #upload-btn:hover {
+            background-color: var(--main-blue-hover);
+            transform: translateY(-2px);
+        }
+        #upload-btn::before, #upload-btn::after {
+            background-color: var(--main-blue-hover);
         }
 
-        #upload-btn:hover {
-            background-color: var(--secondary-hover);
-            transform: translateY(-3px);
-            box-shadow: 0 8px 15px rgba(40, 167, 69, 0.4);
+        /* --- Download Button (White/Light Blue) --- */
+        #download-btn {
+            background-color: var(--white);
+            color: var(--main-blue);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+        }
+        #download-btn i {
+            color: var(--main-blue);
+        }
+        #download-btn:hover {
+            background-color: var(--light-blue-fill);
+            transform: translateY(-2px);
+        }
+        #download-btn::before, #download-btn::after {
+            background-color: var(--light-blue-fill);
+        }
+
+
+        /* --- Ephemeral Alert Notification Styling --- */
+        /* (Unchanged from previous version) */
+        .ephemeral-alert {
+            position: absolute;
+            top: -50px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #ffc107;
+            color: #333;
+            padding: 8px 15px;
+            border-radius: 5px;
+            font-size: 0.9em;
+            font-weight: 500;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            z-index: 10;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        }
+        
+        .ephemeral-alert.show {
+            top: -65px;
+            opacity: 1;
+        }
+
+        /* --- Community Notice (Typewriter) --- */
+        .community-notice {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px dashed #445c81;
+            min-height: 40px;
+            /* Allow the text to wrap */
+            text-align: center;
+        }
+        
+        #typewriter-text {
+            color: var(--notice-color);
+            font-size: 1.05em;
+            font-weight: 600;
+            overflow: hidden;
+            display: inline-block;
+            border-right: .15em solid var(--notice-color);
+            
+            /* FIX: Allow text to wrap within the available width */
+            white-space: normal; 
+            max-width: 100%;
+            box-sizing: border-box;
         }
 
         /* --- Media Query for Mobile (Screen width less than 600px) --- */
         @media (max-width: 600px) {
             .container {
-                padding: 20px;
+                padding: 30px 20px;
             }
             
             .button-group {
-                /* Change layout to stack buttons vertically */
                 flex-direction: column;
-                gap: 15px; /* Slightly smaller gap when stacked */
+                gap: 15px; 
             }
 
             .action-button {
-                width: 100%; /* Full width buttons for easy tapping */
-                min-width: unset; /* Remove min-width constraint */
-                padding: 15px; /* Adjust padding for full-width buttons */
+                width: 88.0%; 
+                min-width: unset; 
+                padding: 15px;
                 font-size: 1.1em;
             }
         }
@@ -126,7 +216,7 @@
 <body>
 
     <div class="container">
-        <h1>PDF Management Portal</h1>
+        <h1>PDFs</h1>
         <p>Choose an action below to manage your documents.</p>
 
         <div class="button-group">
@@ -135,8 +225,13 @@
                target="_blank" 
                rel="noopener noreferrer" 
                title="Access the shared Google Drive folder to download files.">
+                
                 <i class="fas fa-cloud-download-alt"></i>
-                Download Files
+                Download
+                
+                <div id="first-timer-alert" class="ephemeral-alert">
+                    Click to view past questions/PDF collections!
+                </div>
             </a>
 
             <a id="upload-btn" class="action-button" 
@@ -145,11 +240,61 @@
                rel="noopener noreferrer" 
                title="Open the Google Form to upload new PDF documents.">
                 <i class="fas fa-cloud-upload-alt"></i>
-                Upload Files
+                Upload
             </a>
         </div>
         
+        <div class="community-notice">
+            <span id="typewriter-text"></span>
+        </div>
+        
     </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            
+            // --- 1. First-Timer Ephemeral Alert (3 Seconds) ---
+            const alertElement = document.getElementById('first-timer-alert');
+            
+            // Use sessionStorage to simulate a "first-time" visitor experience
+            const isFirstVisit = sessionStorage.getItem('hasVisitedDownload') === null;
+
+            if (isFirstVisit) {
+                // Show the alert by adding the 'show' class
+                setTimeout(() => {
+                    alertElement.classList.add('show');
+                }, 500); // 0.5s delay after page load
+
+                // Hide the alert and set the flag after 3 seconds
+                setTimeout(() => {
+                    alertElement.classList.remove('show');
+                    sessionStorage.setItem('hasVisitedDownload', 'true');
+                }, 3500); // 3 seconds after showing (0.5s + 3s = 3.5s total)
+            }
+
+
+            // --- 2. Typewriter Animation (for community notice) ---
+            const textToType = "NOTICE! You can contribute to the community by simply uploading some PDFs to share with other users.";
+            const typewriterElement = document.getElementById('typewriter-text');
+            let i = 0;
+            const typingSpeed = 50; 
+
+            function typeWriter() {
+                if (i < textToType.length) {
+                    typewriterElement.innerHTML += textToType.charAt(i);
+                    i++;
+                    setTimeout(typeWriter, typingSpeed);
+                } else {
+                    // Stop the cursor blink after typing is complete
+                    typewriterElement.style.borderRight = 'none';
+                }
+            }
+            
+            // Start the typewriter animation 2 seconds after page load
+            setTimeout(typeWriter, 2000); 
+
+        });
+    </script>
 
 </body>
 </html>
