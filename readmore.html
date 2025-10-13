@@ -3,7 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Eksu Hub News - Article</title>
+    <title id="pageTitle">Eksu Hub News - Article</title> 
+    
+    <meta property="og:title" content="Eksu Hub News - Article" id="ogTitle">
+    <meta property="og:description" content="Read the latest news from Eksu Hub!" id="ogDescription">
+    <meta property="og:image" content="" id="ogImage">
+    <meta property="og:url" content="" id="ogUrl">
+    <meta property="og:type" content="article">
+    
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 <style>
@@ -251,6 +258,29 @@
         border-radius: 8px;
         margin-top: 40px;
     }
+    
+    /* NEW: Alert Message Styling */
+    .success-alert {
+        position: fixed;
+        bottom: 20px; /* Position above the bottom edge */
+        left: 50%;
+        transform: translateX(-50%);
+        background-color: rgba(180, 140, 105, 0.9); /* Orange transparent background */
+        color: white; /* White text for contrast */
+        border: 2px solid var(--primary-color); /* Blue border */
+        padding: 15px 30px;
+        border-radius: 10px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        z-index: 1000; /* Ensure it's on top of everything */
+        opacity: 0; /* Start hidden */
+        transition: opacity 0.5s ease-in-out;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+    }
+
+    .success-alert.show {
+        opacity: 1; /* Fade in */
+    }
 </style>
 
 </head>
@@ -291,6 +321,10 @@
         </div>
         </div>
 
+    <div id="commentAlert" class="success-alert">
+        <i class="fas fa-check-circle"></i> Comment Posted Successfully!
+    </div>
+
     <script>
         // --- Supabase Initialization ---
         const SUPABASE_URL = 'https://dyrsbfrvonajerbfrxzw.supabase.co';
@@ -309,13 +343,14 @@
         const submitCommentBtn = document.getElementById('submitCommentBtn');
         const commentsList = document.getElementById('commentsList');
         const commentCountElement = document.getElementById('commentCount');
+        const commentAlert = document.getElementById('commentAlert'); // NEW: Get the alert element
         
         // ANONYMOUS USER DATA
         let ANONYMOUS_USERNAME = '';
         const USERNAME_KEY = 'eksu_anon_username';
         const ADJECTIVES = [
             'Curious', 'Smart', 'Dull', 'Brave', 'Quiet', 'Witty', 'Salty', 'Spotted', 
-            'Quick', 'Calm', 'Fierce', 'Gentle', 'Humble', 'Jolly', 'Lazy', 'Vivid'
+            'Quick', 'Calm', 'Fierce', 'Gentle', 'Humble', 'Jolly', 'Lazy', 'sleep','Vivid'
         ];
         const ANIMALS = [
             'Eagle', 'Bear', 'Rat', 'Dog', 'Fox', 'Lion', 'Tiger', 'Shark', 'Wolf', 
@@ -325,6 +360,7 @@
 
         let articleTitle = "Eksu Hub News Article"; 
         let articleUrl = window.location.href; 
+        let articleImageUrl = ''; // Global variable to store the image URL
 
         // =================================================================================
         // --- USER GENERATION & INIT ---
@@ -334,7 +370,7 @@
             const adj = ADJECTIVES[Math.floor(Math.random() * ADJECTIVES.length)];
             const animal = ANIMALS[Math.floor(Math.random() * ANIMALS.length)];
             const number = Math.floor(Math.random() * 99) + 1;
-            return `${adj}${animal}${number}`;
+            return `${adj}${animal}`;
         }
 
         function initializeUser() {
@@ -395,6 +431,16 @@
             }
 
             articleTitle = article.title;
+            articleImageUrl = article.image_url; // Store the image URL globally
+            
+            // --- NEW: Update Open Graph Meta Tags and Title ---
+            document.getElementById('pageTitle').textContent = article.title;
+            document.getElementById('ogTitle').setAttribute('content', article.title);
+            // Use the first 150 characters of content for the description
+            document.getElementById('ogDescription').setAttribute('content', article.content.substring(0, 150) + '...');
+            document.getElementById('ogImage').setAttribute('content', article.image_url || 'https://via.placeholder.com/800x400?text=Eksu+Hub+News');
+            document.getElementById('ogUrl').setAttribute('content', window.location.href);
+            // ----------------------------------------------------
             
             const imageSrc = article.image_url || 'https://via.placeholder.com/800x400?text=No+Image';
             const date = new Date(article.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
@@ -419,6 +465,15 @@
         // --- COMMENT LOGIC ---
         // =================================================================================
         
+        // NEW: Function to display the transient success alert
+        function showCommentAlert() {
+            commentAlert.classList.add('show');
+            // Hide the alert after 1000 milliseconds (1 second)
+            setTimeout(() => {
+                commentAlert.classList.remove('show');
+            }, 1000);
+        }
+
         async function loadComments(id) {
             commentsList.innerHTML = '<p>Loading comments...</p>';
             try {
@@ -499,7 +554,7 @@
                 
                 // 3. Clear form and provide success feedback
                 commentTextarea.value = '';
-                alert('Comment posted successfully!');
+                showCommentAlert(); // REPLACED old alert() with new transient function
                 
                 // If the list was empty, remove the "Be the first" message
                 if (commentsList.querySelector('p') && commentsList.querySelector('p').textContent.includes('Be the first')) {
