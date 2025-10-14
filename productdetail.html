@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title id="pageTitle">EKSU MARKET | Product Details</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <meta property="og:title" content="EKSU Market Item: [Placeholder Title]">
+    <meta property="og:description" content="View product details on EKSU Market.">
+    <meta property="og:image" content="https://via.placeholder.com/600x400?text=EKSU+MARKET">
+    <meta property="og:url" content="index.html">
+
+    <style>
+        :root {
+            --primary-color: #1f3b7d; /* Deep Blue */
+            --secondary-color: #e19d00; /* Gold/Yellow */
+            --bg-color: #f8f9fa;
+            --card-bg: #ffffff;
+            --shadow-medium: 0 5px 15px rgba(0, 0, 0, 0.15);
+            --border-radius: 13px;
+        }
+
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            margin: 0; 
+            padding: 0; 
+            background-color: var(--bg-color); 
+            color: #333; 
+            line-height: 1.6;
+        }
+
+        .header { 
+            background-color: var(--primary-color); 
+            color: white; 
+            padding: 15px 20px; 
+            display: flex; 
+            align-items: center; 
+            box-shadow: var(--shadow-medium);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        .back-btn { 
+            font-size: 1.5rem; 
+            color: white;
+            margin-right: 15px;
+            text-decoration: none;
+        }
+        .header h1 { 
+            margin: 0; 
+            font-size: 1.2rem; 
+            font-weight: 700;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 0 20px;
+        }
+
+        #product-detail {
+            background: var(--card-bg);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow-medium);
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+        #product-image {
+            width: 100%;
+            height: 300px;
+            object-fit: cover;
+        }
+
+        .details-body {
+            padding: 20px;
+        }
+        
+        #product-name {
+            font-size: 2rem;
+            color: var(--primary-color);
+            margin-top: 0;
+            margin-bottom: 10px;
+        }
+
+        #product-price {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: #d9534f;
+            margin-bottom: 20px;
+            display: block;
+        }
+        
+        .tag-row { margin-bottom: 15px; }
+        .product-tag { 
+            display: inline-block; 
+            padding: 5px 10px; 
+            border-radius: 15px; 
+            margin-right: 10px; 
+            font-size: 0.8rem; 
+            font-weight: bold; 
+            text-transform: uppercase;
+        }
+        .tag-neg { background-color: #f0ad4e; color: white; }
+        .tag-new { background-color: #5cb85c; color: white; }
+        .tag-used { background-color: #007bff; color: white; }
+        
+        .description-box {
+            border-top: 1px solid #eee;
+            padding-top: 20px;
+        }
+        .description-box h3 {
+            color: var(--primary-color);
+            border-bottom: 2px solid var(--secondary-color);
+            padding-bottom: 5px;
+            margin-top: 0;
+        }
+        #product-description {
+            white-space: pre-wrap; /* Preserves formatting in description */
+        }
+        
+        .seller-info {
+             border-top: 1px solid #eee;
+             padding-top: 20px;
+             margin-top: 20px;
+        }
+        .seller-info p {
+            margin: 5px 0;
+            font-size: 1.1rem;
+        }
+        .seller-info strong {
+            color: var(--primary-color);
+        }
+
+        /* Action Buttons */
+        .action-btns {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+        }
+
+        .action-btn { 
+            padding: 12px 20px; 
+            border-radius: var(--border-radius); 
+            text-decoration: none; 
+            display: flex; 
+            align-items: center;
+            justify-content: center;
+            font-weight: 600; 
+            transition: background-color 0.2s, opacity 0.2s;
+            flex-grow: 1; 
+            border: none;
+            cursor: pointer;
+            font-size: 1rem; 
+        }
+        
+        .whatsapp-btn { 
+            background-color: #25d366; 
+            color: white; 
+        }
+        .whatsapp-btn i { margin-right: 8px; }
+        
+        .share-btn {
+            background-color: var(--secondary-color);
+            color: var(--primary-color); 
+        }
+        .share-btn i { margin-right: 8px; }
+        
+        /* Loading/Error Message */
+        #loading-message { 
+            text-align: center; 
+            padding: 50px; 
+            font-size: 1.2em; 
+            color: #6c757d; 
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <a href="index.html" class="back-btn" aria-label="Go Back to Market">
+            <i class="fas fa-arrow-left"></i>
+        </a>
+        <h1>Product Details</h1>
+    </div>
+
+    <div class="container">
+        <div id="loading-message">Loading product details...</div>
+        
+        <div id="product-detail" style="display:none;">
+            <img id="product-image" src="https://via.placeholder.com/800x400?text=Image+Loading" alt="Product Image">
+            <div class="details-body">
+                <h2 id="product-name"></h2>
+                
+                <div class="tag-row">
+                    </div>
+
+                <span id="product-price"></span>
+                
+                <div class="action-btns">
+                    <button class="action-btn share-btn" id="shareBtn" aria-label="Share Product">
+                        <i class="fas fa-share-alt"></i> Share
+                    </button>
+                    <a href="#" target="_blank" class="action-btn whatsapp-btn" id="whatsappLink" disabled>
+                        <i class="fab fa-whatsapp"></i> Chat Seller
+                    </a>
+                </div>
+
+                <div class="description-box">
+                    <h3>Description</h3>
+                    <p id="product-description"></p>
+                </div>
+
+                <div class="seller-info">
+                    <h3>Seller Information</h3>
+                    <p><strong>Location:</strong> <span id="product-location"></span></p>
+                    <p><strong>Condition:</strong> <span id="product-condition"></span></p>
+                    <p><strong>Category:</strong> <span id="product-category"></span></p>
+                </div>
+            </div>
+        </div>
+    </div>
+        
+    <script>
+        // =================================================================================
+        // --- Supabase Configuration & Globals ---
+        // =================================================================================
+        // !!! IMPORTANT: REPLACE THESE WITH YOUR ACTUAL SUPABASE DETAILS !!!
+        const SUPABASE_URL = 'https://dyrsbfrvonajerbfrxzw.supabase.co'; 
+        const SUPABASE_AUTH_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR5cnNiZnJ2b25hamVyYmZyeHp3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk3NDk0ODAsImV4cCI6MjA3NTMyNTQ4MH0.mgj9f_ROkti_I3CeJ4ebYVhaLGy9Wamvj4XTtH_rB_I';
+        
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_AUTH_KEY);
+        const PRODUCTS_TABLE = 'products';
+        
+        let currentProductData = null; // Store fetched data globally for sharing
+
+        // =================================================================================
+        // --- CORE FUNCTIONS ---
+        // =================================================================================
+
+        /**
+         * Parses the URL for the product ID and fetches the data.
+         */
+        async function loadProductDetails() {
+            const params = new URLSearchParams(window.location.search);
+            const productId = params.get('id');
+            const loadingMessage = document.getElementById('loading-message');
+            const productDetailDiv = document.getElementById('product-detail');
+
+            if (!productId) {
+                loadingMessage.textContent = 'Error: No product ID specified in the URL.';
+                return;
+            }
+
+            loadingMessage.textContent = 'Loading product details...';
+            productDetailDiv.style.display = 'none';
+
+            try {
+                const { data: product, error } = await supabase
+                    .from(PRODUCTS_TABLE)
+                    .select('*')
+                    .eq('id', productId)
+                    .single();
+
+                if (error || !product) {
+                    throw new Error(`Product not found: ${error ? error.message : 'Invalid ID'}`);
+                }
+
+                currentProductData = product;
+                renderDetails(product);
+
+                loadingMessage.style.display = 'none';
+                productDetailDiv.style.display = 'block';
+
+            } catch (error) {
+                console.error('Error fetching product:', error);
+                loadingMessage.textContent = `Error loading product: ${error.message}`;
+            }
+        }
+
+        /**
+         * Renders the fetched product data onto the page.
+         */
+        function renderDetails(product) {
+            document.getElementById('product-name').textContent = product.name;
+            document.getElementById('pageTitle').textContent = product.name + ' | EKSU Market';
+
+            document.getElementById('product-image').src = product.image_url || 'https://via.placeholder.com/800x400?text=No+Image+Available';
+            document.getElementById('product-image').alt = product.name;
+            
+            document.getElementById('product-price').textContent = `₦${product.price ? product.price.toLocaleString() : '0'}`;
+            document.getElementById('product-description').textContent = product.description || 'No detailed description provided.';
+            
+            document.getElementById('product-location').textContent = product.location || 'Unknown';
+            document.getElementById('product-condition').textContent = product.condition || 'Unknown';
+            document.getElementById('product-category').textContent = product.category || 'N/A';
+            
+            // --- Tags ---
+            const tagRow = document.querySelector('.tag-row');
+            tagRow.innerHTML = ''; // Clear previous tags
+            
+            let conditionTagClass = 'tag-new';
+            if (product.condition && product.condition.includes('Used')) {
+                conditionTagClass = 'tag-used';
+            }
+            
+            tagRow.innerHTML += `<span class="product-tag">${product.category || 'Uncategorized'}</span>`;
+            tagRow.innerHTML += `<span class="product-tag ${conditionTagClass}">${product.condition || 'Unknown'}</span>`;
+            
+            if (product.is_negotiable) {
+                tagRow.innerHTML += '<span class="product-tag tag-neg">NEGOTIABLE</span>';
+            }
+
+            // --- WhatsApp Link ---
+            const whatsappLink = document.getElementById('whatsappLink');
+            const cleanNumber = product.whatsapp_number ? product.whatsapp_number.replace(/[^\d+]/g, '') : '';
+            
+            if (cleanNumber) {
+                const waUrl = `https://wa.me/${cleanNumber}?text=Hello!%20I%20am%20interested%20in%20your%20product:%20${encodeURIComponent(product.name)}.`;
+                whatsappLink.href = waUrl;
+                whatsappLink.removeAttribute('disabled');
+            } else {
+                whatsappLink.href = '#';
+                whatsappLink.disabled = true;
+                whatsappLink.textContent = 'Contact Not Available';
+            }
+
+            // Attach Share listener
+            document.getElementById('shareBtn').onclick = () => {
+                // Ensure data is available before calling share
+                if (currentProductData) {
+                    shareProduct(
+                        currentProductData.name, 
+                        currentProductData.price, 
+                        currentProductData.id
+                    );
+                }
+            };
+        }
+
+        // =================================================================================
+        // --- UPDATED SHARE FUNCTION (with single URL) ---
+        // =================================================================================
+        
+        /**
+         * Shares product details using the Web Share API or falls back to clipboard copy.
+         * Shares the specific product details page link.
+         * @param {string} productName 
+         * @param {number} productPrice 
+         * @param {number} productId 
+         */
+        function shareProduct(productName, productPrice, productId) {
+            // This is the specific URL for this product detail page
+            const productDetailUrl = window.location.origin + '/productdetails.html?id=' + productId; 
+            
+            // 1. Create the text content *WITHOUT* the URL, relying on the 'url' field
+            const text = `🔥 Check out this item on EKSU Market:\n*${productName}*\nPrice: ₦${productPrice.toLocaleString()}`;
+            const title = `EKSU Market: ${productName}`;
+            
+            // 2. Web Share API (Preferred for Mobile)
+            if (navigator.share) {
+                navigator.share({
+                    title: title,
+                    text: text, // Custom message body
+                    url: productDetailUrl // Dedicated URL field (the app will append this)
+                }).then(() => {
+                    console.log('Successful share');
+                }).catch((error) => {
+                    console.log('Share action cancelled or failed:', error);
+                    // Often, the app doesn't implement the promised resolve, so we handle it here
+                });
+            } else {
+                // 3. Manual Fallback for Desktops (must include the link in the text)
+                const fallbackText = `${text}\nView details here: ${productDetailUrl}`;
+                navigator.clipboard.writeText(fallbackText).then(() => {
+                    alert('Product details (name, price, and link) copied to clipboard! You can now paste and share.');
+                }).catch(err => {
+                    console.error('Could not copy text: ', err);
+                    alert('Could not copy product details. Your browser may not support clipboard access.');
+                });
+            }
+        }
+        
+        // =================================================================================
+        // --- INITIALIZATION ---
+        // =================================================================================
+        
+        // Start loading the product details when the page loads
+        document.addEventListener('DOMContentLoaded', loadProductDetails);
+        
+    </script>
+</body>
+</html>
