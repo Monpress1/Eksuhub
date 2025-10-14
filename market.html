@@ -179,7 +179,7 @@
             overflow: hidden; 
             box-shadow: var(--shadow-medium); 
             transition: transform 0.3s, box-shadow 0.3s; 
-            cursor: pointer; /* Indicates it's clickable */
+            cursor: pointer; 
         }
         .product-card:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2); }
         .product-card img { width: 100%; height: 180px; object-fit: cover; }
@@ -241,7 +241,7 @@
             padding: 20px;
             margin-top: 20px;
         }
-        /* ... Modal and Bottom Nav styles (as before) ... */
+        /* Modal */
         .modal { display: none; position: fixed; z-index: 100; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.7); }
         .modal-content { 
             background-color: var(--card-bg); 
@@ -314,6 +314,16 @@
         .bottom-navigation a:hover, .bottom-navigation a.active {
             color: var(--primary-color);
         }
+        
+        .success, .error {
+            padding: 10px;
+            margin-bottom: 15px;
+            border-radius: 5px;
+            text-align: center;
+            font-weight: bold;
+        }
+        .success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
     </style>
 </head>
 <body>
@@ -441,7 +451,9 @@
         const prevPageBtn = document.getElementById('prevPageBtn');
         const nextPageBtn = document.getElementById('nextPageBtn');
         const pageInfo = document.getElementById('pageInfo');
-        const filterToggleBtn = document.getElementById('filterToggleBtn');
+        const productForm = document.getElementById('productForm');
+        const submitButton = document.getElementById('submitButton');
+        const loadingDiv = document.getElementById('loading');
         let selectedCategory = ''; 
 
         function openSellModal() { modal.style.display = 'block'; }
@@ -452,34 +464,67 @@
             const messageDiv = document.getElementById('message');
             messageDiv.textContent = text;
             messageDiv.className = '';
-            messageDiv.classList.add(className);
+            messageDiv.classList.add(isError ? 'error' : 'success');
             messageDiv.style.display = 'block';
             if (!isError) { setTimeout(() => { messageDiv.style.display = 'none'; }, 5000); }
         }
         
-        // --- Helper functions (compressImage, sanitizeFilename) not repeated here for brevity, 
-        //     but they should remain in the final file as they were previously. ---
+        // =================================================================================
+        // --- HELPER FUNCTIONS ---
+        // =================================================================================
+
+        /**
+         * Safely cleans a filename for use in Supabase storage.
+         * @param {string} filename 
+         * @returns {string} Cleaned filename
+         */
+        function sanitizeFilename(filename) {
+            return filename.replace(/[^a-zA-Z0-9.\-]/g, '_');
+        }
+
+        /**
+         * Compresses the image file before upload.
+         * @param {File} file 
+         * @returns {Promise<Blob>} Compressed image blob
+         */
+        function compressImage(file) {
+            return new Promise((resolve) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = (event) => {
+                    const img = new Image();
+                    img.src = event.target.result;
+                    img.onload = () => {
+                        const canvas = document.createElement('canvas');
+                        const MAX_WIDTH = 800; // Max width for compression
+                        const scaleSize = MAX_WIDTH / img.width;
+                        
+                        canvas.width = MAX_WIDTH;
+                        canvas.height = img.height * scaleSize;
+                        
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                        
+                        // Convert to Blob with JPEG format and quality 0.8
+                        canvas.toBlob(resolve, 'image/jpeg', 0.8);
+                    };
+                    img.onerror = () => resolve(file); // Fallback on image loading error
+                };
+                reader.onerror = () => resolve(file); // Fallback on file reading error
+            });
+        }
+
 
         // =================================================================================
-        // --- UPDATED SHARE FUNCTION (Single URL, for index.html context) ---
+        // --- SHARE FUNCTION ---
         // =================================================================================
         
-        /**
-         * Shares product details using the Web Share API or falls back to clipboard copy.
-         * Crucially, it links to the dedicated productdetails.html page.
-         * @param {string} productName 
-         * @param {number} productPrice 
-         * @param {number} productId - The required numeric ID from Supabase.
-         */
         function shareProduct(productName, productPrice, productId) {
-            // This constructs the clean, correct link to the detail page
             const productDetailUrl = window.location.origin + '/productdetails.html?id=' + productId; 
             
-            // 1. Create the text content *WITHOUT* the URL
             const text = `🔥 Check out this item on EKSU Market:\n*${productName}*\nPrice: ₦${productPrice.toLocaleString()}`;
             const title = `EKSU Market: ${productName}`;
             
-            // 2. Web Share API 
             if (navigator.share) {
                 navigator.share({
                     title: title,
@@ -491,7 +536,6 @@
                     console.log('Share action cancelled or failed:', error);
                 });
             } else {
-                // 3. Manual Fallback for Desktops (must include the link in the text)
                 const fallbackText = `${text}\nView details here: ${productDetailUrl}`;
                 navigator.clipboard.writeText(fallbackText).then(() => {
                     alert('Product details (name, price, and link) copied to clipboard! You can now paste and share.');
@@ -503,29 +547,162 @@
         }
 
         // =================================================================================
-        // --- PRODUCT LISTING LOGIC (Form Submission - Same as before) ---
+        // --- PRODUCT LISTING LOGIC ---
         // =================================================================================
-        // (Insert your form submission logic here, using compressImage/sanitizeFilename helpers)
+        
+        productForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            submitButton.disabled = true;
+            submitButton.textContent = 'Uploading...';
+            
+            const formData = new FormData(productForm);
+            const imageFile = formData.get('imageFile');
+            
+            if (!imageFile || imageFile.size === 0) {
+                displayMessage('Please select an image file.', 'error', true);
+                submitButton.disabled = false;
+                submitButton.textContent = 'LIST PRODUCT';
+                return;
+            }
+
+            try {
+                // 1. Compress Image
+                const compressedImageBlob = await compressImage(imageFile);
+                
+                // 2. Upload to Supabase Storage
+                const timestamp = new Date().getTime();
+                const cleanFileName = sanitizeFilename(imageFile.name);
+                const filePath = `images/${timestamp}-${cleanFileName}`;
+                
+                const { error: uploadError } = await supabase.storage
+                    .from(STORAGE_BUCKET)
+                    .upload(filePath, compressedImageBlob, {
+                        cacheControl: '3600',
+                        upsert: false
+                    });
+
+                if (uploadError) throw uploadError;
+
+                // 3. Get Public URL
+                const { data: publicUrlData } = supabase.storage
+                    .from(STORAGE_BUCKET)
+                    .getPublicUrl(filePath);
+                
+                const imageUrl = publicUrlData.publicUrl;
+
+                // 4. Insert Metadata into Products Table
+                const productData = {
+                    name: formData.get('productName'),
+                    category: formData.get('category'),
+                    condition: formData.get('condition'),
+                    price: parseFloat(formData.get('price')),
+                    description: formData.get('description'),
+                    location: formData.get('location'),
+                    whatsapp_number: formData.get('whatsappNumber'),
+                    is_negotiable: formData.get('isNegotiable') === 'on',
+                    image_url: imageUrl,
+                    created_at: new Date().toISOString()
+                };
+
+                const { error: dbError } = await supabase
+                    .from(PRODUCTS_TABLE)
+                    .insert([productData]);
+
+                if (dbError) throw dbError;
+
+                displayMessage('Product listed successfully! Refreshing...', 'success');
+                closeSellModal();
+                productForm.reset();
+                
+                setTimeout(() => {
+                    window.location.reload(); 
+                }, 1500);
+
+            } catch (error) {
+                console.error('Listing error:', error);
+                displayMessage(`Failed to list product: ${error.message || error.toString()}`, 'error', true);
+            } finally {
+                submitButton.disabled = false;
+                submitButton.textContent = 'LIST PRODUCT';
+            }
+        });
 
         // =================================================================================
         // --- PRODUCT FETCHING, FILTERING, RENDERING & PAGINATION LOGIC ---
         // =================================================================================
         
         async function fetchProducts() {
-            // ... (fetch logic remains the same) ...
+            loadingDiv.style.display = 'block';
+            try {
+                const { data, error } = await supabase
+                    .from(PRODUCTS_TABLE)
+                    .select('*')
+                    .order('created_at', { ascending: false });
+
+                if (error) throw error;
+                
+                allProducts = data || [];
+                applyFiltersAndPagination();
+
+            } catch (error) {
+                console.error('Error fetching products:', error);
+                loadingDiv.textContent = 'Failed to load products. Check Supabase configuration.';
+            } finally {
+                loadingDiv.style.display = 'none';
+            }
         }
         
         function applyFiltersAndPagination() {
-            // ... (filter logic remains the same) ...
+            let tempProducts = allProducts;
+            const searchTerm = searchInput.value.toLowerCase().trim();
+
+            // 1. Apply Category Filter
+            if (selectedCategory) {
+                tempProducts = tempProducts.filter(p => p.category === selectedCategory);
+            }
+
+            // 2. Apply Search Filter
+            if (searchTerm) {
+                tempProducts = tempProducts.filter(p => 
+                    (p.name && p.name.toLowerCase().includes(searchTerm)) ||
+                    (p.description && p.description.toLowerCase().includes(searchTerm)) ||
+                    (p.location && p.location.toLowerCase().includes(searchTerm))
+                );
+            }
+
+            filteredProducts = tempProducts;
+            const totalPages = Math.ceil(filteredProducts.length / productsPerPage);
+            
+            if (currentPage > totalPages && totalPages > 0) {
+                currentPage = totalPages;
+            } else if (totalPages === 0) {
+                 currentPage = 1;
+            }
+            
+            renderCurrentPage();
+            updatePaginationControls(totalPages);
         }
         
         function renderCurrentPage() {
-            // ... (pagination logic remains the same) ...
+            productGrid.innerHTML = '';
+            const startIndex = (currentPage - 1) * productsPerPage;
+            const endIndex = startIndex + productsPerPage;
+            const productsToShow = filteredProducts.slice(startIndex, endIndex);
+
+            if (productsToShow.length === 0) {
+                productGrid.innerHTML = `<p style="text-align:center; padding: 40px;">No products found for the current filter/search criteria.</p>`;
+                return;
+            }
+
             productsToShow.forEach(renderProductCard);
-            // ...
         }
-        
-        // --- CRITICAL UPDATE IS HERE ---
+
+        function updatePaginationControls(totalPages) {
+            pageInfo.textContent = `Page ${totalPages === 0 ? 0 : currentPage} of ${totalPages}`;
+            prevPageBtn.disabled = currentPage === 1;
+            nextPageBtn.disabled = currentPage >= totalPages;
+        }
+
         function renderProductCard(product) {
             const card = document.createElement('div');
             card.className = 'product-card';
@@ -539,15 +716,15 @@
                 ? `https://wa.me/${cleanNumber}?text=Hello!%20I%20am%20interested%20in%20your%20product:%20${encodeURIComponent(product.name)}.`
                 : '#'; 
             
-            // 1. Prepare data for the share function call
-            const productName = product.name ? product.name.replace(/'/g, "\\'") : ''; 
+            // Prepare product name for JavaScript string literal (safest way to avoid quote errors)
+            const productName = product.name ? JSON.stringify(product.name).replace(/"/g, "'") : "''"; 
             const productPrice = product.price || 0;
-            const productId = product.id; // <-- USE THE NUMERIC ID
+            const productId = product.id; 
 
-            // 2. Build the JavaScript function call string using the numeric ID
-            const shareOnClick = `shareProduct('${productName}', ${productPrice}, ${productId})`;
+            // Corrected share function call
+            const shareOnClick = `shareProduct(${productName}, ${productPrice}, ${productId})`;
 
-            // 3. Add onclick to the entire card to navigate to the detail page
+            // Navigation handler
             const navigateToDetails = `window.location.href='productdetails.html?id=${productId}'`;
 
 
@@ -582,10 +759,41 @@
         // =================================================================================
         // --- EVENT LISTENERS & INITIALIZATION ---
         // =================================================================================
-        // (Insert event listeners here - as before)
         
-        // Initialize the page
-        fetchProducts();
+        searchInput.addEventListener('input', () => {
+            currentPage = 1; 
+            applyFiltersAndPagination();
+        });
+        
+        filterPillsContainer.addEventListener('click', (e) => {
+            if (e.target.classList.contains('filter-pill')) {
+                document.querySelectorAll('.filter-pill').forEach(pill => pill.classList.remove('active'));
+                e.target.classList.add('active');
+                
+                selectedCategory = e.target.getAttribute('data-category');
+                currentPage = 1;
+                applyFiltersAndPagination();
+            }
+        });
+
+        prevPageBtn.addEventListener('click', () => {
+            if (currentPage > 1) {
+                currentPage--;
+                renderCurrentPage();
+                updatePaginationControls(Math.ceil(filteredProducts.length / productsPerPage));
+            }
+        });
+
+        nextPageBtn.addEventListener('click', () => {
+            const totalPages = Math.ceil(filteredProducts.length / productsPerPage);
+            if (currentPage < totalPages) {
+                currentPage++;
+                renderCurrentPage();
+                updatePaginationControls(totalPages);
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', fetchProducts);
         
     </script>
 </body>
