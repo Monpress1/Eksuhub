@@ -212,19 +212,44 @@
         .tag-used { background-color: #007bff; color: white; }
         .tag-location { color: #6c757d; font-weight: 500; font-size: 0.85rem; margin-top: 5px; display: block;}
         
-        .whatsapp-btn { 
-            background-color: #25d366; 
-            color: white; 
+        /* ==================================== */
+        /* --- NEW ACTION BUTTON STYLES --- */
+        /* ==================================== */
+        .action-btns {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .action-btn { 
             padding: 10px; 
             border-radius: var(--border-radius); 
             text-decoration: none; 
             display: block; 
             text-align: center; 
-            margin-top: 15px; 
             font-weight: 600; 
-            transition: background-color 0.2s;
+            transition: background-color 0.2s, opacity 0.2s;
+            flex-grow: 1; /* Allows buttons to share space */
+            border: none;
+            cursor: pointer;
+            font-size: 0.9rem; /* Match list-btn size */
+        }
+        
+        .whatsapp-btn { 
+            background-color: #25d366; 
+            color: white; 
         }
         .whatsapp-btn:hover { background-color: #128c7e; }
+
+        .share-btn {
+            background-color: var(--secondary-color); /* Gold color */
+            color: var(--primary-color); 
+        }
+        .share-btn:hover {
+             background-color: #e6c800;
+        }
+        /* ==================================== */
+
 
         #loading { text-align: center; padding: 50px; font-size: 1.2em; color: #6c757d; }
         
@@ -676,6 +701,50 @@
         });
 
         // =================================================================================
+        // --- NEW SHARE FUNCTIONALITY ---
+        // =================================================================================
+        /**
+ * Shares product details using the Web Share API or falls back to clipboard copy.
+ * Shares the specific product details page link.
+ * * @param {string} productName 
+ * @param {number} productPrice 
+ * @param {number} productId - The ID to construct the unique product URL.
+ */
+function shareProduct(productName, productPrice, productId) {
+    // 1. Construct the specific URL for this product details page
+    const productDetailUrl = window.location.origin + '/productdetails.html?id=' + productId; 
+    
+    // 2. Create the text content *WITHOUT* the URL
+    // The sharing application will automatically append the URL from the 'url' field.
+    const text = `🔥 Check out this item on EKSU Market:\n*${productName}*\nPrice: ₦${productPrice.toLocaleString()}`;
+    const title = `EKSU Market: ${productName}`;
+    
+    // 3. Web Share API (Preferred for Mobile)
+    if (navigator.share) {
+        navigator.share({
+            title: title,
+            text: text, // Custom message body (no duplicate URL)
+            url: productDetailUrl // Dedicated URL field
+        }).then(() => {
+            console.log('Successful share');
+        }).catch((error) => {
+            console.log('Share action cancelled or failed:', error);
+        });
+    } else {
+        // 4. Manual Fallback for Desktops (MUST include the link in the text for clipboard copy)
+        const fallbackText = `${text}\nView details here: ${productDetailUrl}`;
+        navigator.clipboard.writeText(fallbackText).then(() => {
+            alert('Product details (name, price, and link) copied to clipboard! You can now paste and share.');
+        }).catch(err => {
+            console.error('Could not copy text: ', err);
+            alert('Could not copy product details. Your browser may not support clipboard access.');
+        });
+    }
+}
+
+       
+
+        // =================================================================================
         // --- PRODUCT FETCHING, FILTERING, RENDERING & PAGINATION LOGIC ---
         // =================================================================================
         
@@ -762,6 +831,10 @@
             productGrid.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
 
+        /**
+         * Renders an individual product card with the new Share button.
+         * @param {object} product 
+         */
         function renderProductCard(product) {
             const card = document.createElement('div');
             card.className = 'product-card';
@@ -777,6 +850,16 @@
             const whatsappLink = cleanNumber 
                 ? `https://wa.me/${cleanNumber}?text=Hello!%20I%20am%20interested%20in%20your%20product:%20${encodeURIComponent(product.name)}.`
                 : '#'; 
+            
+            // Prepare product data for the share function call
+            // Escape single quotes in name for the string passed to onclick
+            const productName = product.name ? product.name.replace(/'/g, "\\'") : ''; 
+            const productPrice = product.price || 0;
+            const productImageUrl = product.image_url || '';
+            
+            // Build the JavaScript function call string for the onclick event
+            const shareOnClick = `shareProduct('${productName}', ${productPrice}, '${productImageUrl}')`;
+
 
             card.innerHTML = `
                 <img src="${imageSrc}" alt="${product.name}">
@@ -792,9 +875,15 @@
                     
                     <span class="tag-location">📍 ${product.location || 'Unknown Location'}</span>
 
-                    <a href="${whatsappLink}" target="_blank" class="whatsapp-btn" ${cleanNumber ? '' : 'disabled'} >
-                        <i class="fab fa-whatsapp"></i> Chat on WhatsApp
-                    </a>
+                    <div class="action-btns">
+                        <button class="action-btn share-btn" onclick="${shareOnClick}" aria-label="Share ${product.name}">
+                            <i class="fas fa-share-alt"></i> Share
+                        </button>
+                    
+                        <a href="${whatsappLink}" target="_blank" class="action-btn whatsapp-btn" ${cleanNumber ? '' : 'disabled'} >
+                            <i class="fa fa-shopping-cart"></i> BUY
+                        </a>
+                    </div>
                 </div>
             `;
             productGrid.appendChild(card);
