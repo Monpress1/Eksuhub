@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GameLongue Eksu Chat</title>
+    <title> Eksu Chat</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     
@@ -926,7 +926,13 @@
         }
 
         .error-message {
-            color: #80ff83;
+            color: var(--danger);
+            margin-bottom: 10px;
+            font-size: 0.9rem;
+        }
+        
+        .success-message {
+            color: var(--success);
             margin-bottom: 10px;
             font-size: 0.9rem;
         }
@@ -1025,18 +1031,18 @@
     <div class="modal-overlay" id="auth-modal" style="display: none;">
         <div class="modal-content">
             <h3 id="auth-title">EKSU CHAT</h3>
-        <a href="#" id="auth-toggle-link" style="color: #95ffe0; font-size: 1.1em;"> Sign Up</a> instead
+        <a href="#" id="auth-toggle-link" style="color: #95ffe0; font-size: 0.0em;"> </a> 
 
-            <div id="auth-error" class="error-message" style="display: none;"></div>
+            <div id="auth-message" class="error-message" style="display: none;"></div>
             <form class="auth-form" id="auth-form">
                 <input type="email" id="auth-email" placeholder="Email" required autocomplete="email">
                 <input type="text" id="auth-username" placeholder="Username (Required for Signup)" style="display:none;" required autocomplete="username">
                 <input type="password" id="auth-password" placeholder="Password" required autocomplete="current-password">
-                <button type="submit" id="auth-submit-btn">Sign In</button>
+                <button type="submit" id="auth-submit-btn"></button>
             </form>
             <div class="auth-toggle">
                 <span id="toggle-prompt">Don't have an account? </span>
-              <a href="#" id="auth-toggle-link">Sign Up</a> 
+              <a href="#" id="auth-toggle-link-bottom"></a> 
             </div>
         </div>
     </div>
@@ -1143,11 +1149,12 @@
     const authUsername = document.getElementById('auth-username');
     const authPassword = document.getElementById('auth-password');
     const authSubmitBtn = document.getElementById('auth-submit-btn');
-    const authError = document.getElementById('auth-error');
-    const authToggleLink = document.getElementById('auth-toggle-link');
+    const authMessage = document.getElementById('auth-message'); // Renamed from authError
+    const authToggleLinkTop = document.getElementById('auth-toggle-link');
+    const authToggleLinkBottom = document.getElementById('auth-toggle-link-bottom');
     const togglePrompt = document.getElementById('toggle-prompt');
 
-    let isSignUp = false; // State for the Auth Modal
+    let isSignUp = true; // State for the Auth Modal
 
     // Image Upload Variables (NEW)
     const imageFileInput = document.getElementById('image-file-input');
@@ -1187,30 +1194,48 @@
         '👍', '👎', '❤️', '🔥', '💯', '🙏', '💸', '🎮', '🏆', '🚀',
         '⭐', '✨', '⚡', '🎉', '🍎', '🍕', '🍺', '☕', '🌧️', '☀️'
     ];
+    const reactionEmojis = ['👍', '🔥', '😂', '😥', '❤️','😮','🖕']; 
     
-    const reactionEmojis = ['👍', '🔥', '😂', '💯', '❤️']; 
-    const shakeWords = ['mystery mist', 'monpress', 'mysterymist','WIN','bet','play'];
+    const shakeWords = ['sammy', 'monpress', 'fuck','sex','mad'];
     
      
     // -------------------------------------------------------------------
     // AUTHENTICATION LOGIC (NEW)
     // -------------------------------------------------------------------
+function setAuthModeUI() {
+    authTitle.textContent = isSignUp ? 'One last Thing... ' : '';
+    authSubmitBtn.textContent = isSignUp ? 'Sign Up' : '="="="="""""';
+    authUsername.style.display = isSignUp ? 'block' : 'none';
+    togglePrompt.textContent = isSignUp ? 'Already have an account? ' : "Don't have an account? ";
+    authToggleLinkTop.textContent = isSignUp ? 'Sign In' : 'Sign Up';
+    authToggleLinkBottom.textContent = isSignUp ? 'Sign In' : 'Sign Up';
+    authMessage.style.display = 'none';
+    authMessage.classList.remove('success-message', 'error-message');
+}
 
-    function toggleAuthMode() {
-        isSignUp = !isSignUp;
-        authTitle.textContent = isSignUp ? 'Sign Up for Global Chat' : 'Sign In to Global Chat';
-        authSubmitBtn.textContent = isSignUp ? 'Sign Up' : 'Sign In';
-        authUsername.style.display = isSignUp ? 'block' : 'none';
-        togglePrompt.textContent = isSignUp ? 'Already have an account? ' : "Don't have an account? ";
-        authToggleLink.textContent = isSignUp ? 'Sign In' : 'Sign Up';
-        authError.style.display = 'none';
-    }
+function toggleAuthMode() {
+    isSignUp = !isSignUp; // Toggles the state
+    setAuthModeUI();      // Applies the new state to the UI
+}
 
+// You also need to change the call inside handleAuth:
+// When successful signup requires email confirmation, call setAuthModeUI:
+// ... around line 351, change: toggleAuthMode(); 
+// ... to: isSignUp = false; setAuthModeUI(); 
+
+// --- CRITICAL STEP ---
+// Add this line right after the toggleAuthMode function definition 
+// or right after the 'let isSignUp = true;' line to ensure the UI updates on page load.
+
+setAuthModeUI(); // <-- This runs the UI setting logic with isSignUp=true on page load!
+
+    
     async function handleAuth(e) {
         e.preventDefault();
-        authError.style.display = 'none';
+        authMessage.style.display = 'none';
+        authMessage.classList.remove('success-message', 'error-message');
         authSubmitBtn.disabled = true;
-        authSubmitBtn.textContent = isSignUp ? 'Signing Up...' : 'Signing In...';
+        authSubmitBtn.textContent = isSignUp ? 'Processing...' : 'Processing...';
 
         const email = authEmail.value.trim();
         const password = authPassword.value;
@@ -1221,19 +1246,44 @@
 
         if (isSignUp) {
             if (!username) {
-                authError.textContent = 'Username is required for sign up.';
-                authError.style.display = 'block';
+                authMessage.textContent = 'Username is required for sign up.';
+                authMessage.classList.add('error-message');
+                authMessage.style.display = 'block';
                 authSubmitBtn.disabled = false;
                 authSubmitBtn.textContent = 'Sign Up';
                 return;
             }
+            
             // 1. Sign Up
-            const { data, error: signUpError } = await supabase.auth.signUp({ email, password });
+            const { data: signUpData, error: signUpError } = await supabase.auth.signUp({ 
+                email, 
+                password,
+                options: {
+                    data: {
+                        username: username // Add username to user metadata
+                    }
+                }
+            });
             error = signUpError;
-            userData = data;
+            userData = signUpData;
 
             // 2. Insert Profile
             if (!error && userData.user) {
+                // If the user requires email confirmation, this will still return data, but no session.
+                if (!userData.session && supabase.auth.session()?.user.email_confirmed_at === null) {
+                    authMessage.textContent = 'Sign up successful! Please check your email to confirm your account, then sign in.';
+                    authMessage.classList.add('success-message');
+                    authMessage.style.display = 'block';
+                    toggleAuthMode(); // Switch to sign-in view
+                    authEmail.value = email;
+                    authPassword.value = '';
+                    authSubmitBtn.disabled = false;
+                    authSubmitBtn.textContent = 'Sign In';
+                    return;
+                }
+                
+                // If no session, it means email confirmation is required, handle above. 
+                // If session exists, proceed to create profile
                 const { error: profileError } = await supabase
                     .from('profiles')
                     .insert([{ id: userData.user.id, username: username }])
@@ -1241,20 +1291,35 @@
                 
                 if (profileError) {
                     console.error('Profile creation error:', profileError);
-                    await supabase.auth.admin.deleteUser(userData.user.id); 
-                    error = { message: '🎉Welcome, Now you can login✅' };
+                    // This error is non-fatal for chat entry if the user is already logged in (has a session)
+                    // The username will be re-fetched in checkAuthAndLoad().
+                    // For the purpose of immediate entry:
+                    if (userData.session) {
+                       // Do nothing, let it fall through to success
+                    } else {
+                       // Likely a server-side profile creation RLS failure after a successful signup without email confirmation
+                       error = { message: 'Sign up successful, but could not finalize profile. Please sign in now.' };
+                       authMessage.textContent = error.message;
+                       authMessage.classList.add('error-message');
+                       authMessage.style.display = 'block';
+                       toggleAuthMode(); // Switch to sign-in view
+                       authSubmitBtn.disabled = false;
+                       authSubmitBtn.textContent = 'Sign In';
+                       return;
+                    }
                 }
             }
         } else {
             // 1. Sign In
-            const { data, error: signInError } = await supabase.auth.signInWithPassword({ email, password });
+            const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({ email, password });
             error = signInError;
-            userData = data;
+            userData = signInData;
         }
 
         if (error) {
-            authError.textContent = error.message;
-            authError.style.display = 'block';
+            authMessage.textContent = error.message;
+            authMessage.classList.add('error-message');
+            authMessage.style.display = 'block';
             authSubmitBtn.disabled = false;
             authSubmitBtn.textContent = isSignUp ? 'Sign Up' : 'Sign In';
         } else {
@@ -1263,7 +1328,12 @@
         }
     }
     
-    authToggleLink.addEventListener('click', (e) => {
+    authToggleLinkTop.addEventListener('click', (e) => {
+        e.preventDefault();
+        toggleAuthMode();
+    });
+
+    authToggleLinkBottom.addEventListener('click', (e) => {
         e.preventDefault();
         toggleAuthMode();
     });
@@ -1708,7 +1778,8 @@
              bubble.classList.add('is-reply');
         }
         
-        const displayName = isMine ? 'You' : message.username;
+        // CHANGE: Use message.username for all non-mine messages, and 'You' for mine.
+        const displayName = isMine ? 'You' : message.username; 
         let contentHTML = `<span class="message-user">${displayName}</span>`;
 
         // NEW: Handle image content
@@ -1979,7 +2050,7 @@
 
         const messageData = { 
             user_id: currentUser.id, 
-            username: currentUsername, 
+            username: currentUsername, // Use the fetched/set username
             content: content || null, 
             image_url: imageUrl || null 
         };
@@ -2045,7 +2116,7 @@
     async function checkAuthAndLoad() {
         const { data: { session } } = await supabase.auth.getSession();
         
-        if (!session) { 
+        if (!session || !session.user) { 
             // User is NOT logged in, show the Auth Modal
             authModal.style.display = 'flex';
             mainContainer.style.display = 'none';
@@ -2060,13 +2131,18 @@
 
         currentUser = session.user;
         
+        // Fetch username from the 'profiles' table
         const { data: profileData, error: profileError } = await supabase.from('profiles').select('username').eq('id', currentUser.id).single();
+        
         if (profileError && profileError.code !== 'PGRST116') { 
              console.error('Error fetching profile:', profileError);
         }
 
         if (profileData && profileData.username) {
             currentUsername = profileData.username;
+        } else if (currentUser.user_metadata.username) {
+             // Fallback to user metadata if profile table entry is missing (for fresh signups)
+             currentUsername = currentUser.user_metadata.username;
         } else {
             currentUsername = currentUser.email ? currentUser.email.split('@')[0] : 'Gamer';
         }
