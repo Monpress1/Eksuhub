@@ -1,800 +1,752 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EKSU MARKET | Campus Marketplace</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <style>
-        /* ==================================== */
-        /* --- Root Variables & Base Styling --- */
-        /* ==================================== */
-        :root {
-            --primary-color: #1f3b7d; /* Deep Blue */
-            --secondary-color: #e19d00; /* Gold/Yellow */
-            --bg-color: #f8f9fa;
-            --card-bg: #ffffff;
-            --shadow-light: 0 2px 8px rgba(0, 0, 0, 0.1); 
-            --shadow-medium: 0 5px 15px rgba(0, 0, 0, 0.15);
-            --border-radius: 13px;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EKSU MARKET | Campus Marketplace</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+/* ==================================== */
+/* --- Root Variables & Base Styling --- */
+/* ==================================== */
+:root {
+--primary-color: #1f3b7d; /* Deep Blue */
+--secondary-color: #e19d00; /* Gold/Yellow */
+--bg-color: #f8f9fa;
+--card-bg: #ffffff;
+--shadow-light: 0 2px 8px rgba(0, 0, 0, 0.1); 
+--shadow-medium: 0 5px 15px rgba(0, 0, 0, 0.15);
+--border-radius: 13px;
+}
+body { 
+font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+margin: 0; 
+padding: 0; 
+background-color: var(--bg-color); 
+color: #333; 
+line-height: 1.6;
+padding-bottom: 60px; /* Space for bottom nav */
+}
+/* ==================================== */
+/* --- Header & Navigation (Modern Curved) --- */
+/* ==================================== */
+.header { 
+background-color: var(--primary-color); 
+color: white; 
+padding: 10px 20px; 
+display: flex; 
+justify-content: space-between; 
+align-items: center; 
+box-shadow: var(--shadow-medium);
+position: relative; 
+z-index: 10;
+height: 90px; 
+clip-path: path("M 0 0 L 100% 0 L 100% 100% C 75% 70%, 25% 120%, 0 100% Z"); /* Curved bottom */
+}
+.header-left, .header-right { 
+display: flex; 
+align-items: center; 
+gap: 15px; 
+}
+.header h1 { 
+margin: 0; 
+font-size: 1.5rem; 
+font-weight: 700;
+}
+.header .icon, .back-btn { 
+font-size: 1.5rem; 
+cursor: pointer; 
+color: white;
+text-decoration: none; 
+}
+.list-btn { 
+background-color: var(--secondary-color); 
+color: var(--primary-color); 
+border: none; 
+padding: 8px 15px; 
+border-radius: 20px; 
+cursor: pointer; 
+font-size: 0.9rem; 
+font-weight: bold; 
+transition: background-color 0.3s; 
+box-shadow: var(--shadow-light);
+}
+.list-btn:hover { background-color: #e6c800; }
+/* ==================================== */
+/* --- Controls (Search & Filters) --- */
+/* ==================================== */
+.controls { 
+padding: 20px; 
+padding-top: 10px; 
+background: var(--bg-color); 
+position: relative;
+z-index: 5;
+}
+.search-container { 
+display: flex; 
+align-items: center;
+border: none; 
+border-radius: 30px; 
+overflow: hidden; 
+width: 100%;
+background-color: var(--card-bg); 
+box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); 
+transition: box-shadow 0.3s;
+}
+.search-input { 
+padding: 12px 15px; 
+border: none; 
+flex-grow: 1; 
+font-size: 1rem; 
+background: transparent;
+}
+.search-icon { 
+color: var(--primary-color); 
+padding: 12px 15px; 
+display: flex; 
+align-items: center; 
+justify-content: center;
+}
+.filter-header {
+display: flex;
+align-items: center;
+gap: 10px;
+margin-top: 15px;
+}
+.filter-toggle-btn {
+display: block; 
+background: none;
+border: none;
+color: var(--primary-color);
+font-size: 1.2rem;
+cursor: pointer;
+padding: 5px;
+}
+.filter-pills-container {
+display: flex;
+gap: 10px;
+overflow-x: auto; 
+padding-bottom: 5px; 
+white-space: nowrap; 
+-webkit-overflow-scrolling: touch; 
+}
+.filter-pill {
+display: inline-block;
+padding: 8px 15px;
+border-radius: 20px; 
+cursor: pointer;
+font-size: 0.9rem;
+font-weight: 500;
+background-color: #e9ecef; 
+color: #495057; 
+border: 2px solid transparent;
+transition: all 0.2s ease;
+}
+.filter-pill:hover, .filter-pill.active {
+background-color: var(--primary-color);
+color: white;
+border-color: var(--secondary-color);
+}
+/* ==================================== */
+/* --- Product Grid & Card Styles --- */
+/* ==================================== */
+.product-grid { 
+padding: 20px; 
+display: grid; 
+grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); 
+gap: 20px; 
+}
+.product-card { 
+background: var(--card-bg); 
+border-radius: var(--border-radius); 
+overflow: hidden; 
+box-shadow: var(--shadow-medium); 
+transition: transform 0.3s, box-shadow 0.3s; 
+cursor: pointer; 
+}
+.product-card:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2); }
+.product-card img { width: 100%; height: 180px; object-fit: cover; }
+.product-info { padding: 15px; }
+.product-info h2 { font-size: 1.2rem; margin-top: 0; margin-bottom: 5px; color: var(--primary-color); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;}
+.product-price { font-size: 1.6rem; font-weight: 800; color: #d9534f; margin-bottom: 10px; display: block;}
+.product-tag { 
+display: inline-block; 
+padding: 3px 8px; 
+border-radius: 15px; 
+margin-right: 5px; 
+font-size: 0.7rem; 
+font-weight: bold; 
+text-transform: uppercase;
+}
+.tag-neg { background-color: #f0ad4e; color: white; }
+.tag-new { background-color: #5cb85c; color: white; }
+.tag-used { background-color: #007bff; color: white; }
+.tag-location { color: #6c757d; font-weight: 500; font-size: 0.85rem; margin-top: 5px; display: block;}
+.action-btns {
+display: flex;
+gap: 10px;
+margin-top: 15px;
+}
+.action-btn { 
+padding: 10px; 
+border-radius: var(--border-radius); 
+text-decoration: none; 
+display: block; 
+text-align: center; 
+font-weight: 600; 
+flex-grow: 1; 
+border: none;
+cursor: pointer;
+font-size: 0.9rem; 
+}
+.whatsapp-btn { 
+background-color: #25d366; 
+color: white; 
+}
+.share-btn {
+background-color: var(--secondary-color); 
+color: var(--primary-color); 
+}
+#loading { text-align: center; padding: 50px; font-size: 1.2em; color: #6c757d; }
+/* Pagination Controls */
+.pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
+    padding: 20px 0; /* Adjusted padding for cleaner look */
+    margin-top: 20px;
+}
 
-        body { 
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-            margin: 0; 
-            padding: 0; 
-            background-color: var(--bg-color); 
-            color: #333; 
-            line-height: 1.6;
-            padding-bottom: 60px; /* Space for bottom nav */
-        }
-        
-        /* ==================================== */
-        /* --- Header & Navigation (Modern Curved) --- */
-        /* ==================================== */
-        .header { 
-            background-color: var(--primary-color); 
-            color: white; 
-            padding: 10px 20px; 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
-            box-shadow: var(--shadow-medium);
-            position: relative; 
-            z-index: 10;
-            height: 90px; 
-            clip-path: path("M 0 0 L 100% 0 L 100% 100% C 75% 70%, 25% 120%, 0 100% Z"); /* Curved bottom */
-        }
-        
-        .header-left, .header-right { 
-            display: flex; 
-            align-items: center; 
-            gap: 15px; 
-        }
+/* Base style for the Next and Previous buttons */
+.pagination button {
+    background-color: var(--primary-color); 
+    color: var(--card-bg); /* White text */
+    border: 2px solid var(--primary-color);
+    padding: 10px 20px;
+    border-radius: 25px; /* Fully rounded/pill shape */
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    min-width: 100px; /* Consistent size */
+    box-shadow: var(--shadow-light);
+}
 
-        .header h1 { 
-            margin: 0; 
-            font-size: 1.5rem; 
-            font-weight: 700;
-        }
+/* Hover effect */
+.pagination button:not([disabled]):hover {
+    background-color: #1a3064; /* Darker blue on hover */
+    border-color: var(--secondary-color); /* Gold border */
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-medium);
+}
 
-        .header .icon, .back-btn { 
-            font-size: 1.5rem; 
-            cursor: pointer; 
-            color: white;
-            text-decoration: none; 
-        }
-        
-        .list-btn { 
-            background-color: var(--secondary-color); 
-            color: var(--primary-color); 
-            border: none; 
-            padding: 8px 15px; 
-            border-radius: 20px; 
-            cursor: pointer; 
-            font-size: 0.9rem; 
-            font-weight: bold; 
-            transition: background-color 0.3s; 
-            box-shadow: var(--shadow-light);
-        }
-        .list-btn:hover { background-color: #e6c800; }
+/* Style for disabled buttons */
+.pagination button[disabled] {
+    background-color: #ccc; 
+    color: #666; 
+    border-color: #ccc;
+    cursor: not-allowed;
+    opacity: 0.6;
+    transform: none;
+    box-shadow: none;
+}
 
-        /* ==================================== */
-        /* --- Controls (Search & Filters) --- */
-        /* ==================================== */
-        .controls { 
-            padding: 20px; 
-            padding-top: 10px; 
-            background: var(--bg-color); 
-            position: relative;
-            z-index: 5;
-        }
-        
-        .search-container { 
-            display: flex; 
-            align-items: center;
-            border: none; 
-            border-radius: 30px; 
-            overflow: hidden; 
-            width: 100%;
-            background-color: var(--card-bg); 
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); 
-            transition: box-shadow 0.3s;
-        }
+/* Style for the page info text in the middle */
+#pageInfo {
+    font-size: 1rem;
+    color: var(--primary-color);
+    font-weight: 500;
+}
 
-        .search-input { 
-            padding: 12px 15px; 
-            border: none; 
-            flex-grow: 1; 
-            font-size: 1rem; 
-            background: transparent;
-        }
-        .search-icon { 
-            color: var(--primary-color); 
-            padding: 12px 15px; 
-            display: flex; 
-            align-items: center; 
-            justify-content: center;
-        }
-
-        .filter-header {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-top: 15px;
-        }
-        
-        .filter-toggle-btn {
-            display: block; 
-            background: none;
-            border: none;
-            color: var(--primary-color);
-            font-size: 1.2rem;
-            cursor: pointer;
-            padding: 5px;
-        }
-
-        .filter-pills-container {
-            display: flex;
-            gap: 10px;
-            overflow-x: auto; 
-            padding-bottom: 5px; 
-            white-space: nowrap; 
-            -webkit-overflow-scrolling: touch; 
-        }
-        
-        .filter-pill {
-            display: inline-block;
-            padding: 8px 15px;
-            border-radius: 20px; 
-            cursor: pointer;
-            font-size: 0.9rem;
-            font-weight: 500;
-            background-color: #e9ecef; 
-            color: #495057; 
-            border: 2px solid transparent;
-            transition: all 0.2s ease;
-        }
-
-        .filter-pill:hover, .filter-pill.active {
-            background-color: var(--primary-color);
-            color: white;
-            border-color: var(--secondary-color);
-        }
-        
-        /* ==================================== */
-        /* --- Product Grid & Card Styles --- */
-        /* ==================================== */
-        .product-grid { 
-            padding: 20px; 
-            display: grid; 
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); 
-            gap: 20px; 
-        }
-        
-        .product-card { 
-            background: var(--card-bg); 
-            border-radius: var(--border-radius); 
-            overflow: hidden; 
-            box-shadow: var(--shadow-medium); 
-            transition: transform 0.3s, box-shadow 0.3s; 
-            cursor: pointer; 
-        }
-        .product-card:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2); }
-        .product-card img { width: 100%; height: 180px; object-fit: cover; }
-        .product-info { padding: 15px; }
-        .product-info h2 { font-size: 1.2rem; margin-top: 0; margin-bottom: 5px; color: var(--primary-color); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;}
-        .product-price { font-size: 1.6rem; font-weight: 800; color: #d9534f; margin-bottom: 10px; display: block;}
-        
-        .product-tag { 
-            display: inline-block; 
-            padding: 3px 8px; 
-            border-radius: 15px; 
-            margin-right: 5px; 
-            font-size: 0.7rem; 
-            font-weight: bold; 
-            text-transform: uppercase;
-        }
-        .tag-neg { background-color: #f0ad4e; color: white; }
-        .tag-new { background-color: #5cb85c; color: white; }
-        .tag-used { background-color: #007bff; color: white; }
-        .tag-location { color: #6c757d; font-weight: 500; font-size: 0.85rem; margin-top: 5px; display: block;}
-        
-        .action-btns {
-            display: flex;
-            gap: 10px;
-            margin-top: 15px;
-        }
-
-        .action-btn { 
-            padding: 10px; 
-            border-radius: var(--border-radius); 
-            text-decoration: none; 
-            display: block; 
-            text-align: center; 
-            font-weight: 600; 
-            flex-grow: 1; 
-            border: none;
-            cursor: pointer;
-            font-size: 0.9rem; 
-        }
-        
-        .whatsapp-btn { 
-            background-color: #25d366; 
-            color: white; 
-        }
-
-        .share-btn {
-            background-color: var(--secondary-color); 
-            color: var(--primary-color); 
-        }
-
-        #loading { text-align: center; padding: 50px; font-size: 1.2em; color: #6c757d; }
-        
-        /* Pagination Controls */
-        .pagination {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 20px;
-            padding: 20px;
-            margin-top: 20px;
-        }
-        /* Modal */
-        .modal { display: none; position: fixed; z-index: 100; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.7); }
-        .modal-content { 
-            background-color: var(--card-bg); 
-            margin: 5vh auto; 
-            padding: 30px; 
-            border-radius: var(--border-radius); 
-            width: 90%; 
-            max-width: 500px; 
-            position: relative; 
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3); 
-        }
-        
-        /* Form fields inside modal */
-        .form-row { margin-bottom: 15px; }
-        .modal-content label { display: block; margin-bottom: 5px; font-weight: 600; color: var(--primary-color); }
-        .modal-content input[type="text"], .modal-content input[type="number"], 
-        .modal-content textarea, .modal-content input[type="file"], .modal-content select { 
-            width: 100%; 
-            padding: 12px; 
-            border: 1px solid #ccc; 
-            border-radius: 5px; 
-            box-sizing: border-box;
-            transition: border-color 0.2s;
-        }
-        .checkbox-group { display: flex; align-items: center; margin-top: 10px; margin-bottom: 20px; }
-        .checkbox-group input { width: 20px; height: 20px; margin-right: 10px; }
-        
-        .modal-content button[type="submit"] {
-            background-color: var(--primary-color);
-            color: white;
-            padding: 12px;
-            border: none;
-            border-radius: 5px;
-            width: 100%;
-            font-size: 1rem;
-            cursor: pointer;
-            transition: background-color 0.3s;
-        }
-
-        /* Bottom Navigation Bar */
-        .bottom-navigation {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            display: flex;
-            justify-content: space-around;
-            background-color: var(--card-bg);
-            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
-            z-index: 20;
-            padding: 5px 0;
-        }
-
-        .bottom-navigation a {
-            flex: 1;
-            text-align: center;
-            padding: 10px 0;
-            color: #6c757d;
-            text-decoration: none;
-            font-size: 0.75rem;
-            transition: color 0.3s;
-        }
-
-        .bottom-navigation a i {
-            display: block;
-            font-size: 1.2rem;
-            margin-bottom: 3px;
-        }
-
-        .bottom-navigation a:hover, .bottom-navigation a.active {
-            color: var(--primary-color);
-        }
-        
-        .success, .error {
-            padding: 10px;
-            margin-bottom: 15px;
-            border-radius: 5px;
-            text-align: center;
-            font-weight: bold;
-        }
-        .success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
-        .error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
-    </style>
+/* Modal */
+.modal { display: none; position: fixed; z-index: 100; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.7); }
+.modal-content { 
+background-color: var(--card-bg); 
+margin: 5vh auto; 
+padding: 30px; 
+border-radius: var(--border-radius); 
+width: 90%; 
+max-width: 500px; 
+position: relative; 
+box-shadow: 0 10px 30px rgba(0,0,0,0.3); 
+}
+/* Form fields inside modal */
+.form-row { margin-bottom: 15px; }
+.modal-content label { display: block; margin-bottom: 5px; font-weight: 600; color: var(--primary-color); }
+.modal-content input[type="text"], .modal-content input[type="number"], 
+.modal-content textarea, .modal-content input[type="file"], .modal-content select { 
+width: 100%; 
+padding: 12px; 
+border: 1px solid #ccc; 
+border-radius: 5px; 
+box-sizing: border-box;
+transition: border-color 0.2s;
+}
+.checkbox-group { display: flex; align-items: center; margin-top: 10px; margin-bottom: 20px; }
+.checkbox-group input { width: 20px; height: 20px; margin-right: 10px; }
+.modal-content button[type="submit"] {
+background-color: var(--primary-color);
+color: white;
+padding: 12px;
+border: none;
+border-radius: 5px;
+width: 100%;
+font-size: 1rem;
+cursor: pointer;
+transition: background-color 0.3s;
+}
+/* Bottom Navigation Bar */
+.bottom-navigation {
+position: fixed;
+bottom: 0;
+left: 0;
+width: 100%;
+display: flex;
+justify-content: space-around;
+background-color: var(--card-bg);
+box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+z-index: 20;
+padding: 5px 0;
+}
+.bottom-navigation a {
+flex: 1;
+text-align: center;
+padding: 10px 0;
+color: #6c757d;
+text-decoration: none;
+font-size: 0.75rem;
+transition: color 0.3s;
+}
+.bottom-navigation a i {
+display: block;
+font-size: 1.2rem;
+margin-bottom: 3px;
+}
+.bottom-navigation a:hover, .bottom-navigation a.active {
+color: var(--primary-color);
+}
+.success, .error {
+padding: 10px;
+margin-bottom: 15px;
+border-radius: 5px;
+text-align: center;
+font-weight: bold;
+}
+.success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+.error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+</style>
 </head>
 <body>
+<div class="header">
+<div class="header-left">
+<a href="index.html" class="back-btn" aria-label="Go Back to Home">
+<i class="fas fa-arrow-left"></i>
+</a>
+<h1>EKSU MARKET</h1>
+</div>
+<div class="header-right">
+<i class="fas fa-shopping-cart icon" aria-label="Shopping Cart"></i>
+<button class="list-btn" onclick="openSellModal()">SELL</button>
+</div>
+</div>
+<div class="controls">
+<div class="search-container">
+<div class="search-icon"><i class="fas fa-search"></i></div>
+<input type="text" id="searchInput" class="search-input" placeholder="Search product name, description, or location..." aria-label="Search">
+<button class="filter-toggle-btn" id="filterToggleBtn" aria-label="Toggle Filters"><i class="fas fa-sliders-h"></i></button>
+</div>
+<div class="filter-header">
+<div class="filter-pills-container" id="filterPillsContainer">
+<span class="filter-pill active" data-category="">All Categories</span>
+<span class="filter-pill" data-category="Gadgets">Gadgets</span>
+<span class="filter-pill" data-category="Clothes">Clothes</span>
+<span class="filter-pill" data-category="Foodstuff">Foodstuff</span>
+<span class="filter-pill" data-category="Books">Books</span>
+<span class="filter-pill" data-category="Services">Services</span>
+<span class="filter-pill" data-category="Other">Other</span>
+</div>
+</div>
+</div>
+<div id="message"></div>
+<div id="loading">Loading products...</div>
+<div class="product-grid" id="productGrid">
+</div>
+<div class="pagination" id="paginationControls">
+<button id="prevPageBtn" disabled>Previous</button>
+<span id="pageInfo">Page 1 of 1</span>
+<button id="nextPageBtn" disabled>Next</button>
+</div>
+<div id="sellProductModal" class="modal">
+<div class="modal-content">
+<span class="close-btn" onclick="closeSellModal()" aria-label="Close Modal">&times;</span>
+<h2>List Your Item for Sale</h2>
+<form id="productForm">
+<div class="form-row"> <label for="productName">Product Name</label> <input type="text" id="productName" name="productName" required> </div>
+<div class="form-row"> 
+<label for="category">Category</label>
+<select id="category" name="category" required>
+<option value="">-- Select Category --</option>
+<option value="Gadgets">Gadgets</option>
+<option value="Clothes">Clothes</option>
+<option value="Foodstuff">Foodstuff</option>
+<option value="Books">Books</option>
+<option value="Services">Services</option>
+<option value="Other">Other</option>
+</select>
+</div>
+<div class="form-row">
+<label for="condition">Item Condition</label>
+<select id="condition" name="condition" required>
+<option value="">-- Select Condition --</option>
+<option value="New">New</option>
+<option value="Used but Neat">Used but Neat</option>
+<option value="Used">Used</option>
+</select>
+</div>
+<div class="form-row"> <label for="price">Price (₦)</label> <input type="number" id="price" name="price" step="0.01" min="0" required> </div>
+<div class="checkbox-group">
+<input type="checkbox" id="isNegotiable" name="isNegotiable">
+<label for="isNegotiable">Negotiable</label>
+</div>
+<div class="form-row">
+<label for="imageFile">Product Main Image (Required - Max 1)</label>
+<input type="file" id="imageFile" name="imageFile" accept="image/*" required>
+</div>
+<div class="form-row"> <label for="description">Product Description</label> <textarea id="description" name="description" required></textarea> </div>
+<div class="form-row"> <label for="location">Location (e.g., Iworoko-Ekiti, Ado Ekiti)</label> <input type="text" id="location" name="location" required> </div>
+<div class="form-row"> 
+    <label for="whatsappNumber">WhatsApp No</label> 
+    <input type="text" id="whatsappNumber" name="whatsappNumber" placeholder="e.g., 23480XXXXXXXX (Country code first)" required> 
+</div>
+<button type="submit" id="submitButton">LIST PRODUCT</button>
+</form>
+</div>
+</div>
+<div class="bottom-navigation">
+<a href="index.html" class="active"><i class="fas fa-home"></i>Home</a>
+<a href="chat.html"><i class="fas fa-comments"></i>Chat</a>
+<a href="news.html"><i class="fas fa-newspaper"></i>News</a>
+<a href="market.html"><i class="fas fa-store"></i>Market</a>
+<a href="profile.html"><i class="fas fa-user"></i>Profile</a>
+</div>
+<script>
+// =================================================================================
+// --- Supabase Configuration & Globals ---
+// =================================================================================
+const SUPABASE_URL = 'https://dyrsbfrvonajerbfrxzw.supabase.co'; 
+const SUPABASE_AUTH_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR5cnNiZnJ2b25hamVyYmZyeHp3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk3NDk0ODAsImV4cCI6MjA3NTMyNTQ4MH0.mgj9f_ROkti_I3CeJ4ebYVhaLGy9Wamvj4XTtH_rB_I';
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_AUTH_KEY);
+const PRODUCTS_TABLE = 'products';
+const STORAGE_BUCKET = 'market-images'; 
+let allProducts = [];
+let filteredProducts = []; 
+let currentPage = 1;
+const productsPerPage = 10;
+// --- DOM ELEMENTS & MODAL FUNCTIONS ---
+const modal = document.getElementById('sellProductModal');
+const searchInput = document.getElementById('searchInput');
+const filterPillsContainer = document.getElementById('filterPillsContainer');
+const productGrid = document.getElementById('productGrid');
+const prevPageBtn = document.getElementById('prevPageBtn');
+const nextPageBtn = document.getElementById('nextPageBtn');
+const pageInfo = document.getElementById('pageInfo');
+const productForm = document.getElementById('productForm');
+const submitButton = document.getElementById('submitButton');
+const loadingDiv = document.getElementById('loading');
+let selectedCategory = ''; 
+function openSellModal() { modal.style.display = 'block'; }
+function closeSellModal() { modal.style.display = 'none'; }
+window.onclick = (event) => { if (event.target == modal) { closeSellModal(); } }
+function displayMessage(text, className, isError = false) {
+const messageDiv = document.getElementById('message');
+messageDiv.textContent = text;
+messageDiv.className = '';
+messageDiv.classList.add(isError ? 'error' : 'success');
+messageDiv.style.display = 'block';
+if (!isError) { setTimeout(() => { messageDiv.style.display = 'none'; }, 5000); }
+}
+// =================================================================================
+// --- HELPER FUNCTIONS ---
+// =================================================================================
+/**
+* Safely cleans a filename for use in Supabase storage.
+* @param {string} filename 
+* @returns {string} Cleaned filename
+*/
+function sanitizeFilename(filename) {
+return filename.replace(/[^a-zA-Z0-9.\-]/g, '_');
+}
+/**
+* Compresses the image file before upload.
+* @param {File} file 
+* @returns {Promise<Blob>} Compressed image blob
+*/
+function compressImage(file) {
+return new Promise((resolve) => {
+const reader = new FileReader();
+reader.readAsDataURL(file);
+reader.onload = (event) => {
+const img = new Image();
+img.src = event.target.result;
+img.onload = () => {
+const canvas = document.createElement('canvas');
+const MAX_WIDTH = 800; // Max width for compression
+const scaleSize = MAX_WIDTH / img.width;
+canvas.width = MAX_WIDTH;
+canvas.height = img.height * scaleSize;
+const ctx = canvas.getContext('2d');
+ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+// Convert to Blob with JPEG format and quality 0.8
+canvas.toBlob(resolve, 'image/jpeg', 0.8);
+};
+img.onerror = () => resolve(file); // Fallback on image loading error
+};
+reader.onerror = () => resolve(file); // Fallback on file reading error
+});
+}
+// =================================================================================
+// --- SHARE FUNCTION ---
+// =================================================================================
+function shareProduct(productName, productPrice, productId) {
+const productDetailUrl = window.location.origin + '/productdetails.html?id=' + productId; 
+const text = `🔥 Check out this item on EKSU Market:\n*${productName}*\nPrice: ₦${productPrice.toLocaleString()}`;
+const title = `EKSU Market: ${productName}`;
+if (navigator.share) {
+navigator.share({
+title: title,
+text: text, 
+url: productDetailUrl 
+}).then(() => {
+console.log('Successful share');
+}).catch((error) => {
+console.log('Share action cancelled or failed:', error);
+});
+} else {
+const fallbackText = `${text}\nView details here: ${productDetailUrl}`;
+navigator.clipboard.writeText(fallbackText).then(() => {
+alert('Product details (name, price, and link) copied to clipboard! You can now paste and share.');
+}).catch(err => {
+console.error('Could not copy text: ', err);
+alert('Could not copy product details. Your browser may not support clipboard access.');
+});
+}
+}
+// =================================================================================
+// --- PRODUCT LISTING LOGIC ---
+// =================================================================================
+productForm.addEventListener('submit', async (e) => {
+e.preventDefault();
+submitButton.disabled = true;
+submitButton.textContent = 'Uploading...';
+const formData = new FormData(productForm);
+const imageFile = formData.get('imageFile');
+if (!imageFile || imageFile.size === 0) {
+displayMessage('Please select an image file.', 'error', true);
+submitButton.disabled = false;
+submitButton.textContent = 'LIST PRODUCT';
+return;
+}
+try {
+// 1. Compress Image
+const compressedImageBlob = await compressImage(imageFile);
+// 2. Upload to Supabase Storage
+const timestamp = new Date().getTime();
+const cleanFileName = sanitizeFilename(imageFile.name);
+const filePath = `images/${timestamp}-${cleanFileName}`;
+const { error: uploadError } = await supabase.storage
+.from(STORAGE_BUCKET)
+.upload(filePath, compressedImageBlob, {
+cacheControl: '3600',
+upsert: false
+});
+if (uploadError) throw uploadError;
+// 3. Get Public URL
+const { data: publicUrlData } = supabase.storage
+.from(STORAGE_BUCKET)
+.getPublicUrl(filePath);
+const imageUrl = publicUrlData.publicUrl;
+// 4. Insert Metadata into Products Table
+const productData = {
+name: formData.get('productName'),
+category: formData.get('category'),
+condition: formData.get('condition'),
+price: parseFloat(formData.get('price')),
+description: formData.get('description'),
+location: formData.get('location'),
+whatsapp_number: formData.get('whatsappNumber'),
+is_negotiable: formData.get('isNegotiable') === 'on',
+image_url: imageUrl,
+created_at: new Date().toISOString()
+};
+const { error: dbError } = await supabase
+.from(PRODUCTS_TABLE)
+.insert([productData]);
+if (dbError) throw dbError;
+displayMessage('Product listed successfully! Refreshing...', 'success');
+closeSellModal();
+productForm.reset();
+setTimeout(() => {
+window.location.reload(); 
+}, 1500);
+} catch (error) {
+console.error('Listing error:', error);
+displayMessage(`Failed to list product: ${error.message || error.toString()}`, 'error', true);
+} finally {
+submitButton.disabled = false;
+submitButton.textContent = 'LIST PRODUCT';
+}
+});
+// =================================================================================
+// --- PRODUCT FETCHING, FILTERING, RENDERING & PAGINATION LOGIC ---
+// =================================================================================
+async function fetchProducts() {
+loadingDiv.style.display = 'block';
+try {
+const { data, error } = await supabase
+.from(PRODUCTS_TABLE)
+.select('*')
+.order('created_at', { ascending: false });
+if (error) throw error;
+allProducts = data || [];
+applyFiltersAndPagination();
+} catch (error) {
+console.error('Error fetching products:', error);
+loadingDiv.textContent = 'Failed to load products. Check Supabase configuration.';
+} finally {
+loadingDiv.style.display = 'none';
+}
+}
+function applyFiltersAndPagination() {
+let tempProducts = allProducts;
+const searchTerm = searchInput.value.toLowerCase().trim();
+// 1. Apply Category Filter
+if (selectedCategory) {
+tempProducts = tempProducts.filter(p => p.category === selectedCategory);
+}
+// 2. Apply Search Filter
+if (searchTerm) {
+tempProducts = tempProducts.filter(p => 
+(p.name && p.name.toLowerCase().includes(searchTerm)) ||
+(p.description && p.description.toLowerCase().includes(searchTerm)) ||
+(p.location && p.location.toLowerCase().includes(searchTerm))
+);
+}
+filteredProducts = tempProducts;
+const totalPages = Math.ceil(filteredProducts.length / productsPerPage);
+if (currentPage > totalPages && totalPages > 0) {
+currentPage = totalPages;
+} else if (totalPages === 0) {
+currentPage = 1;
+}
+renderCurrentPage();
+updatePaginationControls(totalPages);
+}
+function renderCurrentPage() {
+productGrid.innerHTML = '';
+const startIndex = (currentPage - 1) * productsPerPage;
+const endIndex = startIndex + productsPerPage;
+const productsToShow = filteredProducts.slice(startIndex, endIndex);
+if (productsToShow.length === 0) {
+productGrid.innerHTML = `<p style="text-align:center; padding: 40px;">No products found for the current filter/search criteria.</p>`;
+return;
+}
+productsToShow.forEach(renderProductCard);
+}
+function updatePaginationControls(totalPages) {
+pageInfo.textContent = `Page ${totalPages === 0 ? 0 : currentPage} of ${totalPages}`;
+prevPageBtn.disabled = currentPage === 1;
+nextPageBtn.disabled = currentPage >= totalPages;
+}
+function renderProductCard(product) {
+const card = document.createElement('div');
+card.className = 'product-card';
+const imageSrc = product.image_url || 'https://via.placeholder.com/400x200?text=EKSU+MARKET'; 
+let conditionTagClass = product.condition && product.condition.includes('Used') ? 'tag-used' : 'tag-new';
+// --- WHATSAPP FIX LOGIC START ---
+const rawNumber = product.whatsapp_number || '';
+let cleanNumber = rawNumber.replace(/[^\d]/g, ''); // Remove all non-digit characters
 
-    <div class="header">
-        <div class="header-left">
-             <a href="index.html" class="back-btn" aria-label="Go Back to Home">
-                <i class="fas fa-arrow-left"></i>
-            </a>
-            <h1>EKSU MARKET</h1>
-        </div>
-        <div class="header-right">
-             <i class="fas fa-shopping-cart icon" aria-label="Shopping Cart"></i>
-            <button class="list-btn" onclick="openSellModal()">SELL</button>
-        </div>
-    </div>
+// Assuming Nigerian country code (234). Adjust if market is elsewhere.
+if (cleanNumber.startsWith('0') && cleanNumber.length >= 10) { 
+    // Example: 08012345678 becomes 2348012345678
+    cleanNumber = '234' + cleanNumber.substring(1);
+} else if (cleanNumber.length === 10 && !cleanNumber.startsWith('234')) {
+    // Check if it's a 10-digit number without leading 0 or code (e.g., 8012345678)
+    cleanNumber = '234' + cleanNumber;
+}
 
-    <div class="controls">
-        <div class="search-container">
-            <div class="search-icon"><i class="fas fa-search"></i></div>
-            <input type="text" id="searchInput" class="search-input" placeholder="Search product name, description, or location..." aria-label="Search">
-            <button class="filter-toggle-btn" id="filterToggleBtn" aria-label="Toggle Filters"><i class="fas fa-sliders-h"></i></button>
-        </div>
+// Only create the link if a valid-looking number remains
+const whatsappLink = cleanNumber.length >= 10 
+    ? `https://wa.me/${cleanNumber}?text=Hello!%20I%20am%20interested%20in%20your%20product:%20${encodeURIComponent(product.name)}.`
+    : '#'; 
+// --- WHATSAPP FIX LOGIC END ---
 
-        <div class="filter-header">
-            <div class="filter-pills-container" id="filterPillsContainer">
-                <span class="filter-pill active" data-category="">All Categories</span>
-                <span class="filter-pill" data-category="Gadgets">Gadgets</span>
-                <span class="filter-pill" data-category="Clothes">Clothes</span>
-                <span class="filter-pill" data-category="Foodstuff">Foodstuff</span>
-                <span class="filter-pill" data-category="Books">Books</span>
-                <span class="filter-pill" data-category="Services">Services</span>
-                <span class="filter-pill" data-category="Other">Other</span>
-            </div>
-        </div>
-    </div>
+// Prepare product name for JavaScript string literal (safest way to avoid quote errors)
+const productName = product.name ? JSON.stringify(product.name).replace(/"/g, "'") : "''"; 
+const productPrice = product.price || 0;
+const productId = product.id; 
 
-    <div id="message"></div>
-
-    <div id="loading">Loading products...</div>
-    <div class="product-grid" id="productGrid">
-    </div>
-
-    <div class="pagination" id="paginationControls">
-        <button id="prevPageBtn" disabled>Previous</button>
-        <span id="pageInfo">Page 1 of 1</span>
-        <button id="nextPageBtn" disabled>Next</button>
-    </div>
-
-    <div id="sellProductModal" class="modal">
-        <div class="modal-content">
-            <span class="close-btn" onclick="closeSellModal()" aria-label="Close Modal">&times;</span>
-            <h2>List Your Item for Sale</h2>
-            
-            <form id="productForm">
-                <div class="form-row"> <label for="productName">Product Name</label> <input type="text" id="productName" name="productName" required> </div>
-                <div class="form-row"> 
-                    <label for="category">Category</label>
-                    <select id="category" name="category" required>
-                        <option value="">-- Select Category --</option>
-                        <option value="Gadgets">Gadgets</option>
-                        <option value="Clothes">Clothes</option>
-                        <option value="Foodstuff">Foodstuff</option>
-                        <option value="Books">Books</option>
-                        <option value="Services">Services</option>
-                        <option value="Other">Other</option>
-                    </select>
-                </div>
-                <div class="form-row">
-                    <label for="condition">Item Condition</label>
-                    <select id="condition" name="condition" required>
-                        <option value="">-- Select Condition --</option>
-                        <option value="New">New</option>
-                        <option value="Used but Neat">Used but Neat</option>
-                        <option value="Used">Used</option>
-                    </select>
-                </div>
-                <div class="form-row"> <label for="price">Price (₦)</label> <input type="number" id="price" name="price" step="0.01" min="0" required> </div>
-                <div class="checkbox-group">
-                    <input type="checkbox" id="isNegotiable" name="isNegotiable">
-                    <label for="isNegotiable">Negotiable</label>
-                </div>
-                <div class="form-row">
-                    <label for="imageFile">Product Main Image (Required - Max 1)</label>
-                    <input type="file" id="imageFile" name="imageFile" accept="image/*" required>
-                </div>
-                <div class="form-row"> <label for="description">Product Description</label> <textarea id="description" name="description" required></textarea> </div>
-                <div class="form-row"> <label for="location">Location (e.g., Iworoko-Ekiti, Ado Ekiti)</label> <input type="text" id="location" name="location" required> </div>
-                <div class="form-row"> <label for="whatsappNumber">WhatsApp No</label> <input type="text" id="whatsappNumber" name="whatsappNumber" placeholder="e.g., 080XXXXXXXX" required> </div>
-                
-                <button type="submit" id="submitButton">LIST PRODUCT</button>
-            </form>
-        </div>
-    </div>
-        
-  <div class="bottom-navigation">
-    <a href="index.html" class="active"><i class="fas fa-home"></i>Home</a>
-    <a href="chat.html"><i class="fas fa-comments"></i>Chat</a>
-    <a href="news.html"><i class="fas fa-newspaper"></i>News</a>
-    <a href="market.html"><i class="fas fa-store"></i>Market</a>
-    <a href="profile.html"><i class="fas fa-user"></i>Profile</a>
-  </div>
-    <script>
-        // =================================================================================
-        // --- Supabase Configuration & Globals ---
-        // =================================================================================
-        const SUPABASE_URL = 'https://dyrsbfrvonajerbfrxzw.supabase.co'; 
-        const SUPABASE_AUTH_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR5cnNiZnJ2b25hamVyYmZyeHp3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk3NDk0ODAsImV4cCI6MjA3NTMyNTQ4MH0.mgj9f_ROkti_I3CeJ4ebYVhaLGy9Wamvj4XTtH_rB_I';
-        
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_AUTH_KEY);
-        
-        const PRODUCTS_TABLE = 'products';
-        const STORAGE_BUCKET = 'market-images'; 
-        
-        let allProducts = [];
-        let filteredProducts = []; 
-        let currentPage = 1;
-        const productsPerPage = 10;
-        
-        // --- DOM ELEMENTS & MODAL FUNCTIONS ---
-        const modal = document.getElementById('sellProductModal');
-        const searchInput = document.getElementById('searchInput');
-        const filterPillsContainer = document.getElementById('filterPillsContainer');
-        const productGrid = document.getElementById('productGrid');
-        const prevPageBtn = document.getElementById('prevPageBtn');
-        const nextPageBtn = document.getElementById('nextPageBtn');
-        const pageInfo = document.getElementById('pageInfo');
-        const productForm = document.getElementById('productForm');
-        const submitButton = document.getElementById('submitButton');
-        const loadingDiv = document.getElementById('loading');
-        let selectedCategory = ''; 
-
-        function openSellModal() { modal.style.display = 'block'; }
-        function closeSellModal() { modal.style.display = 'none'; }
-        window.onclick = (event) => { if (event.target == modal) { closeSellModal(); } }
-        
-        function displayMessage(text, className, isError = false) {
-            const messageDiv = document.getElementById('message');
-            messageDiv.textContent = text;
-            messageDiv.className = '';
-            messageDiv.classList.add(isError ? 'error' : 'success');
-            messageDiv.style.display = 'block';
-            if (!isError) { setTimeout(() => { messageDiv.style.display = 'none'; }, 5000); }
-        }
-        
-        // =================================================================================
-        // --- HELPER FUNCTIONS ---
-        // =================================================================================
-
-        /**
-         * Safely cleans a filename for use in Supabase storage.
-         * @param {string} filename 
-         * @returns {string} Cleaned filename
-         */
-        function sanitizeFilename(filename) {
-            return filename.replace(/[^a-zA-Z0-9.\-]/g, '_');
-        }
-
-        /**
-         * Compresses the image file before upload.
-         * @param {File} file 
-         * @returns {Promise<Blob>} Compressed image blob
-         */
-        function compressImage(file) {
-            return new Promise((resolve) => {
-                const reader = new FileReader();
-                reader.readAsDataURL(file);
-                reader.onload = (event) => {
-                    const img = new Image();
-                    img.src = event.target.result;
-                    img.onload = () => {
-                        const canvas = document.createElement('canvas');
-                        const MAX_WIDTH = 800; // Max width for compression
-                        const scaleSize = MAX_WIDTH / img.width;
-                        
-                        canvas.width = MAX_WIDTH;
-                        canvas.height = img.height * scaleSize;
-                        
-                        const ctx = canvas.getContext('2d');
-                        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                        
-                        // Convert to Blob with JPEG format and quality 0.8
-                        canvas.toBlob(resolve, 'image/jpeg', 0.8);
-                    };
-                    img.onerror = () => resolve(file); // Fallback on image loading error
-                };
-                reader.onerror = () => resolve(file); // Fallback on file reading error
-            });
-        }
-
-
-        // =================================================================================
-        // --- SHARE FUNCTION ---
-        // =================================================================================
-        
-        function shareProduct(productName, productPrice, productId) {
-            const productDetailUrl = window.location.origin + '/productdetails.html?id=' + productId; 
-            
-            const text = `🔥 Check out this item on EKSU Market:\n*${productName}*\nPrice: ₦${productPrice.toLocaleString()}`;
-            const title = `EKSU Market: ${productName}`;
-            
-            if (navigator.share) {
-                navigator.share({
-                    title: title,
-                    text: text, 
-                    url: productDetailUrl 
-                }).then(() => {
-                    console.log('Successful share');
-                }).catch((error) => {
-                    console.log('Share action cancelled or failed:', error);
-                });
-            } else {
-                const fallbackText = `${text}\nView details here: ${productDetailUrl}`;
-                navigator.clipboard.writeText(fallbackText).then(() => {
-                    alert('Product details (name, price, and link) copied to clipboard! You can now paste and share.');
-                }).catch(err => {
-                    console.error('Could not copy text: ', err);
-                    alert('Could not copy product details. Your browser may not support clipboard access.');
-                });
-            }
-        }
-
-        // =================================================================================
-        // --- PRODUCT LISTING LOGIC ---
-        // =================================================================================
-        
-        productForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            submitButton.disabled = true;
-            submitButton.textContent = 'Uploading...';
-            
-            const formData = new FormData(productForm);
-            const imageFile = formData.get('imageFile');
-            
-            if (!imageFile || imageFile.size === 0) {
-                displayMessage('Please select an image file.', 'error', true);
-                submitButton.disabled = false;
-                submitButton.textContent = 'LIST PRODUCT';
-                return;
-            }
-
-            try {
-                // 1. Compress Image
-                const compressedImageBlob = await compressImage(imageFile);
-                
-                // 2. Upload to Supabase Storage
-                const timestamp = new Date().getTime();
-                const cleanFileName = sanitizeFilename(imageFile.name);
-                const filePath = `images/${timestamp}-${cleanFileName}`;
-                
-                const { error: uploadError } = await supabase.storage
-                    .from(STORAGE_BUCKET)
-                    .upload(filePath, compressedImageBlob, {
-                        cacheControl: '3600',
-                        upsert: false
-                    });
-
-                if (uploadError) throw uploadError;
-
-                // 3. Get Public URL
-                const { data: publicUrlData } = supabase.storage
-                    .from(STORAGE_BUCKET)
-                    .getPublicUrl(filePath);
-                
-                const imageUrl = publicUrlData.publicUrl;
-
-                // 4. Insert Metadata into Products Table
-                const productData = {
-                    name: formData.get('productName'),
-                    category: formData.get('category'),
-                    condition: formData.get('condition'),
-                    price: parseFloat(formData.get('price')),
-                    description: formData.get('description'),
-                    location: formData.get('location'),
-                    whatsapp_number: formData.get('whatsappNumber'),
-                    is_negotiable: formData.get('isNegotiable') === 'on',
-                    image_url: imageUrl,
-                    created_at: new Date().toISOString()
-                };
-
-                const { error: dbError } = await supabase
-                    .from(PRODUCTS_TABLE)
-                    .insert([productData]);
-
-                if (dbError) throw dbError;
-
-                displayMessage('Product listed successfully! Refreshing...', 'success');
-                closeSellModal();
-                productForm.reset();
-                
-                setTimeout(() => {
-                    window.location.reload(); 
-                }, 1500);
-
-            } catch (error) {
-                console.error('Listing error:', error);
-                displayMessage(`Failed to list product: ${error.message || error.toString()}`, 'error', true);
-            } finally {
-                submitButton.disabled = false;
-                submitButton.textContent = 'LIST PRODUCT';
-            }
-        });
-
-        // =================================================================================
-        // --- PRODUCT FETCHING, FILTERING, RENDERING & PAGINATION LOGIC ---
-        // =================================================================================
-        
-        async function fetchProducts() {
-            loadingDiv.style.display = 'block';
-            try {
-                const { data, error } = await supabase
-                    .from(PRODUCTS_TABLE)
-                    .select('*')
-                    .order('created_at', { ascending: false });
-
-                if (error) throw error;
-                
-                allProducts = data || [];
-                applyFiltersAndPagination();
-
-            } catch (error) {
-                console.error('Error fetching products:', error);
-                loadingDiv.textContent = 'Failed to load products. Check Supabase configuration.';
-            } finally {
-                loadingDiv.style.display = 'none';
-            }
-        }
-        
-        function applyFiltersAndPagination() {
-            let tempProducts = allProducts;
-            const searchTerm = searchInput.value.toLowerCase().trim();
-
-            // 1. Apply Category Filter
-            if (selectedCategory) {
-                tempProducts = tempProducts.filter(p => p.category === selectedCategory);
-            }
-
-            // 2. Apply Search Filter
-            if (searchTerm) {
-                tempProducts = tempProducts.filter(p => 
-                    (p.name && p.name.toLowerCase().includes(searchTerm)) ||
-                    (p.description && p.description.toLowerCase().includes(searchTerm)) ||
-                    (p.location && p.location.toLowerCase().includes(searchTerm))
-                );
-            }
-
-            filteredProducts = tempProducts;
-            const totalPages = Math.ceil(filteredProducts.length / productsPerPage);
-            
-            if (currentPage > totalPages && totalPages > 0) {
-                currentPage = totalPages;
-            } else if (totalPages === 0) {
-                 currentPage = 1;
-            }
-            
-            renderCurrentPage();
-            updatePaginationControls(totalPages);
-        }
-        
-        function renderCurrentPage() {
-            productGrid.innerHTML = '';
-            const startIndex = (currentPage - 1) * productsPerPage;
-            const endIndex = startIndex + productsPerPage;
-            const productsToShow = filteredProducts.slice(startIndex, endIndex);
-
-            if (productsToShow.length === 0) {
-                productGrid.innerHTML = `<p style="text-align:center; padding: 40px;">No products found for the current filter/search criteria.</p>`;
-                return;
-            }
-
-            productsToShow.forEach(renderProductCard);
-        }
-
-        function updatePaginationControls(totalPages) {
-            pageInfo.textContent = `Page ${totalPages === 0 ? 0 : currentPage} of ${totalPages}`;
-            prevPageBtn.disabled = currentPage === 1;
-            nextPageBtn.disabled = currentPage >= totalPages;
-        }
-
-        function renderProductCard(product) {
-            const card = document.createElement('div');
-            card.className = 'product-card';
-            
-            const imageSrc = product.image_url || 'https://via.placeholder.com/400x200?text=EKSU+MARKET'; 
-            
-            let conditionTagClass = product.condition && product.condition.includes('Used') ? 'tag-used' : 'tag-new';
-
-            const cleanNumber = product.whatsapp_number ? product.whatsapp_number.replace(/[^\d+]/g, '') : '';
-            const whatsappLink = cleanNumber 
-                ? `https://wa.me/${cleanNumber}?text=Hello!%20I%20am%20interested%20in%20your%20product:%20${encodeURIComponent(product.name)}.`
-                : '#'; 
-            
-            // Prepare product name for JavaScript string literal (safest way to avoid quote errors)
-            const productName = product.name ? JSON.stringify(product.name).replace(/"/g, "'") : "''"; 
-            const productPrice = product.price || 0;
-            const productId = product.id; 
-
-            // Corrected share function call
-            const shareOnClick = `shareProduct(${productName}, ${productPrice}, ${productId})`;
-
-            // Navigation handler
-            const navigateToDetails = `window.location.href='productdetails.html?id=${productId}'`;
-
-
-            card.innerHTML = `
-                <img src="${imageSrc}" alt="${product.name}" onclick="${navigateToDetails}">
-                <div class="product-info">
-                    <h2 onclick="${navigateToDetails}">${product.name}</h2>
-                    <div class="tag-row">
-                        <span class="product-tag">${product.category || 'Uncategorized'}</span>
-                        <span class="product-tag ${conditionTagClass}">${product.condition || 'Unknown'}</span>
-                        ${product.is_negotiable ? '<span class="product-tag tag-neg">NEGOTIABLE</span>' : ''}
-                    </div>
-                    
-                    <span class="product-price">₦${product.price ? product.price.toLocaleString() : '0'}</span>
-                    
-                    <span class="tag-location">📍 ${product.location || 'Unknown Location'}</span>
-
-                    <div class="action-btns">
-                        <button class="action-btn share-btn" onclick="${shareOnClick}" aria-label="Share ${product.name}">
-                            <i class="fas fa-share-alt"></i> Share
-                        </button>
-                    
-                        <a href="${whatsappLink}" target="_blank" class="action-btn whatsapp-btn" ${cleanNumber ? '' : 'disabled'} >
-                            <i class="fab fa-whatsapp"></i> Chat
-                        </a>
-                    </div>
-                </div>
-            `;
-            productGrid.appendChild(card);
-        }
-
-        // =================================================================================
-        // --- EVENT LISTENERS & INITIALIZATION ---
-        // =================================================================================
-        
-        searchInput.addEventListener('input', () => {
-            currentPage = 1; 
-            applyFiltersAndPagination();
-        });
-        
-        filterPillsContainer.addEventListener('click', (e) => {
-            if (e.target.classList.contains('filter-pill')) {
-                document.querySelectorAll('.filter-pill').forEach(pill => pill.classList.remove('active'));
-                e.target.classList.add('active');
-                
-                selectedCategory = e.target.getAttribute('data-category');
-                currentPage = 1;
-                applyFiltersAndPagination();
-            }
-        });
-
-        prevPageBtn.addEventListener('click', () => {
-            if (currentPage > 1) {
-                currentPage--;
-                renderCurrentPage();
-                updatePaginationControls(Math.ceil(filteredProducts.length / productsPerPage));
-            }
-        });
-
-        nextPageBtn.addEventListener('click', () => {
-            const totalPages = Math.ceil(filteredProducts.length / productsPerPage);
-            if (currentPage < totalPages) {
-                currentPage++;
-                renderCurrentPage();
-                updatePaginationControls(totalPages);
-            }
-        });
-
-        document.addEventListener('DOMContentLoaded', fetchProducts);
-        
-    </script>
+// Corrected share function call
+const shareOnClick = `shareProduct(${productName}, ${productPrice}, ${productId})`;
+// Navigation handler
+const navigateToDetails = `window.location.href='productdetails.html?id=${productId}'`;
+card.innerHTML = `
+<img src="${imageSrc}" alt="${product.name}" onclick="${navigateToDetails}">
+<div class="product-info">
+<h2 onclick="${navigateToDetails}">${product.name}</h2>
+<div class="tag-row">
+<span class="product-tag">${product.category || 'Uncategorized'}</span>
+<span class="product-tag ${conditionTagClass}">${product.condition || 'Unknown'}</span>
+${product.is_negotiable ? '<span class="product-tag tag-neg">NEGOTIABLE</span>' : ''}
+</div>
+<span class="product-price">₦${product.price ? product.price.toLocaleString() : '0'}</span>
+<span class="tag-location">📍 ${product.location || 'Unknown Location'}</span>
+<div class="action-btns">
+<button class="action-btn share-btn" onclick="${shareOnClick}" aria-label="Share ${product.name}">
+<i class="fas fa-share-alt"></i> Share
+</button>
+<a href="${whatsappLink}" target="_blank" class="action-btn whatsapp-btn" ${cleanNumber ? '' : 'disabled'} >
+<i class="fab fa-whatsapp"></i> Chat
+</a>
+</div>
+</div>
+`;
+productGrid.appendChild(card);
+}
+// =================================================================================
+// --- EVENT LISTENERS & INITIALIZATION ---
+// =================================================================================
+searchInput.addEventListener('input', () => {
+currentPage = 1; 
+applyFiltersAndPagination();
+});
+filterPillsContainer.addEventListener('click', (e) => {
+if (e.target.classList.contains('filter-pill')) {
+document.querySelectorAll('.filter-pill').forEach(pill => pill.classList.remove('active'));
+e.target.classList.add('active');
+selectedCategory = e.target.getAttribute('data-category');
+currentPage = 1;
+applyFiltersAndPagination();
+}
+});
+prevPageBtn.addEventListener('click', () => {
+if (currentPage > 1) {
+currentPage--;
+renderCurrentPage();
+updatePaginationControls(Math.ceil(filteredProducts.length / productsPerPage));
+}
+});
+nextPageBtn.addEventListener('click', () => {
+const totalPages = Math.ceil(filteredProducts.length / productsPerPage);
+if (currentPage < totalPages) {
+currentPage++;
+renderCurrentPage();
+updatePaginationControls(totalPages);
+}
+});
+document.addEventListener('DOMContentLoaded', fetchProducts);
+</script>
 </body>
 </html>
