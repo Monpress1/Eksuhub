@@ -211,53 +211,53 @@ color: var(--primary-color);
 #loading { text-align: center; padding: 50px; font-size: 1.2em; color: #6c757d; }
 /* Pagination Controls */
 .pagination {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 20px;
-    padding: 20px 0; /* Adjusted padding for cleaner look */
-    margin-top: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
+    padding: 20px 0; /* Adjusted padding for cleaner look */
+    margin-top: 20px;
 }
 
 /* Base style for the Next and Previous buttons */
 .pagination button {
-    background-color: var(--primary-color); 
-    color: var(--card-bg); /* White text */
-    border: 2px solid var(--primary-color);
-    padding: 10px 20px;
-    border-radius: 25px; /* Fully rounded/pill shape */
-    cursor: pointer;
-    font-size: 1rem;
-    font-weight: 600;
-    transition: all 0.3s ease;
-    min-width: 100px; /* Consistent size */
-    box-shadow: var(--shadow-light);
+    background-color: var(--primary-color); 
+    color: var(--card-bg); /* White text */
+    border: 2px solid var(--primary-color);
+    padding: 10px 20px;
+    border-radius: 25px; /* Fully rounded/pill shape */
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    min-width: 100px; /* Consistent size */
+    box-shadow: var(--shadow-light);
 }
 
 /* Hover effect */
 .pagination button:not([disabled]):hover {
-    background-color: #1a3064; /* Darker blue on hover */
-    border-color: var(--secondary-color); /* Gold border */
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-medium);
+    background-color: #1a3064; /* Darker blue on hover */
+    border-color: var(--secondary-color); /* Gold border */
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-medium);
 }
 
 /* Style for disabled buttons */
 .pagination button[disabled] {
-    background-color: #ccc; 
-    color: #666; 
-    border-color: #ccc;
-    cursor: not-allowed;
-    opacity: 0.6;
-    transform: none;
-    box-shadow: none;
+    background-color: #ccc; 
+    color: #666; 
+    border-color: #ccc;
+    cursor: not-allowed;
+    opacity: 0.6;
+    transform: none;
+    box-shadow: none;
 }
 
 /* Style for the page info text in the middle */
 #pageInfo {
-    font-size: 1rem;
-    color: var(--primary-color);
-    font-weight: 500;
+    font-size: 1rem;
+    color: var(--primary-color);
+    font-weight: 500;
 }
 
 /* Modal */
@@ -417,8 +417,8 @@ font-weight: bold;
 <div class="form-row"> <label for="description">Product Description</label> <textarea id="description" name="description" required></textarea> </div>
 <div class="form-row"> <label for="location">Location (e.g., Iworoko-Ekiti, Ado Ekiti)</label> <input type="text" id="location" name="location" required> </div>
 <div class="form-row"> 
-    <label for="whatsappNumber">WhatsApp No</label> 
-    <input type="text" id="whatsappNumber" name="whatsappNumber" placeholder="e.g., 23480XXXXXXXX (Country code first)" required> 
+    <label for="whatsappNumber">WhatsApp No</label> 
+    <input type="text" id="whatsappNumber" name="whatsappNumber" placeholder="e.g., 23480XXXXXXXX (Country code first)" required> 
 </div>
 <button type="submit" id="submitButton">LIST PRODUCT</button>
 </form>
@@ -670,17 +670,17 @@ let cleanNumber = rawNumber.replace(/[^\d]/g, ''); // Remove all non-digit chara
 
 // Assuming Nigerian country code (234). Adjust if market is elsewhere.
 if (cleanNumber.startsWith('0') && cleanNumber.length >= 10) { 
-    // Example: 08012345678 becomes 2348012345678
-    cleanNumber = '234' + cleanNumber.substring(1);
+    // Example: 08012345678 becomes 2348012345678
+    cleanNumber = '234' + cleanNumber.substring(1);
 } else if (cleanNumber.length === 10 && !cleanNumber.startsWith('234')) {
-    // Check if it's a 10-digit number without leading 0 or code (e.g., 8012345678)
-    cleanNumber = '234' + cleanNumber;
+    // Check if it's a 10-digit number without leading 0 or code (e.g., 8012345678)
+    cleanNumber = '234' + cleanNumber;
 }
 
 // Only create the link if a valid-looking number remains
 const whatsappLink = cleanNumber.length >= 10 
-    ? `https://wa.me/${cleanNumber}?text=Hello!%20I%20am%20interested%20in%20your%20product:%20${encodeURIComponent(product.name)}.`
-    : '#'; 
+    ? `https://wa.me/${cleanNumber}?text=Hello!%20I%20am%20interested%20in%20your%20product:%20${encodeURIComponent(product.name)}.`
+    : '#'; 
 // --- WHATSAPP FIX LOGIC END ---
 
 // Prepare product name for JavaScript string literal (safest way to avoid quote errors)
