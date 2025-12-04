@@ -1,437 +1,865 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>User Profile & Quiz History</title>
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
-  <style>
-    body {
-      font-family: 'Segoe UI', sans-serif;
-      margin: 20px;
-      background-color: #f4f6fa;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title id="pageTitle">User Profile</title>
+    
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    
+    <style>
+        /* --- Root Variables: Dark Mode (Default) --- */
+        :root {
+            --primary-color: #0088ff; 
+            --background-color: #121212; 
+            --card-bg: #1e1e1e; 
+            --text-color: #f0f0f0; 
+            --text-secondary: #aaaaaa; 
+            --border-color: #333333; 
+            --shadow-dark: 0 4px 15px rgba(0, 0, 0, 0.5);
+            --font-family-main: 'Inter', sans-serif;
+        }
 
-    .profile-container, .quiz-history-container {
-      background-color: white;
-      padding: 25px; /* Slightly more padding */
-      border-radius: 8px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); /* Slightly stronger shadow */
-      width: 90%;
-      max-width: 700px; /* Increased max-width for more content */
-      text-align: left;
-      margin-bottom: 25px; /* Add more margin to separate containers */
-    }
+        /* --- Light Mode Definition --- */
+        :root[data-theme="light"] {
+            --primary-color: #007bff; 
+            --background-color: #f0f2f5; 
+            --card-bg: white; 
+            --text-color: #333; 
+            --text-secondary: #6c757d; 
+            --border-color: #e0e6ed; 
+            --shadow-dark: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
 
-    .profile-container h2, .quiz-history-container h2 {
-      color: #303f9f;
-      margin-top: 0;
-      margin-bottom: 20px; /* More space below heading */
-      border-bottom: 2px solid #e0e0e0; /* Subtle separator */
-      padding-bottom: 10px;
-    }
+        /* --- Global & Scrollbar --- */
+        * {
+            box-sizing: border-box;
+            transition: background-color 0.3s, color 0.3s, border-color 0.3s;
+            font-family: var(--font-family-main);
+        }
+        body { margin: 0; background-color: var(--background-color); color: var(--text-color); }
+        a { color: var(--primary-color); text-decoration: none; transition: color 0.2s; }
+        a:hover { opacity: 0.8; }
+        
+        /* Form Inputs */
+        input[type="text"], input[type="file"], select, textarea {
+            width: 100%; padding: 10px; margin-bottom: 15px; border-radius: 8px; border: 1px solid var(--border-color);
+            background-color: var(--border-color); color: var(--text-color); font-size: 1em;
+        }
+        :root[data-theme="light"] input[type="text"], 
+        :root[data-theme="light"] select, 
+        :root[data-theme="light"] textarea {
+            background-color: #e9ecef; border: 1px solid #ced4da; color: var(--text-color);
+        }
+        button[type="submit"], .btn-primary {
+            background: var(--primary-color); color: white; font-weight: 700; border: none; 
+            padding: 10px 20px; border-radius: 8px; cursor: pointer; transition: background 0.2s, transform 0.1s;
+        }
+        button[type="submit"]:hover, .btn-primary:hover { background: #006aff; transform: translateY(-1px); }
 
-    .profile-container p {
-      color: #4b5563;
-      margin-bottom: 12px; /* More space between profile lines */
-      display: flex; /* Align strong and span nicely */
-    }
 
-    .profile-container strong {
-      font-weight: bold;
-      color: #374151;
-      margin-right: 8px; /* More space after strong text */
-      min-width: 100px; /* Give strong text a consistent width */
-    }
+        /* --- Header (MATCHES FEED.HTML) --- */
+        .header {
+            background-color: var(--card-bg); border-bottom: 1px solid var(--border-color); padding: 15px 20px;
+            display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+            position: sticky; top: 0; z-index: 1000;
+        }
+        .header h1 { 
+            margin: 0; font-size: 1.8em; font-weight: 800; 
+            font-family: 'Georgia', serif; 
+            letter-spacing: -1px;
+            color: var(--primary-color); 
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+            line-height: 1; 
+        }
+        .header h1 small {
+            display: block; font-size: 0.4em; font-weight: 400; margin-top: 2px; opacity: 0.8; color: var(--text-secondary); font-family: var(--font-family-main);
+        }
+        .icon-btn { background: none; border: none; color: var(--text-color); font-size: 1.6em; cursor: pointer; transition: color 0.2s, transform 0.2s; padding: 0 8px; }
+        .icon-btn:hover { color: var(--primary-color); transform: scale(1.05); }
 
-    .button-container {
-      display: flex;
-      gap: 15px; /* More space between buttons */
-      margin-top: 25px; /* More space above buttons */
-      flex-wrap: wrap; /* Allow buttons to wrap */
-      justify-content: center; /* Center buttons */
-    }
+        /* --- Main Content Container --- */
+        .main-container { max-width: 650px; margin: 20px auto; padding: 0 15px; }
 
-    .back-button,
-    .re-register-button,
-    .clear-history-button { /* Added clear history button */
-      background-color: #303f9f;
-      color: white;
-      padding: 10px 18px; /* Slightly larger buttons */
-      border: none;
-      border-radius: 5px; /* Slightly more rounded */
-      cursor: pointer;
-      font-size: 1rem; /* Standard font size */
-      text-decoration: none;
-      transition: background-color 0.3s ease; /* Smooth transition */
-    }
+        /* --- Profile Header Section --- */
+        #profileHeader {
+            background-color: var(--card-bg);
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: var(--shadow-dark);
+            margin-bottom: 25px;
+            text-align: center;
+        }
+        .profile-avatar-container {
+            position: relative;
+            display: inline-block;
+            margin-bottom: 15px;
+        }
+        .profile-avatar-large {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 4px solid var(--primary-color);
+            display: block; /* Important for centering */
+            margin: 0 auto;
+        }
+        .avatar-edit-icon {
+            position: absolute; bottom: 0; right: 0;
+            background: var(--primary-color); color: white;
+            border-radius: 50%; padding: 8px; font-size: 0.9em;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+            display: none; /* Only show for owned profile */
+        }
+        #profileUsernameDisplay {
+            font-size: 2em; font-weight: 700; margin-bottom: 5px; color: var(--text-color);
+        }
+        #profileDetails {
+            font-size: 1em; color: var(--text-secondary); margin-bottom: 10px;
+        }
+        #profileBio {
+            font-size: 1em; color: var(--text-color); margin-top: 15px; padding-top: 15px; border-top: 1px solid var(--border-color);
+            text-align: left; max-width: 500px; margin-left: auto; margin-right: auto;
+        }
+        #profileStats {
+            display: flex; justify-content: center; gap: 30px; margin-top: 20px; padding-top: 15px;
+        }
+        .stat-item strong { display: block; font-size: 1.4em; color: var(--primary-color); }
+        .stat-item span { font-size: 0.9em; color: var(--text-secondary); }
 
-    .back-button:hover,
-    .re-register-button:hover,
-    .clear-history-button:hover {
-      background-color: #283593;
-    }
+        /* --- Posts Section (Copied Post Card Styling) --- */
+        .post-card { 
+            background-color: var(--card-bg); padding: 20px; border-radius: 12px; box-shadow: var(--shadow-dark); margin-bottom: 20px; 
+        }
+        .post-info span { font-size: 0.8em; color: var(--text-secondary); }
+        .post-actions { 
+            margin-top: 15px; padding-top: 10px; border-top: 1px solid var(--border-color); display: flex; gap: 20px; font-size: 1em; align-items: center; 
+        }
+        .action-button { color: var(--text-secondary); font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 5px; }
+        .like-icon.liked { color: #ff4d4d; }
+        
+        /* Media */
+        .post-image, .post-video { 
+            width: 300px; height: 300px; object-fit: cover; max-width: 100%; border-radius: 8px; margin-top: 15px; display: block; 
+        }
 
-    .re-register-button {
-      background-color: #d32f2f; /* Red color for re-register */
-    }
-
-    .re-register-button:hover {
-      background-color: #b71c1c;
-    }
-
-    .clear-history-button {
-        background-color: #f57c00; /* Orange color for clear history */
-    }
-
-    .clear-history-button:hover {
-        background-color: #ef6c00;
-    }
-
-    .quiz-history-list {
-      list-style-type: none;
-      padding: 0;
-    }
-
-    .quiz-history-item {
-      background-color: #e8f0fe; /* Light blue background for each item */
-      border: 1px solid #c5d8f9;
-      border-radius: 6px; /* Slightly more rounded */
-      padding: 15px;
-      margin-bottom: 15px; /* More space between items */
-      color: #303f9f;
-      display: flex;
-      flex-direction: column; /* Stack items vertically */
-      position: relative; /* For review button positioning */
-    }
-
-    .quiz-history-item .quiz-title {
-      font-weight: bold;
-      color: #1a237e; /* Darker blue for the title */
-      margin-bottom: 8px; /* More space below title */
-      font-size: 1.2em; /* Larger title font */
-    }
-
-    .quiz-history-item .quiz-details {
-      display: flex;
-      flex-wrap: wrap; /* Allow wrapping on smaller screens */
-      gap: 15px; /* Space between detail items */
-      margin-bottom: 10px; /* Space above review button */
-    }
-
-    .quiz-history-item .detail-item {
-        font-size: 0.95em;
-        white-space: nowrap; /* Prevent breaking in the middle of a detail */
-    }
-
-    .quiz-history-item .detail-item strong {
-      color: #1a237e; /* Darker blue for strong text */
-    }
-
-    .no-history-message {
-      color: #6b7280;
-      font-style: italic;
-      text-align: center;
-      padding: 20px;
-    }
-
-    .review-button {
-        background-color: #4CAF50; /* Green */
-        color: white;
-        padding: 8px 15px;
-        border: none;
-        border-radius: 4px;
-        cursor: pointer;
-        font-size: 0.9em;
-        transition: background-color 0.3s ease;
-        align-self: flex-end; /* Align button to the right/bottom */
-        margin-top: 10px; /* Space from details above */
-    }
-
-    .review-button:hover {
-        background-color: #45a049;
-    }
-
-    /* Modal for missed answers */
-    .modal {
-        display: none; /* Hidden by default */
-        position: fixed; /* Stay in place */
-        z-index: 1000; /* Sit on top */
-        left: 0;
-        top: 0;
-        width: 100%; /* Full width */
-        height: 100%; /* Full height */
-        overflow: auto; /* Enable scroll if needed */
-        background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
-        justify-content: center;
-        align-items: center;
-    }
-
-    .modal-content {
-        background-color: #fefefe;
-        margin: auto;
-        padding: 30px;
-        border: 1px solid #888;
-        border-radius: 10px;
-        width: 90%;
-        max-width: 600px;
-        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-        position: relative;
-        max-height: 80vh; /* Max height to allow scrolling */
-        overflow-y: auto; /* Enable scrolling within the modal content */
-    }
-
-    .close-button {
-        color: #aaa;
-        float: right;
-        font-size: 28px;
-        font-weight: bold;
-        position: absolute;
-        top: 10px;
-        right: 20px;
-    }
-
-    .close-button:hover,
-    .close-button:focus {
-        color: black;
-        text-decoration: none;
-        cursor: pointer;
-    }
-
-    .modal-content h3 {
-        color: #303f9f;
-        margin-top: 0;
-        margin-bottom: 20px;
-        border-bottom: 1px solid #e0e0e0;
-        padding-bottom: 10px;
-    }
-
-    .modal-content ul {
-        list-style-type: none;
-        padding: 0;
-    }
-
-    .modal-content li {
-        background-color: #f9f9f9;
-        border: 1px solid #ddd;
-        border-radius: 5px;
-        padding: 15px;
-        margin-bottom: 15px;
-    }
-
-    .modal-content li p {
-        margin: 5px 0;
-    }
-
-    .modal-content li strong {
-        color: #374151;
-    }
-
-    .modal-content .your-answer {
-        color: #d32f2f; /* Red for incorrect answer */
-        font-weight: bold;
-    }
-
-    .modal-content .correct-answer {
-        color: #388e3c; /* Green for correct answer */
-        font-weight: bold;
-    }
-  </style>
+        /* --- Modal Styling --- */
+        .modal {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.8); z-index: 3000;
+            display: none; align-items: center; justify-content: center;
+        }
+        .modal-content {
+            background: var(--card-bg); border-radius: 12px; max-width: 450px; width: 90%; padding: 25px; 
+            max-height: 90%; overflow-y: auto;
+        }
+        .modal-header {
+            display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px;
+        }
+        .modal-header h3 { margin: 0; color: var(--primary-color); }
+        .form-group { margin-bottom: 15px; text-align: left;}
+        .form-group label { display: block; margin-bottom: 5px; font-weight: 600; color: var(--text-color); }
+        .form-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;}
+    </style>
 </head>
-<body>
-  <div class="profile-container">
-    <h2>Your Profile</h2>
-    <p><strong>Name:</strong> <span id="profileName"></span></p>
-    <p><strong>Department:</strong> <span id="profileDepartment"></span></p>
-    <p><strong>Faculty:</strong> <span id="profileFaculty"></span></p>
-    <p><strong>Level:</strong> <span id="profileLevel"></span></p>
-  </div>
 
-  <div class="quiz-history-container">
-    <h2>Quiz History</h2>
-    <ul id="quizHistoryList" class="quiz-history-list">
-      <p class="no-history-message" id="noHistoryMessage">No quiz history available yet. Complete a quiz to see your results here.</p>
-    </ul>
-    <div class="button-container">
-        <button class="clear-history-button" id="clearHistoryButton">Clear All Quiz History</button>
+<body data-theme="dark">
+
+    <div id="editProfileModal" class="modal">
+        <div class="modal-content">
+            <header class="modal-header">
+                <h3><i class="fas fa-edit"></i> Edit Your Profile</h3>
+                <button class="icon-btn" onclick="document.getElementById('editProfileModal').style.display='none'"><i class="fas fa-times"></i></button>
+            </header>
+            <form id="editProfileForm">
+                <div class="form-group">
+                    <label for="editUsername">Username</label>
+                    <input type="text" id="editUsername" required>
+                </div>
+                <div class="form-group">
+                    <label for="editDepartment">Department</label>
+                    <input type="text" id="editDepartment" required>
+                </div>
+                <div class="form-group">
+                    <label for="editLevel">Level</label>
+                    <select id="editLevel" required>
+                        <option value="100">100 Level</option>
+                        <option value="200">200 Level</option>
+                        <option value="300">300 Level</option>
+                        <option value="400">400 Level</option>
+                        <option value="500">500 Level</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="editGender">Gender</label>
+                    <select id="editGender" required>
+                        <option value="Male">Male</option>
+                        <option value="Female">Female</option>
+                        <option value="Other">Other</option>
+                        <option value="Prefer Not To Say">Prefer Not To Say</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="editBio">Bio (Max 160 characters)</label>
+                    <textarea id="editBio" maxlength="160" placeholder="A short description about yourself..."></textarea>
+                </div>
+                
+                <p id="editStatus" style="color: var(--primary-color); text-align: center; font-size: 0.9em;"></p>
+
+                <div class="form-actions">
+                    <button type="button" onclick="document.getElementById('editProfileModal').style.display='none'" class="btn-secondary" style="background: var(--border-color); color: var(--text-color);">Cancel</button>
+                    <button type="submit">Save Changes</button>
+                </div>
+            </form>
+        </div>
     </div>
-  </div>
 
-  <div class="button-container">
-    <button class="back-button" onclick="goBack()">Back to Dashboard</button>
-    <button class="re-register-button" onclick="reRegister()">Re-register</button>
-  </div>
+    <header class="header">
+        <div class="header-left" style="display: flex; align-items: center;">
+            <a href="feed.html" class="icon-btn" title="Back to Feed">
+                <i class="fas fa-arrow-left"></i>
+            </a>
+            <h1 id="headerTitle" style="margin-left: 10px; line-height: 1.4;">
+                <span id="headerUsername">Profile</span>
+                <small id="headerSubtext" style="display: block; font-size: 0.4em;"></small>
+            </h1>
+        </div>
+        <div class="header-right">
+            <button class="icon-btn" id="themeToggleBtn" title="Toggle Theme">
+                <i class="fas fa-sun"></i>
+            </button>
+            
+            <button class="icon-btn" id="profileActionButton" title="Edit Profile">
+                <i class="fas fa-edit"></i>
+            </button>
+        </div>
+    </header>
 
-  <div id="failedAnswersModal" class="modal">
-    <div class="modal-content">
-      <span class="close-button">&times;</span>
-      <h3>Questions You Missed in This Quiz:</h3>
-      <ul id="missedQuestionsListModal">
-        </ul>
-      <p id="noMissedMessageModal" style="text-align: center; color: #6b7280; font-style: italic; display: none;">
-        Great job! You answered all questions correctly in this quiz.
-      </p>
+    <div class="main-container">
+        
+        <div id="profileHeader">
+            <p id="loadingMessage" style="color: var(--text-secondary);">Loading user profile...</p>
+            
+            <input type="file" id="avatarFileUploader" accept="image/*" style="display: none;">
+            
+            <div id="avatarContainer" class="profile-avatar-container" style="display: none;">
+                <img id="profileAvatar" class="profile-avatar-large" src="" alt="Profile Avatar">
+                <i class="fas fa-camera avatar-edit-icon" id="avatarEditIcon"></i>
+            </div>
+            
+            <h2 id="profileUsernameDisplay" style="display: none;"></h2>
+            
+            <div id="profileDetails" style="display: none;">
+                <p style="margin: 0;"><i class="fas fa-book-open"></i> <span id="displayDept"></span> | <i class="fas fa-graduation-cap"></i> <span id="displayLevel"></span></p>
+                <p style="margin: 5px 0 0 0;"><i class="fas fa-venus-mars"></i> <span id="displayGender"></span></p>
+            </div>
+            
+            <p id="profileBio" style="display: none;"></p>
+            
+            <div id="profileStats" style="display: none;">
+                <div class="stat-item">
+                    <strong id="postCount">0</strong>
+                    <span>Posts</span>
+                </div>
+                <div class="stat-item">
+                    <strong id="followersCount">0</strong>
+                    <span>Followers</span>
+                </div>
+                <div class="stat-item">
+                    <strong id="followingCount">0</strong>
+                    <span>Following</span>
+                </div>
+            </div>
+            
+            <button id="followButton" style="margin-top: 20px; background: var(--primary-color); color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; display: none; transition: background 0.2s;">
+                <i class="fas fa-user-plus"></i> Follow
+            </button>
+        </div>
+
+        <h2 style="font-size: 1.3em;"><i class="fas fa-th-list"></i> <span id="postsHeader">User Posts</span></h2>
+        <div id="userPosts">
+            <p style="color: var(--text-secondary);">Fetching posts...</p>
+        </div>
+
     </div>
-  </div>
 
-  <script>
-    const profileName = document.getElementById('profileName');
-    const profileDepartment = document.getElementById('profileDepartment');
-    const profileFaculty = document.getElementById('profileFaculty');
-    const profileLevel = document.getElementById('profileLevel');
-    const quizHistoryList = document.getElementById('quizHistoryList');
-    const noHistoryMessage = document.getElementById('noHistoryMessage');
-    const clearHistoryButton = document.getElementById('clearHistoryButton');
+    <script>
+        // --- CONFIGURATION (Must match feed.html) ---
+        const SUPABASE_URL = 'https://wfhaiasdkkmwjzrndcmi.supabase.co'; 
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndmaGFpYXNka2ttd2p6cm5kY21pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQxNTE5MDUsImV4cCI6MjA3OTcyNzkwNX0.jTBRJi4lpmbv4R5rxF_CS9GrF5UMVxiIH9Th9frGWWI';
+        const REDIRECT_PAGE = 'auth.html'; 
 
-    // Modal elements
-    const failedAnswersModal = document.getElementById('failedAnswersModal');
-    const closeButton = document.querySelector('.close-button');
-    const missedQuestionsListModal = document.getElementById('missedQuestionsListModal');
-    const noMissedMessageModal = document.getElementById('noMissedMessageModal');
-
-    function loadProfile() {
-      profileName.textContent = localStorage.getItem('name') || 'N/A';
-      profileDepartment.textContent = localStorage.getItem('department') || 'N/A';
-      profileFaculty.textContent = localStorage.getItem('faculty') || 'N/A';
-      profileLevel.textContent = localStorage.getItem('level') || 'N/A';
-    }
-
-    function loadQuizHistory() {
-      // Assuming quizHistory is stored as a JSON array of objects
-      // Each object should contain: quizName/course, score, total, percentage, timeTaken, date, allAnswers
-      const quizHistory = JSON.parse(localStorage.getItem('quizHistory')) || [];
-
-      quizHistoryList.innerHTML = ''; // Clear existing content
-
-      if (quizHistory.length === 0) {
-        noHistoryMessage.style.display = 'block'; // Show "No quiz history" message
-        clearHistoryButton.style.display = 'none'; // Hide clear button
-        return;
-      } else {
-        noHistoryMessage.style.display = 'none'; // Hide the message if there's history
-        clearHistoryButton.style.display = 'block'; // Show clear button
-      }
-
-      // Display newest history entries first
-      const reversedHistory = [...quizHistory].reverse(); 
-
-      reversedHistory.forEach((record, originalIndex) => {
-        const listItem = document.createElement('li');
-        listItem.classList.add('quiz-history-item');
-
-        const date = record.date || new Date().toLocaleString();
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         
-        // FIX: Check for both 'quizName' (new key) and 'course' (old key)
-        const quizName = record.quizName || record.course || 'Previous Exam';
+        // --- DOM Elements ---
+        const loadingMessage = document.getElementById('loadingMessage');
+        const profileAvatar = document.getElementById('profileAvatar');
+        const profileUsernameDisplay = document.getElementById('profileUsernameDisplay');
+        const profileDetailsDiv = document.getElementById('profileDetails');
+        const displayDept = document.getElementById('displayDept');
+        const displayLevel = document.getElementById('displayLevel');
+        const displayGender = document.getElementById('displayGender');
+        const profileBio = document.getElementById('profileBio');
+        const profileStats = document.getElementById('profileStats');
+        const postCountDisplay = document.getElementById('postCount');
+        const userPostsContainer = document.getElementById('userPosts');
+        const followButton = document.getElementById('followButton');
+        const themeToggleBtn = document.getElementById('themeToggleBtn');
+        const profileActionButton = document.getElementById('profileActionButton');
+        const postsHeader = document.getElementById('postsHeader');
+        const avatarContainer = document.getElementById('avatarContainer');
+        const avatarEditIcon = document.getElementById('avatarEditIcon');
+        const avatarFileUploader = document.getElementById('avatarFileUploader');
         
-        const score = record.score !== undefined ? record.score : 'N/A';
-        const total = record.total !== undefined ? record.total : 'N/A';
-        const percentage = record.percentage !== undefined ? record.percentage : 'N/A';
-        const timeTaken = record.timeTaken !== undefined ? `${record.timeTaken} minutes` : 'N/A';
+        // Edit Modal Elements
+        const editProfileModal = document.getElementById('editProfileModal');
+        const editProfileForm = document.getElementById('editProfileForm');
+        const editUsername = document.getElementById('editUsername');
+        const editDepartment = document.getElementById('editDepartment');
+        const editLevel = document.getElementById('editLevel');
+        const editGender = document.getElementById('editGender');
+        const editBio = document.getElementById('editBio');
+        const editStatus = document.getElementById('editStatus');
 
-        // Calculate the index for review based on the original (un-reversed) array
-        const reviewIndex = quizHistory.length - 1 - originalIndex;
+        // Header Elements
+        const headerUsername = document.getElementById('headerUsername');
+        const headerSubtext = document.getElementById('headerSubtext');
 
-        listItem.innerHTML = `
-          <div class="quiz-title">${quizName}</div>
-          <div class="quiz-details">
-            <span class="detail-item"><strong>Date:</strong> ${date}</span>
-            <span class="detail-item"><strong>Score:</strong> ${score}/${total}</span>
-            <span class="detail-item"><strong>Percentage:</strong> ${percentage}%</span>
-            <span class="detail-item"><strong>Time Taken:</strong> ${timeTaken}</span>
-          </div>
-          <button class="review-button" data-index="${reviewIndex}">Review Missed Answers</button>
-        `;
-        quizHistoryList.appendChild(listItem);
-      });
 
-      // Add event listeners to the dynamically created review buttons
-      document.querySelectorAll('.review-button').forEach(button => {
-        button.addEventListener('click', (event) => {
-          const index = event.target.dataset.index;
-          showSpecificFailedAnswers(parseInt(index));
-        });
-      });
-    }
+        let currentUserId = null; // The ID of the currently logged-in user
+        let profileUserId = null; // The ID of the user whose profile we are viewing
+        let currentProfileData = {}; // Store the profile data for editing
 
-    function showSpecificFailedAnswers(historyIndex) {
-        const quizHistory = JSON.parse(localStorage.getItem('quizHistory')) || [];
-        const entry = quizHistory[historyIndex];
+        const PLACEHOLDER_AVATAR = 'https://via.placeholder.com/120/383838/f0f0f0?text=E'; 
+        
+        // --- UTILITY FUNCTIONS ---
+        
+        function getUserIdFromUrl() {
+            const params = new URLSearchParams(window.location.search);
+            return params.get('id');
+        }
+        
+        async function compressImage(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = event => {
+                    const img = new Image();
+                    img.src = event.target.result;
+                    img.onload = () => {
+                        const canvas = document.createElement('canvas');
+                        const ctx = canvas.getContext('2d');
+                        
+                        const maxSize = 250; 
+                        const scaleFactor = img.width > img.height ? maxSize / img.width : maxSize / img.height;
+                        const finalWidth = img.width * scaleFactor;
+                        const finalHeight = img.height * scaleFactor;
+                        
+                        canvas.width = finalWidth;
+                        canvas.height = finalHeight;
 
-        missedQuestionsListModal.innerHTML = ''; // Clear previous list in modal
-        noMissedMessageModal.style.display = 'none'; // Hide default message
+                        ctx.drawImage(img, 0, 0, finalWidth, finalHeight);
+                        
+                        canvas.toBlob(blob => {
+                            if (!blob) return reject(new Error("Canvas compression failed."));
+                            const compressedFile = new File([blob], file.name, {
+                                type: file.type,
+                                lastModified: Date.now(),
+                            });
+                            resolve(compressedFile);
+                        }, file.type, 0.8); 
+                    };
+                    img.onerror = error => reject(new Error("Failed to load image for compression."));
+                };
+                reader.onerror = error => reject(new Error("Failed to read file for compression."));
+            });
+        }
+        
+        async function uploadAvatar(userId, file) {
+            const fileExt = file.name.split('.').pop();
+            const filePath = `${userId}/avatar.${fileExt}`; 
+            const bucketName = 'avatars'; // Assuming a separate bucket for avatars
 
-        if (entry && entry.allAnswers && entry.allAnswers.length > 0) {
-            const missed = entry.allAnswers.filter(answer => answer && !answer.isCorrect); // Ensure 'answer' is not null/undefined
-
-            if (missed.length > 0) {
-                missed.forEach((missedAnswer, qIndex) => {
-                    const listItem = document.createElement('li');
-                    listItem.innerHTML = `
-                        <p><strong>Question ${qIndex + 1}:</strong> ${missedAnswer.question}</p>
-                        <p class="your-answer"><strong>Your Answer:</strong> ${missedAnswer.userAnswer || 'Not answered'}</p>
-                        <p class="correct-answer"><strong>Correct Answer:</strong> ${missedAnswer.correctAnswer}</p>
-                    `;
-                    missedQuestionsListModal.appendChild(listItem);
+            const { error: uploadError } = await supabaseClient.storage
+                .from(bucketName)
+                .upload(filePath, file, {
+                    cacheControl: '3600',
+                    upsert: true, 
                 });
-            } else {
-                noMissedMessageModal.style.display = 'block'; // Show "Great job" message
+
+            if (uploadError) {
+                throw new Error(`Avatar upload failed: ${uploadError.message}`);
             }
-        } else {
-            // Fallback if 'allAnswers' data is missing for some reason
-            missedQuestionsListModal.innerHTML = '<li><p>No detailed answer data available for this quiz attempt.</p></li>';
+            
+            const { data: publicUrlData } = supabaseClient.storage
+                .from(bucketName)
+                .getPublicUrl(filePath);
+            
+            return publicUrlData.publicUrl;
         }
 
-        failedAnswersModal.style.display = 'flex'; // Show the modal
-    }
+        async function checkUserSession() {
+            const { data: { user }, error } = await supabaseClient.auth.getUser();
 
-    function clearQuizHistory() {
-      if (confirm("Are you sure you want to clear all your quiz history? This action cannot be undone.")) {
-        localStorage.removeItem('quizHistory');
-        loadQuizHistory(); // Refresh the display
-        alert('Quiz history has been cleared.');
-      }
-    }
-
-    function goBack() {
-      window.location.href = 'index.html'; // Assuming your dashboard is named index.html
-    }
-
-    function reRegister() {
-      if (confirm("Are you sure you want to re-register? This will clear your profile data and log you out.")) {
-        localStorage.removeItem('signedUp');
-        localStorage.removeItem('name');
-        localStorage.removeItem('department');
-        localStorage.removeItem('faculty');
-        localStorage.removeItem('level');
-        alert('Your profile data has been cleared. You will be asked to re-register on the dashboard.');
-        window.location.href = 'index.html'; // Redirect back to the dashboard to trigger the sign-up form
-      }
-    }
-
-    // Event Listeners for the modal
-    closeButton.addEventListener('click', () => {
-        failedAnswersModal.style.display = 'none';
-    });
-
-    // Close the modal if user clicks outside of the modal content
-    window.addEventListener('click', (event) => {
-        if (event.target == failedAnswersModal) {
-            failedAnswersModal.style.display = 'none';
+            if (error || !user) {
+                window.location.href = REDIRECT_PAGE;
+                return null;
+            }
+            
+            currentUserId = user.id;
+            return user;
         }
-    });
 
-    // Event listener for clear history button
-    clearHistoryButton.addEventListener('click', clearQuizHistory);
+        function toggleTheme() {
+            const body = document.body;
+            const isDarkMode = body.getAttribute('data-theme') === 'dark';
+            
+            if (isDarkMode) {
+                body.setAttribute('data-theme', 'light');
+                themeToggleBtn.innerHTML = '<i class="fas fa-moon"></i>';
+                localStorage.setItem('theme', 'light');
+            } else {
+                body.setAttribute('data-theme', 'dark');
+                themeToggleBtn.innerHTML = '<i class="fas fa-sun"></i>';
+                localStorage.setItem('theme', 'dark');
+            }
+        }
+        
+        async function handleLogout() {
+            await supabaseClient.auth.signOut();
+            window.location.href = REDIRECT_PAGE;
+        }
 
-    // Load profile and quiz history information when the page loads
-    loadProfile();
-    loadQuizHistory();
-  </script>
+        // --- FOLLOW / UNFOLLOW LOGIC ---
 
-  
+        async function checkFollowStatus(followerId, followingId) {
+            if (followerId === followingId) return null; 
+
+            const { data, error } = await supabaseClient
+                .from('followers')
+                .select('id')
+                .eq('follower_id', followerId)
+                .eq('following_id', followingId)
+                .maybeSingle();
+
+            if (error) {
+                console.error("Follow check error:", error);
+                return false;
+            }
+            return !!data; // Returns true if a record exists (they are following)
+        }
+
+        async function handleFollowToggle() {
+            if (currentUserId === profileUserId) return; 
+
+            const isFollowing = followButton.textContent.includes('Following');
+            const action = isFollowing ? 'Unfollowing' : 'Following';
+
+            followButton.textContent = `${action}...`;
+            followButton.disabled = true;
+
+            try {
+                if (isFollowing) {
+                    // UNFOLLOW
+                    const { error } = await supabaseClient
+                        .from('followers')
+                        .delete()
+                        .eq('follower_id', currentUserId)
+                        .eq('following_id', profileUserId);
+
+                    if (error) throw error;
+
+                    followButton.innerHTML = `<i class="fas fa-user-plus"></i> Follow`;
+                    followButton.style.background = 'var(--primary-color)';
+
+                } else {
+                    // FOLLOW
+                    const { error } = await supabaseClient
+                        .from('followers')
+                        .insert([
+                            { follower_id: currentUserId, following_id: profileUserId }
+                        ]);
+
+                    if (error) throw error;
+
+                    followButton.textContent = 'Following';
+                    followButton.style.background = '#28a745';
+                }
+                // Re-fetch profile data to update follower counts later
+            } catch (error) {
+                alert(`Failed to ${action.toLowerCase()}: ${error.message}`);
+                console.error('Follow operation failed:', error);
+                // Reset button state on failure
+                followButton.textContent = isFollowing ? 'Following' : `<i class="fas fa-user-plus"></i> Follow`;
+                followButton.style.background = isFollowing ? '#28a745' : 'var(--primary-color)';
+            } finally {
+                followButton.disabled = false;
+            }
+        }
+
+        // --- PROFILE DATA FETCHING AND RENDERING ---
+
+        async function fetchProfileData(userId) {
+            loadingMessage.textContent = 'Loading user profile...';
+            
+            // Query to count followers and following
+            const { count: followersCount, error: fError } = await supabaseClient
+                .from('followers')
+                .select('follower_id', { count: 'exact', head: true })
+                .eq('following_id', userId);
+            
+            const { count: followingCount, error: gError } = await supabaseClient
+                .from('followers')
+                .select('following_id', { count: 'exact', head: true })
+                .eq('follower_id', userId);
+
+            // Fetch main profile details
+            const { data: profile, error } = await supabaseClient
+                .from('users')
+                .select(`
+                    username, 
+                    avatar_url, 
+                    faculty, 
+                    department,
+                    bio, 
+                    gender, 
+                    level, 
+                    messages(count)
+                `)
+                .eq('id', userId)
+                .single();
+
+            if (error || !profile) {
+                loadingMessage.textContent = 'Error: Profile not found or restricted. Please check RLS and column names.';
+                console.error('Profile fetch error details:', error ? error.message : 'No profile data returned.');
+                return null;
+            }
+
+            currentProfileData = profile; 
+            loadingMessage.style.display = 'none';
+            
+            const username = profile.username || 'User';
+            const department = profile.department || 'N/A';
+            const level = profile.level || 'N/A';
+            const gender = profile.gender || 'Not Specified';
+            const bio = profile.bio || `<span style="font-style: italic; color: var(--text-secondary);">No bio yet.</span>`;
+
+
+            // --- RENDER PROFILE INFO ---
+            document.getElementById('pageTitle').textContent = `@${username}'s Profile`;
+            profileUsernameDisplay.textContent = `@${username}`;
+            displayDept.textContent = department;
+            displayLevel.textContent = `${level}`;
+            displayGender.textContent = gender;
+            profileBio.innerHTML = bio.replace(/\n/g, '<br>');
+
+            profileAvatar.src = profile.avatar_url || PLACEHOLDER_AVATAR;
+            profileAvatar.onerror = () => profileAvatar.src = PLACEHOLDER_AVATAR; 
+            
+            // --- HEADER RENDER ---
+            headerUsername.textContent = `@${username}`;
+            headerSubtext.textContent = department;
+
+            // --- SHOW ELEMENTS ---
+            avatarContainer.style.display = 'inline-block';
+            profileUsernameDisplay.style.display = 'block';
+            profileDetailsDiv.style.display = 'block';
+            profileBio.style.display = 'block';
+            profileStats.style.display = 'flex';
+            postsHeader.textContent = `@${username}'s Posts`;
+            
+            // --- SET STATS ---
+            postCountDisplay.textContent = profile.messages[0].count;
+            document.getElementById('followersCount').textContent = followersCount || 0;
+            document.getElementById('followingCount').textContent = followingCount || 0;
+            
+            // --- DYNAMIC BUTTON LOGIC ---
+            if (currentUserId === userId) {
+                profileActionButton.innerHTML = '<i class="fas fa-edit"></i>';
+                profileActionButton.title = 'Edit Profile';
+                profileActionButton.onclick = openEditModal;
+                followButton.style.display = 'none';
+                avatarEditIcon.style.display = 'block'; 
+            } else {
+                profileActionButton.innerHTML = '<i class="fas fa-sign-out-alt"></i>';
+                profileActionButton.title = 'Logout';
+                profileActionButton.onclick = handleLogout;
+                // Follow button visibility and status is set below in the DOMContentLoaded
+                avatarEditIcon.style.display = 'none'; 
+            }
+            
+            return profile;
+        }
+
+        async function fetchUserPosts(userId) {
+            userPostsContainer.innerHTML = '<p style="color: var(--text-secondary);">Fetching posts...</p>';
+            
+            const { data: posts, error } = await supabaseClient
+                .from('messages')
+                .select(`
+                    id, 
+                    content, 
+                    image_url, 
+                    created_at,
+                    type,
+                    reactions(id, user_id, emoji),
+                    comments:messages(count)
+                `)
+                .eq('user_id', userId)
+                .not('type', 'is', null)
+                .order('created_at', { ascending: false });
+
+            if (error) {
+                userPostsContainer.innerHTML = `<p style="color: red;">Error fetching posts: ${error.message}</p>`;
+                return;
+            }
+            if (posts.length === 0) {
+                userPostsContainer.innerHTML = `<p style="color: var(--text-secondary);">@${profileUsernameDisplay.textContent.replace('@', '')} hasn't posted anything yet.</p>`;
+                return;
+            }
+
+            userPostsContainer.innerHTML = '';
+            posts.forEach(post => {
+                const time = new Date(post.created_at).toLocaleString();
+                let postContentHtml = post.content || '';
+                let mediaHtml = '';
+                let isSystemMessage = post.type !== 'post';
+
+                // Handle System Messages
+                if (isSystemMessage) {
+                    const statusText = post.type === 'user_join' ? 'New User' : 'Profile Update';
+                    postContentHtml = `<i class="fas fa-info-circle" style="color: var(--primary-color);"></i> <strong>${statusText}:</strong> ${post.content}`;
+                } else {
+                    // Normal Post
+                    if (post.image_url) {
+                        const url = post.image_url.toLowerCase();
+                        const mediaClass = (url.endsWith('.mp4') || url.endsWith('.mov') || url.endsWith('.webm')) ? 'post-video' : 'post-image';
+                        if (mediaClass === 'post-video') {
+                            mediaHtml = `<video src="${post.image_url}" controls class="${mediaClass}"></video>`;
+                        } else {
+                            mediaHtml = `<img src="${post.image_url}" class="${mediaClass}" alt="Post Image" onerror="this.onerror=null; this.src='${PLACEHOLDER_AVATAR}'">`;
+                        }
+                    }
+                    postContentHtml = post.content ? `<p class="post-content-text">${post.content}</p>` : '';
+                }
+
+                // Normal Post Stats (Hidden for system messages)
+                let actionsHtml = '';
+                if (!isSystemMessage) {
+                    const heartReactions = post.reactions ? post.reactions.filter(r => r.emoji === 'heart') : [];
+                    const postLikes = heartReactions.length;
+                    const hasUserLiked = heartReactions.some(r => r.user_id === currentUserId);
+                    const commentCount = post.comments[0].count;
+                    
+                    actionsHtml = `
+                        <div class="post-actions">
+                            <span class="action-button like-toggle" data-post-id="${post.id}" onclick="alert('Like functionality available on the feed.')">
+                                <i class="fas fa-heart like-icon ${hasUserLiked ? 'liked' : ''}"></i> 
+                                <span class="like-count">${postLikes}</span>
+                            </span>
+                            <span class="action-button comment-btn" data-post-id="${post.id}" onclick="alert('Comment functionality available on the feed.')">
+                                <i class="fas fa-comment-dots"></i> 
+                                <span class="comment-count">${commentCount}</span>
+                            </span>
+                        </div>
+                    `;
+                }
+
+                userPostsContainer.innerHTML += `
+                    <div class="post-card" style="${isSystemMessage ? 'border-left: 5px solid var(--primary-color); padding-left: 15px;' : ''}">
+                        <div class="post-info">
+                            <span style="font-style: italic;">${isSystemMessage ? 'System Update' : 'Posted'} on ${time}</span>
+                        </div>
+                        
+                        ${postContentHtml}
+                        
+                        ${mediaHtml}
+                        
+                        ${actionsHtml}
+                    </div>
+                `;
+            });
+        }
+        
+        // --- EDIT PROFILE MODAL LOGIC ---
+        
+        function openEditModal() {
+            if (currentUserId !== profileUserId) return; 
+            
+            // Populate form with current data
+            editUsername.value = currentProfileData.username || '';
+            editDepartment.value = currentProfileData.department || '';
+            editLevel.value = currentProfileData.level || '100';
+            editGender.value = currentProfileData.gender || 'Prefer Not To Say';
+            editBio.value = currentProfileData.bio || '';
+            editStatus.textContent = '';
+            
+            editProfileModal.style.display = 'flex';
+        }
+        
+        async function handleProfileUpdate(event) {
+            event.preventDefault();
+            editStatus.textContent = 'Saving changes...';
+            
+            const newUsername = editUsername.value.trim();
+            const newDepartment = editDepartment.value.trim();
+            const newLevel = editLevel.value;
+            const newGender = editGender.value;
+            const newBio = editBio.value.trim();
+            
+            // Check if any critical data has actually changed
+            const hasChanged = newUsername !== currentProfileData.username ||
+                               newDepartment !== currentProfileData.department ||
+                               newLevel !== currentProfileData.level ||
+                               newGender !== currentProfileData.gender ||
+                               newBio !== currentProfileData.bio;
+            
+            let updatePayload = {
+                username: newUsername,
+                department: newDepartment,
+                level: newLevel,
+                gender: newGender,
+                bio: newBio,
+            };
+            
+            // 1. Update the users table
+            const { error: updateError } = await supabaseClient
+                .from('users')
+                .update(updatePayload)
+                .eq('id', currentUserId);
+
+            if (updateError) {
+                editStatus.textContent = `Error updating profile: ${updateError.message}`;
+            } else {
+                if (hasChanged) {
+                    // 2. Post a system message to the feed
+                    const notificationContent = `@${newUsername} updated their profile details.`;
+                    
+                    await supabaseClient
+                        .from('messages')
+                        .insert([{
+                            user_id: currentUserId,
+                            content: notificationContent,
+                            type: 'profile_update',
+                            image_url: currentProfileData.avatar_url // Use existing avatar for notification
+                        }]);
+                }
+                
+                editStatus.textContent = 'Profile updated successfully! Refreshing...';
+                
+                // Close modal and refresh profile data
+                setTimeout(() => {
+                    editProfileModal.style.display = 'none';
+                    // Re-fetch the data to reflect changes immediately
+                    fetchProfileData(profileUserId);
+                    fetchUserPosts(profileUserId);
+                }, 1000);
+            }
+        }
+        
+        // --- AVATAR UPLOAD LOGIC ---
+        
+        async function handleAvatarUpload() {
+            const file = avatarFileUploader.files[0];
+            if (!file) return;
+
+            loadingMessage.textContent = 'Uploading and updating profile picture...';
+            loadingMessage.style.display = 'block';
+
+            try {
+                const compressedFile = await compressImage(file);
+                const newAvatarUrl = await uploadAvatar(currentUserId, compressedFile);
+                
+                // 1. Update the users table
+                const { error: dbUpdateError } = await supabaseClient
+                    .from('users')
+                    .update({ avatar_url: newAvatarUrl })
+                    .eq('id', currentUserId);
+
+                if (dbUpdateError) {
+                    throw new Error(`DB update failed: ${dbUpdateError.message}`);
+                }
+                
+                // 2. Create Feed Notification (System Message)
+                const genderTerm = currentProfileData.gender === 'Female' ? 'her' : 'his';
+                const notificationContent = `@${currentProfileData.username} updated their profile picture.`;
+
+                await supabaseClient
+                    .from('messages')
+                    .insert([{
+                        user_id: currentUserId,
+                        content: notificationContent,
+                        type: 'profile_update',
+                        image_url: newAvatarUrl 
+                    }]);
+
+                // 3. Success and Refresh
+                loadingMessage.textContent = 'Profile picture updated successfully!';
+                fetchProfileData(profileUserId); 
+
+            } catch (e) {
+                loadingMessage.textContent = `Error updating avatar: ${e.message}`;
+                console.error("Avatar Update Error:", e);
+            } finally {
+                avatarFileUploader.value = ''; 
+            }
+        }
+        
+        // --- Initialization ---
+        document.addEventListener('DOMContentLoaded', async () => {
+            // 1. Theme Initialization
+            const savedTheme = localStorage.getItem('theme') || 'dark';
+            document.body.setAttribute('data-theme', savedTheme);
+            if (themeToggleBtn) {
+                themeToggleBtn.innerHTML = savedTheme === 'light' ? '<i class="fas fa-moon"></i>' : '<i class="fas fa-sun"></i>';
+            }
+
+            // 2. Check Session and Get Target User ID
+            const user = await checkUserSession(); 
+            if (!user) return; 
+
+            profileUserId = getUserIdFromUrl();
+
+            if (!profileUserId) {
+                profileUserId = currentUserId; 
+            }
+            
+            // 3. Fetch and Render Data
+            const profile = await fetchProfileData(profileUserId);
+            if (profile) {
+                fetchUserPosts(profileUserId);
+            }
+            
+            // 4. Attach Event Listeners
+            themeToggleBtn.addEventListener('click', toggleTheme);
+            editProfileForm.addEventListener('submit', handleProfileUpdate);
+            
+            // Follow button logic
+            if (currentUserId !== profileUserId) {
+                followButton.addEventListener('click', handleFollowToggle);
+
+                // Check the initial status and set the button display
+                const isFollowing = await checkFollowStatus(currentUserId, profileUserId);
+                if (isFollowing) {
+                    followButton.textContent = 'Following';
+                    followButton.style.background = '#28a745';
+                } else {
+                    followButton.innerHTML = `<i class="fas fa-user-plus"></i> Follow`;
+                    followButton.style.background = 'var(--primary-color)';
+                }
+                followButton.style.display = 'inline-block';
+            }
+
+            // Avatar upload handlers (only for the current user's profile)
+            if (currentUserId === profileUserId) {
+                avatarEditIcon.addEventListener('click', () => avatarFileUploader.click());
+                avatarFileUploader.addEventListener('change', handleAvatarUpload);
+            }
+        });
+    </script> 
+
 </body>
 </html>

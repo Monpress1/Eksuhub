@@ -1,0 +1,1075 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EksuHub Anonymous Confessions</title>
+    
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    
+    <style>
+        /* --- Root Variables: Dark Mode (Default) --- */
+        :root {
+            --primary-color: #ff4d4d; /* Changed primary color for confessions theme */
+            --background-color: #121212; 
+            --card-bg: #1e1e1e; 
+            --text-color: #f0f0f0; 
+            --text-secondary: #aaaaaa; 
+            --border-color: #333333; 
+            --shadow-dark: 0 4px 15px rgba(0, 0, 0, 0.5);
+            --font-family-main: 'Inter', sans-serif; 
+        }
+
+        /* --- Light Mode Definition --- */
+        :root[data-theme="light"] {
+            --primary-color: #d9534f; /* Changed primary color for confessions theme */
+            --background-color: #f0f2f5; 
+            --card-bg: white; 
+            --text-color: #333; 
+            --text-secondary: #6c757d; 
+            --border-color: #e0e6ed; 
+            --shadow-dark: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        /* --- Global & Scrollbar (Copied from feed.html) --- */
+        * {
+            box-sizing: border-box;
+            transition: background-color 0.3s, color 0.3s, border-color 0.3s;
+        }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-thumb { background: var(--primary-color); border-radius: 4px; }
+        ::-webkit-scrollbar-track { background: var(--border-color); }
+
+        body { 
+            font-family: var(--font-family-main); 
+            background-color: var(--background-color);
+            margin: 0;
+            color: var(--text-color);
+        }
+        
+        /* Input Field Styling */
+        #postContent, #commentContent {
+            width: 100%; min-height: 70px; padding: 12px; border-radius: 10px; margin-bottom: 15px; resize: vertical; font-family: inherit;
+            background-color: var(--border-color); 
+            color: var(--text-color);
+            border: 1px solid transparent; 
+        }
+        :root[data-theme="light"] #postContent, 
+        :root[data-theme="light"] #commentContent {
+            background-color: #e9ecef; 
+            color: var(--text-color);
+            border: 1px solid #ced4da;
+        }
+
+        /* Link Styling */
+        a { color: var(--primary-color); text-decoration: none; transition: color 0.2s; }
+        a:hover { opacity: 0.8; }
+
+        /* --- Header and Navigation --- */
+        .header {
+            background-color: var(--card-bg); border-bottom: 1px solid var(--border-color); padding: 15px 20px;
+            display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+            position: sticky; top: 0; z-index: 1000;
+        }
+        .header h1 { 
+            margin: 0; font-size: 1.8em; font-weight: 800; 
+            font-family: 'Georgia', serif; 
+            letter-spacing: -1px;
+            color: var(--primary-color); 
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+            line-height: 1; 
+        }
+        .header h1 small {
+            display: block; 
+            font-size: 0.4em; 
+            font-weight: 400;
+            margin-top: 2px;
+            vertical-align: bottom;
+            opacity: 0.8;
+            color: var(--text-secondary);
+            font-family: var(--font-family-main);
+        }
+        .icon-btn { 
+            background: none; border: none; color: var(--text-color); font-size: 1.6em; cursor: pointer; transition: color 0.2s, transform 0.2s; 
+            position: relative;
+            padding: 0 8px; 
+        }
+        .icon-btn:hover { color: var(--primary-color); transform: scale(1.05); }
+
+        /* Notification Badge Style */
+        .notification-badge {
+            position: absolute; top: 0px; right: 0px;
+            background-color: #ff4d4d; color: white;
+            border-radius: 50%; padding: 2px 6px;
+            font-size: 0.6em; line-height: 1;
+            font-weight: bold;
+            display: none; 
+        }
+
+        /* --- Hamburger Menu Sidebar --- */
+        .menu-sidebar {
+            position: fixed; top: 0; right: 0; width: 250px; height: 100%;
+            background-color: var(--card-bg);
+            box-shadow: -4px 0 10px rgba(0, 0, 0, 0.6);
+            transform: translateX(100%); transition: transform 0.3s ease-in-out;
+            z-index: 2000; padding-top: 75px; 
+            border-left: 1px solid var(--border-color);
+        }
+        .menu-sidebar.open { transform: translateX(0); }
+        .menu-item {
+            display: flex; align-items: center; padding: 15px 20px;
+            color: var(--text-color); text-decoration: none; font-size: 1.0em;
+            border-bottom: 1px solid var(--border-color);
+            position: relative; /* For chat badge */
+        }
+        .menu-item i { margin-right: 15px; width: 20px; }
+        .menu-item:hover { background-color: var(--border-color); color: var(--primary-color); }
+        .logout-item { color: #ff4d4d !important; }
+
+        /* --- Main Content Container --- */
+        .main-container { max-width: 650px; margin: 20px auto; padding: 0 15px; }
+
+        /* --- Post Creation --- */
+        .post-card.create-post { 
+            padding: 15px; 
+        }
+        .post-action-bar { display: flex; justify-content: flex-end; align-items: center; padding: 5px 0 0px 0; }
+        .post-action-bar input[type="submit"] {
+            background: var(--primary-color); color: white; font-weight: 700; border: none; 
+            padding: 10px 20px; border-radius: 20px; cursor: pointer; transition: background 0.2s, transform 0.1s;
+        }
+        .post-action-bar input[type="submit"]:hover { background: #d94343; transform: translateY(-1px); }
+
+        /* --- Post Card Styling --- */
+        .post-card { 
+            background-color: var(--card-bg); padding: 15px 20px; 
+            border-radius: 12px; box-shadow: var(--shadow-dark); margin-bottom: 20px; 
+        }
+        .post-header { display: flex; align-items: center; margin-bottom: 8px; } 
+        .post-avatar { 
+            width: 45px; height: 45px; border-radius: 50%; object-fit: cover; border: 2px solid var(--primary-color); margin-right: 15px; 
+            font-size: 25px; line-height: 45px; background-color: var(--border-color); color: var(--text-secondary);
+        }
+        .post-info { display: flex; flex-direction: column; font-size: 0.9em; }
+        
+        /* Reaction Button Styling (NEW) */
+        .reaction-container {
+            display: flex; 
+            align-items: center; 
+            gap: 15px; 
+            margin-top: 10px; 
+            padding-top: 10px; 
+            border-top: 1px solid var(--border-color);
+        }
+        .reaction-btn {
+            background: none; border: none; padding: 5px 10px; border-radius: 20px;
+            color: var(--text-secondary); cursor: pointer; font-size: 1.1em;
+            display: flex; align-items: center; gap: 5px;
+            transition: background-color 0.2s, color 0.2s;
+        }
+        .reaction-btn:hover { background-color: var(--border-color); }
+        .reaction-btn.reacted { background-color: var(--primary-color)22; color: var(--primary-color); }
+        .reaction-btn.reacted i { color: var(--primary-color); }
+        
+        /* Comment Preview */
+        .random-comment { padding: 8px; margin-top: 10px; border-radius: 8px; font-size: 0.85em; color: var(--text-color); background: var(--border-color); }
+        :root[data-theme="light"] .random-comment { background: #e9ecef; }
+        
+        /* --- Modal Styling (Copied from feed.html) --- */
+        #commentModal {
+            position: fixed; 
+            top: 0; left: 0; width: 100%; height: 100%; 
+            background: rgba(0, 0, 0, 0.7); 
+            z-index: 2000; 
+            display: none; 
+            align-items: center; 
+            justify-content: center;
+        }
+        #commentModalContent {
+            background: var(--card-bg); 
+            border-radius: 12px; 
+            max-width: 550px; 
+            width: 90%; 
+            max-height: 80%; 
+            padding: 20px; 
+            overflow-y: hidden; 
+            display: flex; 
+            flex-direction: column;
+        }
+        #existingComments {
+            flex-grow: 1; 
+            overflow-y: auto; 
+            margin-bottom: 15px; 
+            padding-right: 10px; 
+        }
+
+        /* --- Notification Modal Styling (FULL PAGE) (Copied from feed.html) --- */
+        #notificationModal {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            background: var(--background-color); 
+            z-index: 3000;
+            display: none; 
+            flex-direction: column;
+            padding: 0;
+        }
+        #notificationModalContent {
+            background: var(--background-color); 
+            width: 100%; 
+            max-height: 100%; 
+            padding: 0;
+            overflow-y: auto; 
+            flex-grow: 1;
+        }
+        .notification-header { 
+            background-color: var(--card-bg);
+            display: flex; justify-content: space-between; align-items: center; 
+            color: var(--text-color); margin: 0; 
+            border-bottom: 1px solid var(--border-color); 
+            padding: 15px 20px;
+            position: sticky; top: 0; z-index: 10;
+        }
+        .notification-header h3 {
+             margin: 0; color: var(--primary-color); font-size: 1.5em;
+        }
+        .notification-list-container {
+            padding: 15px;
+        }
+        .notification-item {
+            display: flex; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--border-color);
+            transition: background-color 0.2s;
+            cursor: pointer;
+        }
+        .notification-item:last-child {
+            border-bottom: none;
+        }
+        .notification-item.unread {
+            background-color: #ff4d4d1a; 
+            border-radius: 8px;
+            padding: 12px 10px;
+        }
+        :root[data-theme="light"] .notification-item.unread { background-color: #d9534f1a; }
+        
+        .notification-item i { margin-right: 15px; font-size: 1.2em; color: var(--primary-color); flex-shrink: 0; }
+        .notification-text { flex-grow: 1; font-size: 0.95em; line-height: 1.4; }
+        .notification-time { font-size: 0.7em; color: var(--text-secondary); margin-left: 10px; flex-shrink: 0; }
+        .mark-read-btn {
+            background: var(--primary-color); color: white; border: none; 
+            padding: 8px 15px; border-radius: 8px; cursor: pointer; font-size: 0.9em;
+            transition: background 0.2s;
+        }
+        .close-notif-btn {
+            background: none; border: none; color: var(--text-color); font-size: 1.5em; cursor: pointer;
+        }
+    </style>
+</head>
+<body data-theme="dark">
+
+    <div id="commentModal" style="display: none;">
+        <div id="commentModalContent">
+            
+            <h3 style="color: var(--primary-color); margin-top: 0; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; flex-shrink: 0;"><i class="fas fa-reply"></i> Comments</h3>
+            
+            <div id="commentingOnPostPreview" style="margin-bottom: 15px; padding: 10px; background: var(--border-color); border-radius: 8px; font-size: 0.9em; flex-shrink: 0;">
+                Loading post preview...
+            </div>
+
+            <div id="existingComments">
+                <p style="text-align: center; color: var(--text-secondary);">No comments yet.</p>
+            </div>
+
+            <form id="commentForm" style="flex-shrink: 0; border-top: 1px solid var(--border-color); padding-top: 15px;">
+                <input type="hidden" id="postIdToComment">
+                <textarea id="commentContent" placeholder="Write your comment here..." required></textarea>
+                
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <p id="commentStatus" style="font-size: 0.9em; color: var(--text-secondary); margin: 0;"></p>
+                    <div style="display: flex; gap: 10px;">
+                        <button type="button" onclick="document.getElementById('commentModal').style.display='none'" style="background: var(--border-color); color: var(--text-color); border: none; padding: 8px 15px; border-radius: 8px; cursor: pointer; transition: background 0.2s;">Cancel</button>
+                        <input type="submit" value="Submit Comment" style="background: var(--primary-color); color: white; border: none; padding: 8px 15px; border-radius: 8px; cursor: pointer; transition: background 0.2s;">
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <div id="notificationModal">
+        <header class="notification-header">
+            <button type="button" onclick="toggleNotificationModal()" class="close-notif-btn" title="Close">
+                <i class="fas fa-arrow-left"></i> 
+            </button>
+            <h3>Notifications</h3>
+            <button class="mark-read-btn" id="markAllReadBtn">Mark All As Read</button>
+        </header>
+        
+        <div id="notificationModalContent">
+            <div id="notificationsList" class="notification-list-container">
+                <p style="text-align: center; color: var(--text-secondary);">Loading notifications...</p>
+            </div>
+        </div>
+    </div>
+
+
+    <header class="header">
+        <div class="header-left">
+            <h1 id="headerTitle">
+                EksuHub
+                <small id="usernameDisplay">Confessions</small>
+            </h1>
+        </div>
+        <div class="header-right">
+            <button class="icon-btn" id="notificationBtn" title="Notifications">
+                <i class="fas fa-bell"></i>
+                <span class="notification-badge" id="notificationCount"></span>
+            </button>
+            
+            <button class="icon-btn" id="menuToggleBtn" title="Menu">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+    </header>
+
+    <div id="menuSidebar" class="menu-sidebar">
+        
+        <a href="feed.html" class="menu-item" title="Feed">
+            <i class="fas fa-home"></i> Feed
+        </a>
+        
+        <a href="confession.html" class="menu-item" title="Confessions" style="color: var(--primary-color); background-color: var(--border-color);">
+            <i class="fas fa-mask"></i> Confessions
+        </a>
+
+        <a href="#" id="menuProfileLink" class="menu-item" title="My Profile">
+            <i class="fas fa-user-circle"></i> My Profile
+        </a>
+
+        <a href="chat.html" class="menu-item" id="menuChatLink" title="Chat/Messages">
+            <i class="fas fa-comment-alt"></i> Chat
+            <span class="notification-badge" id="chatNotificationCount" style="right: 5px;"></span>
+        </a>
+        
+        <a href="#" id="menuLogoutLink" class="menu-item logout-item" title="Logout">
+            <i class="fas fa-sign-out-alt"></i> Logout
+        </a>
+    </div>
+
+    <div class="main-container">
+        
+        <div class="post-card create-post"> 
+            <form id="postForm">
+                <textarea id="postContent" placeholder="Share your anonymous confession..." required></textarea>
+                
+                <div class="post-action-bar">
+                    <input type="submit" value="Post Anonymously">
+                </div>
+                
+                <p id="postStatus" style="font-size: 0.8em; color: var(--text-secondary); margin-top: -10px;"></p>
+            </form>
+        </div>
+
+        <h3><i class="fas fa-mask"></i> Confessions Feed</h3>
+        <div id="feedContainer">
+            <p style="color: var(--text-secondary);">Loading anonymous confessions...</p>
+        </div>
+
+    </div>
+
+    <script>
+        // --- CONFIGURATION (Reused) ---
+        const SUPABASE_URL = 'https://wfhaiasdkkmwjzrndcmi.supabase.co'; 
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndmaGFpYXNka2ttd2p6cm5kY21pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQxNTE5MDUsImV4cCI6MjA3OTcyNzkwNX0.jTBRJi4lpmbv4R5rxF_CS9GrF5UMVxiIH9Th9frGWWI';
+        const REDIRECT_PAGE = 'auth.html'; 
+
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        
+        // --- DOM Elements (Modified to remove story/media elements) ---
+        const postForm = document.getElementById('postForm');
+        const postStatus = document.getElementById('postStatus');
+        const feedContainer = document.getElementById('feedContainer');
+        const headerTitle = document.getElementById('headerTitle');
+        const usernameDisplay = document.getElementById('usernameDisplay');
+        const notificationBtn = document.getElementById('notificationBtn');
+        const notificationCount = document.getElementById('notificationCount');
+        const chatNotificationCount = document.getElementById('chatNotificationCount');
+        
+        // Menu Elements
+        const menuToggleBtn = document.getElementById('menuToggleBtn');
+        const menuSidebar = document.getElementById('menuSidebar');
+        const menuProfileLink = document.getElementById('menuProfileLink');
+        const menuLogoutLink = document.getElementById('menuLogoutLink');
+
+        // Comment Modal Elements
+        const commentModal = document.getElementById('commentModal');
+        const commentForm = document.getElementById('commentForm');
+        const postIdToComment = document.getElementById('postIdToComment');
+        const commentingOnPostPreview = document.getElementById('commentingOnPostPreview');
+        const commentContent = document.getElementById('commentContent');
+        const commentStatus = document.getElementById('commentStatus');
+        const existingComments = document.getElementById('existingComments'); 
+        
+        // Notification Modal Elements
+        const notificationModal = document.getElementById('notificationModal');
+        const notificationsList = document.getElementById('notificationsList');
+        const markAllReadBtn = document.getElementById('markAllReadBtn');
+
+
+        let currentUserId = null; 
+        const PLACEHOLDER_AVATAR = 'https://via.placeholder.com/50/383838/f0f0f0?text=A'; // 'A' for Anonymous
+        
+        // --- CONFESSION SPECIFIC ---
+        const CONFESSION_EMOJIS = [
+            { emoji: '😭', key: 'cry' },
+            { emoji: '😂', key: 'laugh' },
+            { emoji: '😱', key: 'shock' },
+            { emoji: '❤️', key: 'heart' },
+            { emoji: '😔', key: 'sad' },
+        ];
+
+
+        // --- UTILITY FUNCTIONS (Reused) ---
+        
+        function getProfileUrl(userId) {
+            return `profile.html?id=${userId}`;
+        }
+        
+        function timeAgo(date) {
+            const seconds = Math.floor((new Date() - new Date(date)) / 1000);
+            let interval = seconds / 31536000;
+
+            if (interval > 1) return Math.floor(interval) + "y";
+            interval = seconds / 2592000;
+            if (interval > 1) return Math.floor(interval) + "m";
+            interval = seconds / 86400;
+            if (interval > 1) return Math.floor(interval) + "d";
+            interval = seconds / 3600;
+            if (interval > 1) return Math.floor(interval) + "h";
+            interval = seconds / 60;
+            if (interval > 1) return Math.floor(interval) + "min";
+            return "just now";
+        }
+
+        async function checkUserSession() {
+            const { data: { user }, error } = await supabaseClient.auth.getUser();
+
+            if (error || !user) {
+                window.location.href = REDIRECT_PAGE;
+                return null;
+            }
+            
+            currentUserId = user.id;
+
+            if (menuProfileLink) {
+                menuProfileLink.href = getProfileUrl(currentUserId);
+            }
+            
+            return user;
+        }
+
+        function updateThemeUI(isDarkMode) {
+            if (isDarkMode) {
+                document.body.setAttribute('data-theme', 'dark');
+            } else {
+                document.body.setAttribute('data-theme', 'light');
+            }
+        }
+        
+        function toggleMenu() {
+            menuSidebar.classList.toggle('open');
+        }
+
+        document.addEventListener('click', (e) => {
+            if (menuSidebar.classList.contains('open') && 
+                !menuSidebar.contains(e.target) && 
+                e.target !== menuToggleBtn && 
+                !menuToggleBtn.contains(e.target)) {
+                menuSidebar.classList.remove('open');
+            }
+        });
+        
+        // --- POSTING, REACTIONS, COMMENTS LOGIC (Modified for Confessions) ---
+        
+        async function handlePostCreation(event) {
+            event.preventDefault();
+
+            if (!currentUserId) { postStatus.textContent = 'Error: You must be logged in to post.'; return; }
+
+            postStatus.textContent = 'Submitting anonymous confession...';
+            
+            const content = document.getElementById('postContent').value.trim();
+            
+            if (content.length === 0) { postStatus.textContent = 'Error: Confession content is required.'; return; }
+
+            // IMPORTANT: user_id is NOT included in the insert data, and is_confession is set to true.
+            const { error: msgError } = await supabaseClient
+                .from('messages')
+                .insert([{
+                    content: content,
+                    is_confession: true, // New required column!
+                }]);
+
+            if (msgError) {
+                postStatus.textContent = `Error creating post: ${msgError.message}`;
+            } else {
+                postStatus.textContent = 'Confession posted successfully! Refreshing feed...';
+                postForm.reset(); 
+                setTimeout(fetchConfessionPosts, 1000); 
+            }
+        }
+        
+        async function fetchConfessionPosts() {
+            feedContainer.innerHTML = '<p style="color: var(--text-secondary);">Loading latest confessions...</p>';
+            
+            const { data: posts, error } = await supabaseClient
+                .from('messages')
+                .select(`
+                    id, content, created_at,
+                    reactions(id, user_id, emoji)
+                `)
+                .eq('is_confession', true) // Filter only for confessions
+                .is('replied_to_id', null)
+                .order('created_at', { ascending: false })
+                .limit(20); 
+
+            if (error) { feedContainer.innerHTML = `<p style="color: red;">Error fetching confessions: ${error.message}</p>`; return; }
+            
+            if (posts.length === 0) { feedContainer.innerHTML = '<p style="color: var(--text-secondary);">No anonymous confessions yet. Be the first to share!</p>'; return; }
+
+            const postIds = posts.map(p => p.id); 
+            // We need user data for comments, so we join the 'user' relationship
+            const { data: commentsData } = await supabaseClient
+                .from('messages')
+                .select(`replied_to_id, content, created_at, user:users(username)`)
+                .in('replied_to_id', postIds)
+                .order('created_at', { ascending: false }); 
+                
+            const commentsMap = commentsData ? commentsData.reduce((acc, c) => {
+                acc[c.replied_to_id] = acc[c.replied_to_id] || [];
+                acc[c.replied_to_id].push(c);
+                return acc;
+            }, {}) : {};
+
+            feedContainer.innerHTML = '';
+            posts.forEach(post => {
+                const time = timeAgo(post.created_at);
+                
+                // Group reactions by emoji
+                const reactions = post.reactions || [];
+                const reactionCounts = reactions.reduce((acc, r) => {
+                    acc[r.emoji] = (acc[r.emoji] || 0) + 1;
+                    return acc;
+                }, {});
+                
+                // Check if current user has reacted to any of the confession emojis
+                const userReaction = reactions.find(r => r.user_id === currentUserId && CONFESSION_EMOJIS.some(e => e.emoji === r.emoji));
+                const userHasReactedToEmoji = userReaction ? userReaction.emoji : null;
+                
+                const postComments = commentsMap[post.id] || [];
+                const inlineComment = postComments.length > 0 ? 
+                    `<div class="random-comment"><strong>@${postComments[0].user.username}</strong>: ${postComments[0].content.substring(0, 50)}${postComments[0].content.length > 50 ? '...' : ''}</div>` : 
+                    '';
+                
+                const postElement = document.createElement('div');
+                postElement.className = 'post-card';
+                
+                // Build Reaction Buttons HTML
+                const reactionButtonsHtml = CONFESSION_EMOJIS.map(({ emoji, key }) => {
+                    const count = reactionCounts[key] || 0;
+                    const isReacted = userHasReactedToEmoji === key;
+                    const reactedClass = isReacted ? 'reacted' : '';
+                    
+                    return `
+                        <button class="reaction-btn ${reactedClass}" data-post-id="${post.id}" data-emoji-key="${key}" onclick="handleReactionClick('${post.id}', '${key}')">
+                            ${emoji} ${count > 0 ? count : ''}
+                        </button>
+                    `;
+                }).join('');
+
+
+                postElement.innerHTML = `
+                    <div class="post-header">
+                        <i class="fas fa-mask post-avatar" style="line-height: 45px; border: none; background-color: var(--primary-color); color: white;"></i>
+                        <div class="post-info">
+                            <strong>Anonymous User</strong>
+                            <span>Confession | ${time}</span>
+                        </div>
+                    </div>
+                    
+                    <p class="post-content-text" style="font-style: italic;">${post.content}</p> 
+                    
+                    <div class="reaction-container">
+                        ${reactionButtonsHtml}
+                        
+                        <span class="action-button comment-btn" data-post-id="${post.id}" onclick="handleCommentClick('${post.id}')" style="margin-left: 10px;">
+                            <i class="fas fa-comment-dots"></i> 
+                            <span class="comment-count">${postComments.length}</span>
+                        </span>
+                    </div>
+
+                    ${inlineComment}
+                `;
+                feedContainer.appendChild(postElement);
+            });
+        }
+        
+        async function handleReactionClick(postId, emojiKey) {
+            if (!currentUserId) { alert("You must be logged in to react."); return; }
+            
+            const allReactionBtns = document.querySelectorAll(`.reaction-btn[data-post-id="${postId}"]`);
+            const targetBtn = document.querySelector(`.reaction-btn[data-post-id="${postId}"][data-emoji-key="${emojiKey}"]`);
+            if (!targetBtn) return;
+            
+            allReactionBtns.forEach(btn => btn.style.pointerEvents = 'none'); // Disable all buttons temporarily
+
+            // Find existing reaction by this user on this post
+            const { data: existingReaction } = await supabaseClient
+                .from('reactions')
+                .select('id, emoji')
+                .eq('message_id', postId)
+                .eq('user_id', currentUserId)
+                .in('emoji', CONFESSION_EMOJIS.map(e => e.key)) // Limit search to confession emojis
+                .maybeSingle(); 
+
+            let error = null;
+
+            if (existingReaction) {
+                if (existingReaction.emoji === emojiKey) {
+                    // Scenario 1: User is unreacting to the same emoji
+                    const res = await supabaseClient.from('reactions').delete().eq('id', existingReaction.id);
+                    error = res.error;
+                    if (!error) {
+                        targetBtn.classList.remove('reacted');
+                        let count = parseInt(targetBtn.textContent.replace(/[^\d]/g, '') || 0);
+                        targetBtn.innerHTML = targetBtn.innerHTML.replace(/\d+/, count > 1 ? (count - 1) : '');
+                    }
+                } else {
+                    // Scenario 2: User is changing reaction to a new emoji
+                    // 1. Delete old reaction
+                    let res = await supabaseClient.from('reactions').delete().eq('id', existingReaction.id);
+                    if (res.error) { error = res.error; } else {
+                        // Update UI for un-reacting old emoji
+                        const oldBtn = document.querySelector(`.reaction-btn[data-post-id="${postId}"][data-emoji-key="${existingReaction.emoji}"]`);
+                        if(oldBtn) {
+                           oldBtn.classList.remove('reacted');
+                           let oldCount = parseInt(oldBtn.textContent.replace(/[^\d]/g, '') || 0);
+                           oldBtn.innerHTML = oldBtn.innerHTML.replace(/\d+/, oldCount > 1 ? (oldCount - 1) : '');
+                        }
+                        
+                        // 2. Insert new reaction
+                        res = await supabaseClient.from('reactions').insert([{ message_id: postId, user_id: currentUserId, emoji: emojiKey }]);
+                        error = res.error;
+                        if (!error) {
+                            targetBtn.classList.add('reacted');
+                            let count = parseInt(targetBtn.textContent.replace(/[^\d]/g, '') || 0);
+                            targetBtn.innerHTML = targetBtn.innerHTML.replace(/\d+/, count + 1).replace(emojiKey, `${emojiKey} ${count + 1}`);
+                            targetBtn.innerHTML = targetBtn.textContent.includes(emojiKey) ? `${emojiKey} ${count + 1}` : `${emojiKey} ${count + 1}`;
+                        }
+                    }
+                }
+            } else {
+                // Scenario 3: User is reacting for the first time
+                const res = await supabaseClient.from('reactions').insert([{ message_id: postId, user_id: currentUserId, emoji: emojiKey }]);
+                error = res.error;
+
+                if (!error) { 
+                    targetBtn.classList.add('reacted'); 
+                    let count = parseInt(targetBtn.textContent.replace(/[^\d]/g, '') || 0);
+                    targetBtn.innerHTML = targetBtn.textContent.includes(emojiKey) ? `${emojiKey} ${count + 1}` : `${emojiKey} ${count + 1}`;
+                }
+            }
+            
+            if (error) {
+                console.error('Reaction action failed:', error);
+                alert('Action failed due to server error. Check console.');
+            }
+
+            // A simpler way to re-render counts correctly is to fetch the post again,
+            // but for a quick fix, we just re-enable buttons and rely on the local update above.
+            allReactionBtns.forEach(btn => btn.style.pointerEvents = 'auto');
+        }
+
+        // --- Comment Functions (Modified for Confessions) ---
+
+        // Reused renderExistingComments (no change needed as it uses fetched comment data)
+        function renderExistingComments(comments) {
+            if (comments.length === 0) { existingComments.innerHTML = '<p style="text-align: center; color: var(--text-secondary);">No comments yet. Be the first!</p>'; return; }
+            existingComments.innerHTML = '';
+            comments.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+
+            comments.forEach(comment => {
+                const username = comment.user ? comment.user.username : 'Anonymous User';
+                // Note: avatar_url is not fetched for comment users, so we use a generic icon.
+
+                existingComments.innerHTML += `
+                    <div style="display: flex; margin-bottom: 15px; gap: 10px; padding: 10px; border-radius: 8px;">
+                        <i class="fas fa-user-circle" style="width: 35px; height: 35px; border-radius: 50%; object-fit: cover; font-size: 20px; line-height: 35px; text-align: center; background-color: var(--border-color); color: var(--text-secondary);"></i>
+                        <div style="flex-grow: 1;">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <strong style="color: var(--primary-color); font-size: 0.9em;">@${username}</strong>
+                                <span style="font-size: 0.75em; color: var(--text-secondary);">${new Date(comment.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                            </div>
+                            <p style="margin: 5px 0 0 0; font-size: 0.9em; color: var(--text-color); word-break: break-word;">${comment.content}</p>
+                        </div>
+                    </div>
+                `;
+            });
+            existingComments.scrollTop = existingComments.scrollHeight;
+        }
+
+        async function handleCommentClick(postId) {
+            if (!currentUserId) { alert("You must be logged in to comment."); return; }
+            
+            commentStatus.textContent = 'Loading comments...';
+            existingComments.innerHTML = '<p style="text-align: center; color: var(--text-secondary);">Loading...</p>'; 
+            
+            // Fetch the confession post
+            const { data: post, error: postError } = await supabaseClient
+                .from('messages')
+                .select(`content`)
+                .eq('id', postId)
+                .single();
+                
+            if (postError || !post) { commentingOnPostPreview.innerHTML = 'Error loading post preview.'; return; }
+            
+            // Fetch existing comments and the usernames who posted them
+            const { data: comments, error: commentsError } = await supabaseClient
+                .from('messages')
+                .select(`id, content, created_at, user:users(username)`) // Only need username for comment author
+                .eq('replied_to_id', postId)
+                .order('created_at', { ascending: true }); 
+
+            if (commentsError) { existingComments.innerHTML = `<p style="color: red;">Error fetching comments: ${commentsError.message}</p>`; }
+            
+            postIdToComment.value = postId;
+            // Preview shows the Anonymous nature of the post
+            commentingOnPostPreview.innerHTML = `
+                <strong style="color: var(--primary-color);">Replying to Anonymous Confession:</strong> 
+                ${post.content.substring(0, 70)}${post.content.length > 70 ? '...' : ''}
+            `;
+            
+            renderExistingComments(comments || []);
+            commentModal.style.display = 'flex';
+            commentContent.focus(); 
+            commentStatus.textContent = '';
+        }
+
+        async function handleCommentSubmission(event) {
+            event.preventDefault();
+            commentStatus.textContent = 'Submitting comment...';
+            
+            const content = commentContent.value.trim();
+            const repliedToId = postIdToComment.value;
+            
+            if (!content) { commentStatus.textContent = 'Please enter a comment.'; return; }
+            
+            // Comments are NOT anonymous, so user_id is included. is_confession remains false by default.
+            const { error } = await supabaseClient
+                .from('messages')
+                .insert([ { user_id: currentUserId, content: content, replied_to_id: repliedToId, }, ]);
+
+            if (error) {
+                commentStatus.textContent = `Error: ${error.message}`;
+            } else {
+                commentStatus.textContent = 'Comment posted successfully!';
+                commentContent.value = ''; 
+                
+                // Update comments and count locally
+                await handleCommentClick(repliedToId); 
+                
+                const postElement = document.querySelector(`.comment-btn[data-post-id="${repliedToId}"]`);
+                if (postElement) {
+                    const commentCountSpan = postElement.querySelector('.comment-count');
+                    let currentCount = parseInt(commentCountSpan.textContent);
+                    commentCountSpan.textContent = currentCount + 1;
+                }
+            }
+        }
+        
+        // --- CHAT & NOTIFICATION LOGIC (Reused from feed.html) ---
+
+        function updateChatNotificationBadge(count) {
+            if (count && count > 0) {
+                chatNotificationCount.textContent = count;
+                chatNotificationCount.style.display = 'inline';
+            } else {
+                chatNotificationCount.textContent = '';
+                chatNotificationCount.style.display = 'none';
+            }
+        }
+
+        async function fetchUnreadChatCount() {
+            if (!currentUserId) return 0;
+
+            const { data: conversations } = await supabaseClient
+                .from('conversations')
+                .select('id')
+                .or(`user1_id.eq.${currentUserId},user2_id.eq.${currentUserId}`);
+                
+            if (!conversations || conversations.length === 0) return 0;
+            
+            const conversationIds = conversations.map(c => c.id);
+
+            const { count, error } = await supabaseClient
+                .from('chat_messages')
+                .select('id', { count: 'exact', head: true })
+                .in('conversation_id', conversationIds)
+                .neq('sender_id', currentUserId)
+                .eq('is_read', false);
+
+            if (error) {
+                console.error("Error fetching unread chat count:", error);
+                return 0;
+            }
+
+            updateChatNotificationBadge(count);
+            return count;
+        }
+
+        async function fetchUnreadNotificationCount() {
+            if (!currentUserId) return;
+            
+            const { count: generalCount, error: generalError } = await supabaseClient
+                .from('notifications')
+                .select('id', { count: 'exact', head: true })
+                .eq('recipient_id', currentUserId)
+                .eq('is_read', false);
+                
+            const unreadChatCount = await fetchUnreadChatCount();
+
+            if (generalError) {
+                console.error("Error fetching general notification count:", generalError);
+                return;
+            }
+            
+            const totalUnread = (generalCount || 0) + unreadChatCount;
+            updateNotificationBadge(totalUnread);
+        }
+        
+        function updateNotificationBadge(count) {
+            if (count && count > 0) {
+                notificationCount.textContent = count;
+                notificationCount.style.display = 'inline';
+            } else {
+                notificationCount.textContent = '';
+                notificationCount.style.display = 'none';
+            }
+        }
+
+        async function renderNotifications() {
+            notificationsList.innerHTML = '<p style="text-align: center; color: var(--text-secondary);">Loading...</p>';
+            
+            const { data: notifs, error } = await supabaseClient
+                .from('notifications')
+                .select(`
+                    id, type, created_at, is_read, message_id,
+                    sender:users!notifications_sender_id_fkey(username) 
+                `)
+                .eq('recipient_id', currentUserId)
+                .order('created_at', { ascending: false })
+                .limit(20);
+
+            if (error) {
+                notificationsList.innerHTML = `<p style="color: red;">Error: ${error.message}</p>`;
+                return;
+            }
+
+            const unreadChatCount = await fetchUnreadChatCount();
+            let chatNotifs = [];
+
+            if (unreadChatCount > 0) {
+                 chatNotifs = [{ 
+                    id: 'chat-summary-temp', 
+                    type: 'chat', 
+                    created_at: new Date().toISOString(), 
+                    is_read: false, 
+                    sender: { username: 'System' }, 
+                    message_id: null,
+                    message: { content: `${unreadChatCount} unread chat message(s). Click to view.` } 
+                 }];
+            }
+            
+            const combinedNotifs = [...chatNotifs, ...notifs];
+
+            if (combinedNotifs.length === 0) {
+                notificationsList.innerHTML = '<p style="text-align: center; color: var(--text-secondary);">No new notifications.</p>';
+                return;
+            }
+            
+            let html = '';
+            combinedNotifs.forEach(n => {
+                const senderName = n.type === 'chat' ? 'Chat' : (n.sender ? `@${n.sender.username}` : 'A user');
+                let iconClass;
+                let text;
+                let targetLink = '#';
+
+                switch(n.type) {
+                    case 'like': // Note: Confession reaction notifications are treated the same as likes
+                    case 'reaction':
+                        iconClass = 'fas fa-heart';
+                        text = `${senderName} reacted to your post.`;
+                        targetLink = `confession.html#post-${n.message_id}`; // Link to confession page
+                        break;
+                    case 'comment':
+                        iconClass = 'fas fa-comment-dots';
+                        text = `${senderName} commented on your post.`;
+                        targetLink = `confession.html#post-${n.message_id}`; // Link to confession page
+                        break;
+                    case 'chat':
+                        iconClass = 'fas fa-comment-alt';
+                        text = `${senderName}: ${n.message ? n.message.content : 'New messages.'}`;
+                        targetLink = 'chat.html';
+                        break;
+                    default:
+                        iconClass = 'fas fa-info-circle';
+                        text = `${senderName} performed an action.`;
+                }
+
+                html += `
+                    <a href="${targetLink}" class="notification-item ${n.is_read ? '' : 'unread'}" data-notif-id="${n.id}" data-type="${n.type}" style="text-decoration: none;">
+                        <i class="${iconClass}"></i>
+                        <span class="notification-text">${text}</span>
+                        <span class="notification-time">${timeAgo(n.created_at)}</span>
+                    </a>
+                `;
+            });
+            notificationsList.innerHTML = html;
+        }
+
+        async function markAllNotificationsAsRead() {
+            if (!currentUserId) return;
+            
+            const { error } = await supabaseClient
+                .from('notifications')
+                .update({ is_read: true })
+                .eq('recipient_id', currentUserId)
+                .eq('is_read', false);
+
+            if (error) {
+                alert("Failed to mark all as read.");
+                console.error("Mark read error:", error);
+            } else {
+                updateNotificationBadge(0);
+                updateChatNotificationBadge(0);
+                renderNotifications(); 
+            }
+        }
+
+        function toggleNotificationModal() {
+            if (!currentUserId) { alert("You must be logged in to view notifications."); return; }
+            
+            if (notificationModal.style.display === 'flex') {
+                notificationModal.style.display = 'none';
+                document.body.style.overflow = 'auto'; 
+            } else {
+                renderNotifications();
+                notificationModal.style.display = 'flex';
+                document.body.style.overflow = 'hidden'; 
+            }
+        }
+        
+        // --- LOGOUT HANDLER (Reused) ---
+        async function handleLogout() {
+            await supabaseClient.auth.signOut();
+            window.location.href = REDIRECT_PAGE;
+        }
+
+
+        // --- Initialization ---
+        document.addEventListener('DOMContentLoaded', async () => {
+            // 1. Theme Initialization
+            const savedTheme = localStorage.getItem('theme') || 'dark';
+            updateThemeUI(savedTheme === 'dark'); 
+
+            // 2. User Session Check and Data Fetch
+            const user = await checkUserSession();
+            if (user) {
+                fetchConfessionPosts(); // Changed to fetchConfessionPosts
+                fetchUnreadNotificationCount();
+                fetchUnreadChatCount();
+                
+                // 3. Setup Realtime for Notifications (Reused)
+                supabaseClient.channel('public:notifications')
+                    .on(
+                        'postgres_changes',
+                        { event: 'INSERT', schema: 'public', table: 'notifications', filter: `recipient_id=eq.${currentUserId}` },
+                        () => {
+                            fetchUnreadNotificationCount(); 
+                        }
+                    )
+                    .subscribe();
+
+                supabaseClient.channel('public:chat_messages')
+    .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'chat_messages' },
+        async (payload) => {
+            if (payload.new.sender_id !== currentUserId) {
+                // Only update count if the message is from someone else
+                await fetchUnreadChatCount();
+                fetchUnreadNotificationCount(); // Recalculate total badge count
+            }
+        }
+    ) // <-- This closing parenthesis was missing in your original snippet
+    .subscribe();
+
+
+                // 4. Setup Realtime for Feed Updates (NEW for Confessions)
+                // Listen for new Confessions posts (is_confession = true, replied_to_id IS NULL)
+                // Note: We need a policy that allows anonymous inserts but not the realtime listener based on that.
+                // For simplicity here, we'll listen for all 'messages' inserts and filter locally.
+                supabaseClient.channel('public:messages_confessions')
+                    .on(
+                        'postgres_changes',
+                        { event: 'INSERT', schema: 'public', table: 'messages' },
+                        (payload) => {
+                            // Check if the new message is a confession and a main post
+                            if (payload.new.is_confession === true && !payload.new.replied_to_id) {
+                                // A new confession was posted, refresh the feed
+                                fetchConfessionPosts();
+                            }
+                        }
+                    )
+                    .subscribe();
+
+
+            }
+
+            // 5. Attach Event Listeners
+            if (postForm) postForm.addEventListener('submit', handlePostCreation);
+            if (commentForm) commentForm.addEventListener('submit', handleCommentSubmission);
+            
+            if (menuToggleBtn) menuToggleBtn.addEventListener('click', toggleMenu);
+            if (menuLogoutLink) menuLogoutLink.addEventListener('click', handleLogout);
+            
+            if (notificationBtn) notificationBtn.addEventListener('click', toggleNotificationModal);
+            if (markAllReadBtn) markAllReadBtn.addEventListener('click', markAllNotificationsAsRead);
+
+
+            // 6. Theme Toggle Feature (NEW)
+            // Add a temporary theme button to the header for functionality testing
+            const themeToggleHtml = `<button class="icon-btn" id="themeToggleBtn" title="Toggle Theme"><i class="fas fa-sun"></i></button>`;
+            document.querySelector('.header-right').insertAdjacentHTML('afterbegin', themeToggleHtml);
+            
+            const themeToggleBtn = document.getElementById('themeToggleBtn');
+            if(themeToggleBtn) {
+                themeToggleBtn.addEventListener('click', () => {
+                    const isDarkMode = document.body.getAttribute('data-theme') === 'dark';
+                    const newTheme = isDarkMode ? 'light' : 'dark';
+                    localStorage.setItem('theme', newTheme);
+                    updateThemeUI(newTheme === 'dark');
+                    themeToggleBtn.querySelector('i').className = isDarkMode ? 'fas fa-moon' : 'fas fa-sun';
+                });
+                
+                // Initial icon setup
+                themeToggleBtn.querySelector('i').className = savedTheme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+            }
+
+
+        });
+
+    </script>
+</body>
+</html>
+
