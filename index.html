@@ -6,15 +6,7 @@
   <title>Dashboard</title>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
-<script>
-  window.OneSignalDeferred = window.OneSignalDeferred || [];
-  OneSignalDeferred.push(async function(OneSignal) {
-    await OneSignal.init({
-      appId: "d0551ffa-5bef-44c4-a74f-0a586ef17795",
-    });
-  });
-</script>
+  
   <link rel="manifest" href="/manifest.json">
   <meta name="theme-color" content="#303f9f"> <link rel="icon" href="/images/icons/icon-192x192.png">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -504,46 +496,6 @@
         color: #303f9f;
     }
     /* ✅ PWA LOGIC END: Install Prompt CSS */
-/* NEW: Notification Dropdown Styles */
-#chatNotification {
-  position: fixed;
-  top: -100px; /* Start off-screen */
-  left: 50%;
-  transform: translateX(-50%);
-  width: 90%;
-  max-width: 350px;
-  background-color: #001702e2; 
-  color: white;
-  border-bottom-left-radius: 10px;
-  border-bottom-right-radius: 10px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-  padding: 15px 20px;
-  z-index: 2000; /* High z-index to be on top of everything */
-  transition: top 0.4s ease-out; /* Smooth slide-in transition */
-  cursor: pointer;
-}
-
-#chatNotification.show {
-  top: 0px; /* Slide down below the fixed header */
-}
-
-.notification-content {
-  display: flex;
-  align-items: center;
-  font-weight: bold;
-}
-
-.notification-content i {
-  font-size: 1.5rem;
-  margin-right: 15px;
-}
-
-#notificationText {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  flex: 1;
-}
 
   </style>
 </head>
@@ -562,7 +514,8 @@
       <use xlink:href="#gentle-wave" x="48" y="8" fill="rgba(255,255,255,0.7)" />
       <use xlink:href="#gentle-wave" x="4" y="25" fill="white" />
     </svg>
-  </div><br><br><br>
+  </div>
+<br><br><br>
   <div class="container">
     <div class="quick-start" onclick="window.location.href='exam.html'">Quick Start Exam</div>
 
@@ -591,18 +544,11 @@
         <p>Buy & Sell, Listings</p>
       </div>
     </div>
-    <div id="chatNotification" style="display: none;"> 
-  <div class="notification-content">
-  <small>  <i class="fas fa-message" style="color:teal;"></i></small>
-    <div id="notificationText"></div>
-  </div>
-</div>
-
+    
     <div class="news-carousel" id="productCarousel">
     </div>
     
-    <h2 id="latestNewsTitle" style="color: #303f9f; margin-top: -91px; border-bottom: 2px solid #303f9f; padding-bottom: 5px;">Latest News</h2>
-    
+    <h2 style="color: #303f9f; margin-top: 40px; border-bottom: 2px solid #303f9f; padding-bottom: 5px;">Latest News</h2>
     <div class="news-carousel" id="newsCarousel" style="height: 150px; margin-bottom: 30px;">
         <p id="newsLoadingMessage" style="text-align: center; line-height: 150px; color: #6b7280;">Loading latest news...</p>
     </div>
@@ -744,27 +690,17 @@
     
     <a href="profile.html"><i class="fas fa-user"></i>Profile</a>
   </div>
-<div class='onesignal-customlink-container'></div>
 
   <script>
     // =================================================================================
-    // --- SUPABASE CONFIGURATION ---
-    // The marketplace keys you provided previously
-    const MARKET_SUPABASE_URL = 'https://dyrsbfrvonajerbfrxzw.supabase.co'; 
-    const MARKET_SUPABASE_AUTH_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR5cnNiZnJ2b25hamVyYmZyeHp3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk3NDk0ODAsImV4cCI6MjA3NTMyNTQ4MH0.mgj9f_ROkti_I3CeJ4ebYVhaLGy9Wamvj4XTtH_rB_I';
+    // --- SUPABASE CONFIGURATION (FOR MARKETPLACE COUNTER & CAROUSEL) ---
+    // IMPORTANT: REPLACE THESE WITH YOUR ACTUAL SUPABASE DETAILS!
+    const SUPABASE_URL = 'https://dyrsbfrvonajerbfrxzw.supabase.co'; 
+    const SUPABASE_AUTH_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR5cnNiZnJ2b25hamVyYmZyeHp3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk3NDk0ODAsImV4cCI6MjA3NTMyNTQ4MH0.mgj9f_ROkti_I3CeJ4ebYVhaLGy9Wamvj4XTtH_rB_I';
     
-    // The chat keys you provided in the request
-    const CHAT_SUPABASE_URL = 'https://bsifoxmtxrinthdjtvkq.supabase.co'; 
-    const CHAT_SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJzaWZveG10eHJpbnRoZGp0dmtxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk5MDA3NDMsImV4cCI6MjA3NTQ3Njc0M30.pRnPe4FK3RQRSC30xYFuEtBEyacs7EuXdQ1DDpFJbOo'; 
-
-    // Create a client for the market/news operations
-    const marketSupabase = window.supabase.createClient(MARKET_SUPABASE_URL, MARKET_SUPABASE_AUTH_KEY);
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_AUTH_KEY);
     const PRODUCTS_TABLE = 'products';
     const ARTICLES_TABLE = 'articles';
-
-    // Chat client (using standard initialization for polling)
-    const chatSupabase = window.supabase.createClient(CHAT_SUPABASE_URL, CHAT_SUPABASE_ANON_KEY);
-    const MESSAGES_TABLE = 'messages'; 
     // =================================================================================
 
 
@@ -774,17 +710,6 @@
     let current = 0;
     let newsSlides = [];
     let currentNews = 0;
-    
-    // NEW DOM elements for chat
-    const chatNotification = document.getElementById('chatNotification');
-    const notificationText = document.getElementById('notificationText');
-    const chatBadgeMenu = document.getElementById('menuNewChatCount'); 
-    const chatBadgeCard = document.getElementById('cardNewChatCount'); 
-
-    // NEW Chat variables
-    let newChatCount = 0; // Tracks the current number displayed on the badge
-    let notificationTimeout = null;
-    let chatPollingInterval = null; // The interval ID for the 5-second polling
 
 
     function showSlide(index) {
@@ -794,21 +719,18 @@
       });
     }
     
-    // --- Product Fetch and Carousel Initialization (MODIFIED FOR RANDOM ORDER) ---
+    // --- Product Fetch and Carousel Initialization (Original) ---
     async function fetchAndRenderProducts() {
         try {
-            // Fetch up to 5 products.
-            const { data, error } = await marketSupabase
+            // Fetch up to 5 most recent products, ordered by creation time
+            const { data, error } = await supabase
                 .from(PRODUCTS_TABLE)
                 .select('name, price, image_url, id')
-                .order('id', { ascending: false }) 
+                .order('created_at', { ascending: false })
                 .limit(5);
 
             if (error) throw error;
             
-            // Client-side shuffle for a random display of the fetched 5 most recent products
-            data.sort(() => Math.random() - 0.5);
-
             productCarousel.innerHTML = ''; // Clear existing content
             
             data.forEach((product, index) => {
@@ -841,6 +763,7 @@
             // Set up the carousel cycling
             slides = document.querySelectorAll('#productCarousel .news-slide');
             if (slides.length > 1) {
+                // Only cycle if there is more than one product
                 if (window._carouselIntervalId) clearInterval(window._carouselIntervalId);
                 window._carouselIntervalId = setInterval(() => {
                     current = (current + 1) % slides.length;
@@ -860,7 +783,7 @@
         const newsLoadingMessage = document.getElementById('newsLoadingMessage');
         try {
             // Fetch up to 3 most recent articles, ordered by creation time
-            const { data, error } = await marketSupabase
+            const { data, error } = await supabase
                 .from(ARTICLES_TABLE)
                 .select('id, title, content, image_url, created_at')
                 .order('created_at', { ascending: false })
@@ -1002,12 +925,11 @@
             "Marketing",
             "Public Administration"
         ],
-        "Medicine/BMS": [
+        "Medicine": [
             "Anatomy",
             "Medicine and Surgery",
             "Nursing",
-            "Physiology",
-            "MLS"
+            "Physiology"
         ],
         "Science": [
             "Biochemistry",
@@ -1124,13 +1046,12 @@
     
     // This function runs on page load to check for new products
     async function checkNewProducts() {
-        let newProducts = 0; // Initialize a variable to hold the new product count
         const lastCount = parseInt(localStorage.getItem('lastMarketProductCount') || '0');
         const countElement = document.getElementById('menuNewProductCount'); 
         
         try {
             // Get the current total count of products in the table
-            const { count, error } = await marketSupabase
+            const { count, error } = await supabase
                 .from(PRODUCTS_TABLE)
                 .select('*', { count: 'exact', head: true });
 
@@ -1139,7 +1060,7 @@
             const currentCount = count;
             
             if (currentCount > lastCount) {
-                newProducts = currentCount - lastCount; // Set the new product count
+                const newProducts = currentCount - lastCount;
                 countElement.textContent = newProducts;
                 countElement.style.display = 'block';
                 console.log(`New products detected: ${newProducts}`);
@@ -1156,8 +1077,6 @@
             console.error('Could not check product count:', e);
             countElement.style.display = 'none';
         }
-        
-        return newProducts; 
     }
 
     // This function runs when the user clicks the Marketplace card OR the menu link
@@ -1171,7 +1090,7 @@
         
         try {
             // 1. Get the current count and save it as the 'last viewed' count
-            const { count, error } = await marketSupabase
+            const { count, error } = await supabase
                 .from(PRODUCTS_TABLE)
                 .select('*', { count: 'exact', head: true });
 
@@ -1190,178 +1109,107 @@
     }
     
     // =================================================================================
-    // --- CHAT POLLING LOGIC (FIXED FOR 5-SECOND REFRESH) ---
+    // --- CHAT TRACKING LOGIC (Key section for the request) ---
     // =================================================================================
 
     /**
-     * Displays a new chat message as a temporary dropdown notification.
-     * @param {object} message - The new message payload from Supabase (must include 'username' and 'content').
+     * Checks the Supabase 'messages' table for new messages since the last read time.
      */
-    function showDropdownNotification(message) {
-        const sender = message.username || 'New User';
-        const content = message.content || '...';
-        
-        if (window.location.pathname.includes('chat.html')) return;
-
-        notificationText.innerHTML = `<strong>${sender}:</strong> ${content}`;
-
-        // 1. Clear any existing timeout and hide the notification immediately
-        clearTimeout(notificationTimeout);
-        chatNotification.classList.remove('show');
-        chatNotification.style.display = 'block';
-
-        // 2. Schedule the slide-in (after a small delay to ensure transition works)
-        setTimeout(() => {
-            chatNotification.classList.add('show');
-        }, 50); 
-        
-        // 3. Schedule the slide-out after 3 seconds (3000 milliseconds)
-        notificationTimeout = setTimeout(() => {
-            chatNotification.classList.remove('show');
-            
-            // 4. Wait for the CSS transition to finish (0.4s) before hiding display
-            setTimeout(() => {
-                chatNotification.style.display = 'none';
-            }, 400); 
-
-        }, 4000); // <-- 4-second display time
-
-        // Make the notification clickable to go to the chat page
-        chatNotification.onclick = () => {
-            updateLastReadTime();
-            clearTimeout(notificationTimeout);
-            chatNotification.classList.remove('show');
-            setTimeout(() => {
-                window.location.href = 'chat.html';
-            }, 400); // Allow slide-up transition before redirect
-        };
-    }
-
-    /**
-     * Fetches new messages and updates the badge count and triggers the notification dropdown.
-     */
-    async function pollForNewChatCount() {
+    async function checkNewChats() {
+        // Get the timestamp when the user last read the chat
         const lastReadTime = localStorage.getItem('last_read_chat_time');
         
-        if (localStorage.getItem('signedUp') !== 'true') return;
-        
-        // If lastReadTime isn't set, initialize it and exit. This prevents fetching all history on first run.
+        // If user has never read chat, don't show a badge on first load.
         if (!lastReadTime) {
-            localStorage.setItem('last_read_chat_time', Date.now().toString());
+            document.getElementById('menuNewChatCount').style.display = 'none';
+            document.getElementById('cardNewChatCount').style.display = 'none';
             return;
         }
 
-        // If the user is on the chat page, clear local badges and exit.
-        if (window.location.pathname.includes('chat.html')) {
-            newChatCount = 0;
-            chatBadgeMenu.style.display = 'none';
-            chatBadgeCard.style.display = 'none';
-            return;
-        }
-        
-        const lastReadISO = new Date(parseInt(lastReadTime)).toISOString();
+        // Convert stored timestamp to ISO string for Supabase query
+        // The lastReadTime stored in local storage is a string representation of the Date.now() timestamp (milliseconds since epoch)
+        const lastReadISO = new Date(parseInt(lastReadTime)).toISOString(); 
+        const chatBadgeMenu = document.getElementById('menuNewChatCount'); 
+        const chatBadgeCard = document.getElementById('cardNewChatCount'); 
         
         try {
-            // 1. Get the current total count of unread messages
-            const { count: currentUnreadCount, error } = await chatSupabase
-                .from(MESSAGES_TABLE)
+            // Query for messages created AFTER the last read time
+            // The 'messages' table has 'created_at' column, which is perfect for this.
+            const { count, error } = await supabase
+                .from('messages')
                 .select('*', { count: 'exact', head: true })
                 .gt('created_at', lastReadISO);
 
             if (error) throw error;
             
-            const oldChatCount = newChatCount;
-            newChatCount = currentUnreadCount; // Update the global counter
+            const newChats = count;
             
-            // 2. Calculate newly arrived messages since the last 5-second check
-            const newlyArrivedMessages = newChatCount - oldChatCount;
-            
-            // 3. Update Badges
-            if (newChatCount > 0) {
-                chatBadgeMenu.textContent = newChatCount;
+            if (newChats > 0) {
+                // Update both the bottom menu badge and the main card badge
+                chatBadgeMenu.textContent = newChats;
                 chatBadgeMenu.style.display = 'block';
-                chatBadgeCard.textContent = newChatCount;
+                
+                chatBadgeCard.textContent = newChats;
                 chatBadgeCard.style.display = 'block';
             } else {
                 chatBadgeMenu.style.display = 'none';
                 chatBadgeCard.style.display = 'none';
             }
 
-            // 4. Trigger Dropdown Notification if there are new messages
-            if (newlyArrivedMessages > 0) {
-                // Fetch the actual message data for the notification
-                const { data: latestMessages, error: dataError } = await chatSupabase
-                    .from(MESSAGES_TABLE)
-                    .select('username, content')
-                    .gt('created_at', lastReadISO)
-                    .order('created_at', { ascending: false })
-                    .limit(newlyArrivedMessages);
-
-                if (!dataError && latestMessages && latestMessages.length > 0) {
-                    // Show a notification for the *latest* new message only
-                    showDropdownNotification(latestMessages[0]);
-                }
-            }
-
         } catch (e) {
-            console.error('Error during chat polling:', e);
-            // Non-fatal: just skip this cycle
+            console.error('Could not check new chat count:', e);
+            chatBadgeMenu.style.display = 'none';
+            chatBadgeCard.style.display = 'none';
         }
     }
 
-    /**
-     * Sets up the 5-second interval for chat polling.
-     */
-    function startChatPolling() {
-        if (chatPollingInterval) clearInterval(chatPollingInterval); // Clear any existing interval
-        
-        // Run the check immediately on start
-        pollForNewChatCount(); 
-        
-        // Set up the interval for manual refresh every 5 seconds (5000 milliseconds)
-        chatPollingInterval = setInterval(pollForNewChatCount, 5000); 
-    }
-    
     /**
      * Updates the last read timestamp and clears the badges.
      * This function is called when the user clicks the Chat link or button.
      */
     function updateLastReadTime() {
-        if (localStorage.getItem('signedUp') === 'true') {
-            newChatCount = 0;
-            chatBadgeMenu.style.display = 'none';
-            chatBadgeCard.style.display = 'none';
-            localStorage.setItem('last_read_chat_time', Date.now().toString());
-            console.log("Chat last read time updated.");
+        // 1. Set the new last read time to now.
+        localStorage.setItem('last_read_chat_time', Date.now().toString());
+
+        // 2. Hide the badges immediately.
+        document.getElementById('menuNewChatCount').style.display = 'none';
+        document.getElementById('cardNewChatCount').style.display = 'none';
+        
+        // 3. Clear the interval that periodically checks for new chats
+        if (window._chatCheckInterval) {
+            clearInterval(window._chatCheckInterval);
         }
     }
-    
     // =================================================================================
-    // --- END CHAT POLLING LOGIC ---
+    // --- END CHAT TRACKING LOGIC ---
     // =================================================================================
 
+    // =================================================================================
+    // --- NEWS TRACKING LOGIC (UPDATED WITH CARD BADGE) ---
+    // =================================================================================
 
-    // --- NEWS TRACKING LOGIC (Original) ---
+    /**
+     * Checks the Supabase 'articles' table for new articles since the last read time.
+     */
     async function checkNewNews() {
+        // Get the timestamp when the user last read the news
         const lastReadTime = localStorage.getItem('last_read_news_time');
         
         const newsBadgeMenu = document.getElementById('menuNewNewsCount'); 
         const newsBadgeCard = document.getElementById('cardNewNewsCount');
         
+        // If user has never read news, don't show a badge on first load.
         if (!lastReadTime) {
             newsBadgeMenu.style.display = 'none';
             newsBadgeCard.style.display = 'none'; 
-            
-            if(localStorage.getItem('signedUp') === 'true') {
-                localStorage.setItem('last_read_news_time', Date.now().toString());
-            }
             return;
         }
 
         const lastReadISO = new Date(parseInt(lastReadTime)).toISOString();
         
         try {
-            const { count, error } = await marketSupabase
+            // Query for articles created AFTER the last read time
+            const { count, error } = await supabase
                 .from(ARTICLES_TABLE)
                 .select('*', { count: 'exact', head: true })
                 .gt('created_at', lastReadISO);
@@ -1404,9 +1252,12 @@
             clearInterval(window._newsCheckInterval);
         }
     }
+    // =================================================================================
+    // --- END NEWS TRACKING LOGIC (UPDATED WITH CARD BADGE) ---
+    // =================================================================================
 
-    // --- INITIALIZATION (Updated to use Polling) ---
 
+    // --- INITIALIZATION (Updated to ensure chat check starts) ---
     if (!storedSignedUp) {
       signupModal.style.display = 'flex';
       populateFaculties();
@@ -1415,21 +1266,18 @@
       userLevelDisplay.textContent = storedLevel ? `Level: ${storedLevel}` : '';
       
       // Feature Checks
-      checkNewProducts(); 
+      checkNewProducts();
       checkNewNews(); 
+      // Key Chat Check
+      checkNewChats(); 
       
-      // *** START 5-SECOND CHAT POLLING HERE ***
-      startChatPolling(); 
-
       // Carousel Loads
-      // NOTE: Ensure fetchAndRenderProducts and fetchAndRenderNews are defined elsewhere or included here.
-      // (They are generally defined above this main initialization block.)
-      // Placeholder calls, assuming definitions are available:
-      // fetchAndRenderProducts(); 
-      // fetchAndRenderNews();
+      fetchAndRenderProducts(); 
+      fetchAndRenderNews();
       
       // Periodic Checks
       window._newsCheckInterval = setInterval(checkNewNews, 15000); 
+      window._chatCheckInterval = setInterval(checkNewChats, 15000); // <-- This runs the chat counter every 15s
     }
 
     function handleSignup() {
@@ -1448,29 +1296,25 @@
       localStorage.setItem('faculty', faculty);
       localStorage.setItem('department', department);
       localStorage.setItem('level', level);
-      
-      // Initialize chat last read time on signup
-      localStorage.setItem('last_read_chat_time', Date.now().toString());
-      // Initialize news last read time on signup
-      localStorage.setItem('last_read_news_time', Date.now().toString());
 
       signupModal.style.display = 'none';
       typeWelcomeMessage(name);
       userLevelDisplay.textContent = level ? `Level: ${level}` : '';
       alert('Sign up complete! Welcome!');
       
-      // Run dashboard features after successful signup
+      // Run dashboard features after successful signup (Updated)
       checkNewProducts();
       fetchAndRenderProducts();
       
       checkNewNews();
       fetchAndRenderNews();
       
-      // *** START 5-SECOND CHAT POLLING HERE ***
-      startChatPolling(); 
+      // Key Chat Check
+      checkNewChats(); 
       
       // Periodic Checks
       window._newsCheckInterval = setInterval(checkNewNews, 15000); 
+      window._chatCheckInterval = setInterval(checkNewChats, 15000); // <-- This starts the chat counter on signup
     }
 
     function reRegister() {
@@ -1493,7 +1337,7 @@
     }
 
     // --- Modal Control Functions (Original) ---
-      
+
     // Academics Modal
     function openAcademicsChoiceModal() {
         academicsChoiceModal.style.display = 'flex';
@@ -1564,7 +1408,7 @@
     }
     
     // =================================================================================
-    // ✅ PWA LOGIC START: Service Worker and Install Prompt Handling contact me 07077575301
+    // ✅ PWA LOGIC START: Service Worker and Install Prompt Handling
     // =================================================================================
 
     // 1. Register the service worker for PWA
@@ -1635,19 +1479,26 @@
     });
 
     // =================================================================================
-    // ✅ PWA LOGIC END/07077575301 Monpress, Wa or call
+    // ✅ PWA LOGIC END
     // =================================================================================
+async function notify(title, body) {
+  if (!("Notification" in window)) {
+    console.warn("This browser does not support notifications.");
+    return;
+  }
 
-    // --- RE-CALLING INITIALIZATION FUNCTIONS for final complete script ---
-    // (This block ensures the missing function calls for products and news loading are included if they were omitted in previous steps)
-    
-    if (storedSignedUp) {
-        // Assuming fetchAndRenderProducts and fetchAndRenderNews are defined (they are in the original code block)
-        fetchAndRenderProducts(); 
-        fetchAndRenderNews();
+  if (Notification.permission === "granted") {
+    new Notification(title, { body, icon: "/icons/icon-192x192.png" });
+  } else if (Notification.permission !== "denied") {
+    const permission = await Notification.requestPermission();
+    if (permission === "granted") {
+      new Notification(title, { body, icon: "/icons/icon-192x192.png" });
     }
+  }
+}
 
-
+// Example:
+notify("Welcome to EKSUHub 🎓", "Stay tuned for campus updates!");
   </script>
 </body>
 </html>
