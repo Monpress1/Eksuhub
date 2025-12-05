@@ -1,0 +1,1094 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EksuHub Find Hub</title>
+    
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#0088ff">
+    <link rel="icon" href="/images/icons/icon-192x192.png">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="EksuHub">
+    
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    
+    <style>
+        /* --- Root Variables: Dark Mode (Default) --- */
+        :root {
+            --primary-color: #0088ff; 
+            --background-color: #121212; 
+            --card-bg: #1e1e1e; 
+            --text-color: #f0f0f0; 
+            --text-secondary: #aaaaaa; 
+            --border-color: #333333; 
+            --shadow-dark: 0 4px 15px rgba(0, 0, 0, 0.5);
+            --font-family-main: 'Inter', sans-serif; 
+            --accent-green: #4CAF50;
+            --accent-red: #ff4d4d;
+            --find-highlight: #ffc107;
+            --find-type-color: #FF6347; 
+        }
+
+        /* --- Light Mode Definition --- */
+        :root[data-theme="light"] {
+            --primary-color: #007bff; 
+            --background-color: #f0f2f5; 
+            --card-bg: white; 
+            --text-color: #333; 
+            --text-secondary: #6c757d; 
+            --border-color: #e0e6ed; 
+            --shadow-dark: 0 4px 15px rgba(0, 0, 0, 0.1);
+            --find-highlight: #ff9800;
+            --find-type-color: #E91E63;
+        }
+
+        /* --- Global, Header, Menu (Boilerplate) --- */
+        * { box-sizing: border-box; transition: background-color 0.3s, color 0.3s, border-color 0.3s; }
+        body { 
+            font-family: var(--font-family-main); 
+            background-color: var(--background-color);
+            margin: 0;
+            color: var(--text-color);
+        }
+        .header {
+            background-color: var(--card-bg); border-bottom: 1px solid var(--border-color); padding: 15px 20px;
+            display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+            position: sticky; top: 0; z-index: 1000;
+        }
+        .header h1 { 
+            margin: 0; font-size: 1.8em; font-weight: 800; 
+            font-family: 'Georgia', serif; 
+            letter-spacing: -1px;
+            color: var(--primary-color); 
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+            line-height: 1; 
+            cursor: pointer;
+        }
+        .header h1 small {
+            display: block; font-size: 0.4em; font-weight: 400; margin-top: 2px; vertical-align: bottom; opacity: 0.8;
+            color: var(--text-secondary); font-family: var(--font-family-main);
+        }
+        .icon-btn { 
+            background: none; border: none; color: var(--text-color); font-size: 1.6em; cursor: pointer; 
+            transition: color 0.2s, transform 0.2s; position: relative; padding: 0 8px; 
+        }
+        .notification-badge {
+            position: absolute; top: 0px; right: 0px; background-color: var(--accent-red); color: white;
+            border-radius: 50%; padding: 2px 6px; font-size: 0.6em; line-height: 1; font-weight: bold; display: none; 
+        }
+        .menu-sidebar {
+            position: fixed; top: 0; right: 0; width: 250px; height: 100%;
+            background-color: var(--card-bg); box-shadow: -4px 0 10px rgba(0, 0, 0, 0.6);
+            transform: translateX(100%); transition: transform 0.3s ease-in-out;
+            z-index: 2000; padding-top: 75px; 
+            border-left: 1px solid var(--border-color); overflow-y: auto;
+        }
+        .menu-sidebar.open { transform: translateX(0); }
+        .menu-item {
+            display: flex; align-items: center; padding: 15px 20px; color: var(--text-color); text-decoration: none; 
+            font-size: 1.0em; border-bottom: 1px solid var(--border-color); position: relative; 
+        }
+        .menu-item i { margin-right: 15px; width: 20px; }
+        .menu-item:hover { background-color: var(--border-color); color: var(--primary-color); }
+        .logout-item { color: var(--accent-red) !important; }
+
+        .main-container { max-width: 650px; margin: 20px auto; padding: 0 15px; }
+
+        /* --- Find Form Styling --- */
+        .find-form-card { 
+            background-color: var(--card-bg); padding: 25px; 
+            border-radius: 12px; box-shadow: var(--shadow-dark); margin-bottom: 25px; 
+            border-left: 5px solid var(--primary-color);
+        }
+        
+        /* Floating Icon */
+        .floating-icon {
+            font-size: 1.5em; color: var(--primary-color);
+            margin-right: 10px;
+            animation: float 2s ease-in-out infinite;
+        }
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-5px); }
+            100% { transform: translateY(0px); }
+        }
+
+        /* Bubble Button Styles */
+        .bubble-selector {
+            display: flex; gap: 10px; margin-bottom: 20px; 
+            padding-bottom: 10px; 
+            flex-wrap: wrap; 
+            overflow-x: hidden; 
+        }
+        .bubble-btn {
+            background-color: var(--border-color);
+            color: var(--text-color);
+            border: 2px solid transparent;
+            padding: 8px 15px;
+            border-radius: 20px; 
+            cursor: pointer;
+            font-weight: 600;
+            transition: background-color 0.2s, border-color 0.2s, color 0.2s;
+            font-size: 0.9em;
+            margin-bottom: 5px; 
+        }
+        .bubble-btn.selected {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+            color: white;
+            box-shadow: 0 2px 8px rgba(0, 136, 255, 0.5);
+        }
+        .bubble-btn:hover:not(.selected) {
+            background-color: var(--card-bg);
+            border-color: var(--text-secondary);
+        }
+        
+        .form-row {
+            display: flex; gap: 15px; margin-bottom: 15px;
+            flex-wrap: wrap; 
+        }
+        .form-group {
+            flex: 1; min-width: 45%; 
+        }
+        .form-group.full-width {
+            flex: 0 0 100%;
+        }
+        label {
+            display: block; margin-bottom: 5px; font-weight: 600; font-size: 0.9em;
+            color: var(--text-secondary);
+        }
+        input[type="text"], input[type="number"], select, textarea {
+            width: 100%; padding: 10px; border-radius: 8px; 
+            background-color: var(--border-color); 
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
+            font-family: inherit;
+        }
+        textarea {
+            resize: vertical; min-height: 80px;
+        }
+        .submit-btn {
+            background: var(--primary-color); color: white; font-weight: 700; border: none; 
+            padding: 12px 25px; border-radius: 25px; cursor: pointer; 
+            transition: background 0.2s, transform 0.1s; width: 100%; margin-top: 10px;
+        }
+        .submit-btn:hover { background: #006aff; transform: translateY(-1px); }
+        .status-message {
+            margin-top: 15px; font-size: 0.9em; text-align: center;
+        }
+        
+        /* --- Find Feed Card Styling (Find Hub Page) --- */
+        .find-card {
+            background-color: var(--card-bg); padding: 15px 20px; 
+            border-radius: 12px; box-shadow: var(--shadow-dark); margin-bottom: 20px; 
+            position: relative; 
+        }
+
+        /* ADDED AVATAR STYLING */
+        .find-avatar {
+            width: 45px;       /* Set a fixed width */
+            height: 45px;      /* Set a fixed height */
+            border-radius: 50%; /* Make it circular */
+            object-fit: cover;  /* Ensure the image covers the area without distortion */
+            margin-right: 12px;
+            border: 2px solid var(--primary-color); /* Nice border for visibility */
+        }
+        
+        .find-card-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        /* Style for the find type text (e.g., "Boyfriend") */
+        .find-type-highlight {
+            color: var(--find-type-color); 
+            font-weight: 800; 
+        }
+        .find-specs {
+            display: flex; gap: 15px; margin: 10px 0; padding: 10px; 
+            background-color: var(--border-color); border-radius: 8px;
+            flex-wrap: wrap;
+        }
+        .spec-item {
+            font-size: 0.85em; font-weight: 600; color: var(--text-color);
+        }
+        .whatsapp-btn {
+            display: block; width: 100%; text-align: center;
+            background-color: #25D366; 
+            color: white; padding: 12px 0; border-radius: 25px;
+            font-weight: 700; text-decoration: none;
+            transition: background-color 0.2s, transform 0.1s;
+        }
+
+        /* --- Custom Feed Widget (For main feed.html) --- */
+        .find-feed-widget {
+            border: 2px solid var(--primary-color);
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 10px;
+            background-color: var(--card-bg);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+        }
+        .find-feed-widget h4 {
+            color: var(--find-type-color);
+            margin: 0 0 10px 0;
+            font-size: 1.2em;
+            display: flex;
+            align-items: center;
+            font-weight: 800;
+        }
+        .find-feed-widget .spec-list {
+            list-style: none;
+            padding: 0;
+            margin: 10px 0;
+            border-left: 3px solid var(--find-highlight);
+            padding-left: 10px;
+        }
+        .find-feed-widget .spec-list li {
+            color: var(--text-secondary);
+            font-size: 0.9em;
+            line-height: 1.5;
+        }
+        .find-feed-widget .detail-text {
+            color: var(--text-color);
+            margin-top: 10px;
+            font-style: italic;
+        }
+        .find-feed-widget .wa-link-btn {
+            display: inline-block;
+            background-color: #25D366;
+            color: white !important;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-weight: 700;
+            text-decoration: none;
+            margin-top: 15px;
+            font-size: 0.9em;
+        }
+        .find-feed-widget .wa-link-btn:hover {
+            background-color: #128C7E;
+        }
+        
+    </style>
+</head>
+<body data-theme="dark">
+
+    <header class="header">
+        <div class="header-left">
+            <h1 id="headerTitle" onclick="window.location.href='index.html'">
+                EksuHub
+                <small id="usernameDisplay">Find Hub</small>
+            </h1>
+        </div>
+        <div class="header-right">
+            <button class="icon-btn" id="notificationBtn" title="Notifications">
+                <i class="fas fa-bell"></i>
+                <span class="notification-badge" id="notificationCount"></span>
+            </button>
+            
+            <button class="icon-btn" id="menuToggleBtn" title="Menu">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+    </header>
+
+    <div id="menuSidebar" class="menu-sidebar">
+        <a href="index.html" class="menu-item" title="Feed">
+            <i class="fas fa-home"></i> Feed
+        </a>
+        <a href="#" id="menuProfileLink" class="menu-item" title="My Profile">
+            <i class="fas fa-user-circle"></i> My Profile
+        </a>
+        <a href="academics.html" class="menu-item" title="Academics">
+            <i class="fas fa-graduation-cap"></i> Academics
+        </a>
+        <a href="market.html" class="menu-item" title="Marketplace">
+            <i class="fas fa-store"></i> Market
+        </a>
+        <a href="find.html" class="menu-item" title="Find">
+            <i class="fas fa-map-marker-alt"></i> Find
+        </a>
+        <a href="chat.html" class="menu-item" id="menuChatLink" title="Chat/Messages">
+            <i class="fas fa-comment-alt"></i> Chat
+            <span class="notification-badge" id="chatNotificationCount" style="right: 5px;"></span>
+        </a>
+        <a href="confession.html" class="menu-item" id="menuConfessionLink" title="Confession">
+            <i class="fas fa-mask" style="color:orangered;"></i> Confession
+        </a>
+        <a href="#" id="menuLogoutLink" class="menu-item logout-item" title="Logout">
+            <i class="fas fa-sign-out-alt"></i> Logout
+        </a>
+    </div>
+
+    <div class="main-container">
+        
+        <div class="find-form-card">
+            <h2 style="margin-top: 0; color: var(--primary-color);">
+                <i class="fas fa-search floating-icon"></i> Post a Finding Request
+            </h2>
+            <p style="color: var(--text-secondary); margin-bottom: 20px;">
+                Choose what you're looking for to customize the form below.
+            </p>
+            
+            <label style="color: var(--primary-color);">What are you looking for?</label>
+            <div class="bubble-selector" id="findTypeSelector">
+                <button type="button" class="bubble-btn" data-type="Roommate">Roommate 🏠</button>
+                <button type="button" class="bubble-btn" data-type="Study Partner">Study Partner 📚</button>
+                <button type="button" class="bubble-btn" data-type="Bestie">Bestie ✨</button>
+                <button type="button" class="bubble-btn" data-type="General Friend">General Friend 🫂</button>
+                <button type="button" class="bubble-btn" data-type="Movie Partner">Movie Partner 🍿</button>
+                <button type="button" class="bubble-btn" data-type="Gist Partner">Gist Partner 💬</button>
+                <button type="button" class="bubble-btn" data-type="Boyfriend">Boyfriend ❤️</button>
+                <button type="button" class="bubble-btn" data-type="Girlfriend">Girlfriend 💖</button>
+                <button type="button" class="bubble-btn" data-type="Accommodation">Accommodation (Need/Have) 🔑</button>
+                <button type="button" class="bubble-btn" data-type="Past Questions">Past Questions (PQs) 📜</button>
+            </div>
+
+
+            <form id="findRequestForm" style="display: none;">
+                
+                <input type="hidden" id="findType" name="findType">
+                
+                <div id="dynamicFieldsContainer">
+                    </div>
+                
+                <div class="form-group full-width">
+                    <label for="whatsappNumber"><i class="fab fa-whatsapp"></i> WhatsApp Number (Visible to users who click the chat button)</label>
+                    <input type="text" id="whatsappNumber" placeholder="e.g., 080xxxxxxxx" required>
+                </div>
+                
+                <div class="form-group full-width">
+                    <label for="description"><i class="fas fa-pencil-alt"></i> Description/Details (Tell us more about your request)</label>
+                    <textarea id="description" placeholder="Specify course, level, location, interests, requirements, etc." required></textarea>
+                </div>
+
+                <button type="submit" class="submit-btn" id="postFindBtn">
+                    <i class="fas fa-bullhorn"></i> Post My Request
+                </button>
+                
+                <p id="findStatus" class="status-message"></p>
+                
+            </form>
+        </div>
+
+        <h2 style="color: var(--primary-color); border-bottom: 1px solid var(--border-color); padding-bottom: 10px;"><i class="fas fa-list"></i> Active Finding Requests</h2>
+        
+        <div id="findFeedContainer">
+            <p style="color: var(--text-secondary); text-align: center;">Loading requests...</p>
+        </div>
+        
+        <div class="load-more-container" style="text-align: center; margin: 30px 0;">
+            <button id="load-more-btn" onclick="loadNextPage()" style="
+                background: var(--card-bg); 
+                color: var(--primary-color); 
+                border: 1px solid var(--primary-color); 
+                padding: 10px 25px; 
+                border-radius: 20px; 
+                cursor: pointer; 
+                font-weight: 600;
+                transition: background-color 0.2s;
+            ">
+                Load More Requests
+            </button>
+        </div>
+        
+    </div>
+    <script>
+        // =================================================================================
+        // --- CONFIGURATION ---
+        // =================================================================================
+        // !! IMPORTANT !! Replace these with your actual keys
+        const SUPABASE_URL = 'https://wfhaiasdkkmwjzrndcmi.supabase.co'; 
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndmaGFpYXNka2ttd2p6cm5kY21pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQxNTE5MDUsImV4cCI6MjA3OTcyNzkwNX0.jTBRJi4lpmbv4R5rxF_CS9GrF5UMVxiIH9Th9frGWWI';
+        const REDIRECT_PAGE = 'auth.html'; 
+
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        
+        // --- PAGINATION CONFIGURATION ---
+        const REQUESTS_PER_PAGE = 10;
+        let requestOffset = 0;
+        let allRequestsLoaded = false;
+
+        let currentUserId = null; 
+        const PLACEHOLDER_AVATAR = 'https://via.placeholder.com/50/383838/f0f0f0?text=E'; 
+        
+        // --- DOM Elements ---
+        const findRequestForm = document.getElementById('findRequestForm');
+        const findTypeSelector = document.getElementById('findTypeSelector');
+        const dynamicFieldsContainer = document.getElementById('dynamicFieldsContainer');
+        const findTypeInput = document.getElementById('findType');
+        const findStatus = document.getElementById('findStatus');
+        const findFeedContainer = document.getElementById('findFeedContainer');
+        const loadMoreButton = document.getElementById('load-more-btn');
+        const postFindBtn = document.getElementById('postFindBtn');
+        const menuToggleBtn = document.getElementById('menuToggleBtn');
+        const menuSidebar = document.getElementById('menuSidebar');
+        const menuProfileLink = document.getElementById('menuProfileLink');
+        
+        // --- FIND TYPES REQUIRING SOCIAL FIELDS ---
+        const SOCIAL_FIND_TYPES = [
+            'Roommate', 'Study Partner', 'Bestie', 'General Friend', 
+            'Movie Partner', 'Gist Partner', 'Boyfriend', 'Girlfriend'
+        ];
+
+
+        // =================================================================================
+        // --- UTILITY FUNCTIONS ---
+        // =================================================================================
+        
+        function getProfileUrl(userId) {
+            return `profile.html?id=${userId}`;
+        }
+        
+        function timeAgo(date) {
+            const seconds = Math.floor((new Date() - new Date(date)) / 1000);
+            let interval = seconds / 31536000;
+
+            if (interval > 1) return Math.floor(interval) + "y";
+            interval = seconds / 2592000;
+            if (interval > 1) return Math.floor(interval) + "m";
+            interval = seconds / 86400;
+            if (interval > 1) return Math.floor(interval) + "d";
+            interval = seconds / 3600;
+            if (interval > 1) return Math.floor(interval) + "h";
+            interval = seconds / 60;
+            if (interval > 1) return Math.floor(interval) + "min";
+            return "just now";
+        }
+
+        async function checkUserSession() {
+            const { data: { user }, error } = await supabaseClient.auth.getUser();
+
+            if (error || !user) {
+                window.location.href = REDIRECT_PAGE;
+                return null;
+            }
+            
+            currentUserId = user.id;
+
+            if (menuProfileLink) {
+                menuProfileLink.href = getProfileUrl(currentUserId);
+            }
+
+            return user;
+        }
+        
+        function toggleMenu() {
+            menuSidebar.classList.toggle('open');
+        }
+
+        async function handleLogout() {
+            await supabaseClient.auth.signOut();
+            window.location.href = REDIRECT_PAGE;
+        }
+
+        /**
+         * Converts a raw phone number to a WhatsApp chat link.
+         */
+        function createWhatsAppLink(number) {
+            const cleanedNumber = number.replace(/[^\d+]/g, '');
+            let formattedNumber;
+            if (cleanedNumber.startsWith('0')) {
+                formattedNumber = `234${cleanedNumber.substring(1)}`;
+            } else if (cleanedNumber.startsWith('+')) {
+                formattedNumber = cleanedNumber.substring(1);
+            } else {
+                formattedNumber = cleanedNumber;
+            }
+            return `https://wa.me/${formattedNumber}`;
+        }
+
+        async function fetchUsername(userId) {
+            const { data } = await supabaseClient
+                .from('users')
+                .select('username')
+                .eq('id', userId)
+                .single();
+            return data ? data.username : 'EksuHub User';
+        }
+
+        // =================================================================================
+        // --- DYNAMIC FORM LOGIC ---
+        // =================================================================================
+
+        /**
+         * Renders input fields based on the selected find type.
+         */
+        function renderDynamicFields(type) {
+            let html = '';
+            
+            // Fields needed for Social/Roommate types
+            if (SOCIAL_FIND_TYPES.includes(type)) { 
+                html = `
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="userGender"><i class="fas fa-user-tag"></i> Your Gender</label>
+                            <select id="userGender" required>
+                                <option value="" disabled selected>Select your gender</option>
+                                <option value="Male">Male</option>
+                                <option value="Female">Female</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="requestGender"><i class="fas fa-user-friends"></i> Gender of who you want</label>
+                            <select id="requestGender" required>
+                                <option value="" disabled selected>Select target gender</option>
+                                <option value="Male">Male</option>
+                                <option value="Female">Female</option>
+                                <option value="Any">Any Gender</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="targetMinAge"><i class="fas fa-child"></i> Target Minimum Age</label>
+                            <input type="number" id="targetMinAge" placeholder="e.g., 20" min="16" max="99" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="targetMaxAge"><i class="fas fa-user-tie"></i> Target Maximum Age</label>
+                            <input type="number" id="targetMaxAge" placeholder="e.g., 25" min="16" max="99" required>
+                        </div>
+                    </div>
+                `;
+            } 
+            // Fields needed for Accommodation
+            else if (type === 'Accommodation') {
+                html = `
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="accommodationType"><i class="fas fa-home"></i> I am looking for/offering a...</label>
+                            <select id="accommodationType" required>
+                                <option value="" disabled selected>Select option</option>
+                                <option value="Need Roommate">Roommate (I need one)</option>
+                                <option value="Have Roommate">Roommate (I have space)</option>
+                                <option value="Need Flat">Self-Contained/Flat (I need one)</option>
+                                <option value="Have Flat">Self-Contained/Flat (I have one)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="accommodationGender"><i class="fas fa-male"></i> Gender of Flat/Roommate</label>
+                            <select id="accommodationGender" required>
+                                <option value="" disabled selected>Select gender</option>
+                                <option value="Male">Male Only</option>
+                                <option value="Female">Female Only</option>
+                                <option value="Any">Any Gender</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group full-width">
+                            <label for="location"><i class="fas fa-map-marker-alt"></i> Location (e.g., Iworoko, Satellite, Osekita)</label>
+                            <input type="text" id="location" placeholder="Enter area name" required>
+                        </div>
+                    </div>
+                `;
+            } 
+            // Fields needed for Past Questions
+            else if (type === 'Past Questions') {
+                html = `
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="pqAction"><i class="fas fa-scroll"></i> I am offering/seeking PQs</label>
+                            <select id="pqAction" required>
+                                <option value="" disabled selected>Select action</option>
+                                <option value="Seeking">Seeking PQs</option>
+                                <option value="Offering">Offering PQs</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="pqCourse"><i class="fas fa-book"></i> Course Code</label>
+                            <input type="text" id="pqCourse" placeholder="e.g., CSC 201, PHY 101" required>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            dynamicFieldsContainer.innerHTML = html;
+        }
+
+        /**
+         * Generates the custom HTML widget for the main feed post.
+         * NOTE: This assumes your feed.html allows raw HTML rendering for this content.
+         */
+        function generateFeedPostHTML(findType, username, description, specsArray, waLink) {
+            const shortDescription = description.substring(0, 150) + (description.length > 150 ? '...' : '');
+            
+            const specsList = specsArray.map(spec => `<li>${spec}</li>`).join('');
+
+            return `
+                <div class="find-feed-widget">
+                    <h4><i class="fas fa-user-search" style="margin-right: 8px; color: var(--primary-color);"></i> FINDING ALERT: ${findType.toUpperCase()}</h4>
+                    
+                    <p style="color: var(--text-color); margin: 5px 0 0 0;">
+                        @${username} just posted a request!
+                    </p>
+
+                    <ul class="spec-list">
+                        ${specsList}
+                    </ul>
+
+                    <p class="detail-text">
+                        "${shortDescription}"
+                    </p>
+
+                    <a href="${waLink}" target="_blank" class="wa-link-btn">
+                        <i class="fab fa-whatsapp"></i> Chat Now!
+                    </a>
+                </div>
+            `;
+        }
+
+        // =================================================================================
+        // --- FIND REQUEST SUBMISSION (UPDATED FOR HTML FEED POST) ---
+        // =================================================================================
+
+        async function handleFindSubmission(event) {
+            event.preventDefault();
+
+            if (!currentUserId) { 
+                findStatus.textContent = 'Error: You must be logged in to post a request.'; 
+                findStatus.style.color = 'var(--accent-red)';
+                return; 
+            }
+            if (!findTypeInput.value) { 
+                findStatus.textContent = 'Error: Please select what you are looking for first.'; 
+                findStatus.style.color = 'var(--accent-red)';
+                return; 
+            }
+            
+            const requiredFields = dynamicFieldsContainer.querySelectorAll('[required]');
+            for (const field of requiredFields) {
+                if (!field.value) {
+                    findStatus.textContent = 'Please fill out all required fields for your selected request type.';
+                    findStatus.style.color = 'var(--accent-red)';
+                    return;
+                }
+            }
+            
+            // Age validation for social types
+            if (SOCIAL_FIND_TYPES.includes(findTypeInput.value)) {
+                const minAge = parseInt(document.getElementById('targetMinAge').value);
+                const maxAge = parseInt(document.getElementById('targetMaxAge').value);
+                if (minAge > maxAge) {
+                    findStatus.textContent = 'Target Minimum Age cannot be greater than Target Maximum Age.';
+                    findStatus.style.color = 'var(--accent-red)';
+                    return;
+                }
+            }
+
+
+            postFindBtn.disabled = true;
+            postFindBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Posting...';
+            findStatus.textContent = '';
+            findStatus.style.color = 'var(--text-color)'; 
+
+            const findType = findTypeInput.value;
+            const description = document.getElementById('description').value.trim();
+            const whatsappNumber = document.getElementById('whatsappNumber').value.trim();
+            
+            let metaData = {};
+            let displaySpecs = []; 
+            
+            // 1. Collect dynamic fields based on type
+            if (SOCIAL_FIND_TYPES.includes(findType)) { 
+                metaData.user_gender = document.getElementById('userGender').value;
+                metaData.target_gender = document.getElementById('requestGender').value;
+                metaData.target_min_age = parseInt(document.getElementById('targetMinAge').value); 
+                metaData.target_max_age = parseInt(document.getElementById('targetMaxAge').value); 
+                
+                displaySpecs.push(`Poster Gender: ${metaData.user_gender}`);
+                displaySpecs.push(`Seeking Gender: ${metaData.target_gender}`);
+                displaySpecs.push(`Target Age Range: ${metaData.target_min_age}-${metaData.target_max_age} yrs`);
+
+            } else if (findType === 'Accommodation') {
+                metaData.accommodation_type = document.getElementById('accommodationType').value;
+                metaData.accommodation_gender = document.getElementById('accommodationGender').value;
+                metaData.location = document.getElementById('location').value;
+                
+                displaySpecs.push(`Type: ${metaData.accommodation_type}`);
+                displaySpecs.push(`Gender Pref: ${metaData.accommodation_gender}`);
+                displaySpecs.push(`Location: ${metaData.location}`);
+
+            } else if (findType === 'Past Questions') {
+                metaData.pq_action = document.getElementById('pqAction').value;
+                metaData.pq_course = document.getElementById('pqCourse').value;
+                
+                displaySpecs.push(`Action: ${metaData.pq_action}`);
+                displaySpecs.push(`Course Code: ${metaData.pq_course}`);
+            }
+
+            // 2. Insert into 'find_requests' table
+            const { error: findInsertError, data: insertedRequest } = await supabaseClient
+                .from('find_requests')
+                .insert([{
+                    user_id: currentUserId,
+                    find_type: findType,
+                    description: description,
+                    whatsapp_number: whatsappNumber,
+                    meta_data: metaData, 
+                }])
+                .select('id')
+                .single();
+
+            if (findInsertError) {
+                findStatus.textContent = `Error posting request to Find Hub: ${findInsertError.message}`;
+                postFindBtn.disabled = false;
+                postFindBtn.innerHTML = '<i class="fas fa-bullhorn"></i> Post My Request';
+                findStatus.style.color = 'var(--accent-red)';
+                return;
+            }
+            
+            const requestID = insertedRequest.id;
+
+            // 3. Post the custom HTML to the main 'messages' feed
+            const username = await fetchUsername(currentUserId);
+            const waLink = createWhatsAppLink(whatsappNumber);
+
+            const postContent = generateFeedPostHTML(
+                findType, 
+                username, 
+                description, 
+                displaySpecs, 
+                waLink
+            );
+            
+            const { error: msgInsertError } = await supabaseClient.from('messages').insert([{
+                user_id: currentUserId,
+                content: postContent, // This is the HTML block now
+                type: 'find_post', // Add a distinct type to help feed.html identify it
+                meta_data: { type: 'find_request', find_request_id: requestID } 
+            }]);
+
+            if (msgInsertError) {
+                // Log the feed error but continue to redirect
+                console.error(`Failed to cross-post to main feed: ${msgInsertError.message}`);
+                findStatus.textContent = 'Request posted successfully to the Find Hub, but check feed page manually.';
+                findStatus.style.color = 'var(--find-highlight)'; // Use warning color
+            } else {
+                findStatus.textContent = 'Request posted successfully to the Find Hub and main Feed. Redirecting...';
+                findStatus.style.color = 'var(--accent-green)';
+            }
+            
+            // 4. Reset form and REDIRECT to the main feed page! 
+            findRequestForm.reset(); 
+            
+            setTimeout(() => {
+                window.location.href = 'index.html'; 
+            }, 1500); 
+            
+            postFindBtn.disabled = false;
+            postFindBtn.innerHTML = '<i class="fas fa-bullhorn"></i> Post My Request';
+        }
+
+        // =================================================================================
+        // --- FIND FEED LOGIC & RENDER ---
+        // =================================================================================
+        
+        /**
+         * Parses the JSONB metadata into a clean specs array for display.
+         */
+        function getRequestSpecs(request) {
+            const specs = [];
+            const meta = request.meta_data || {};
+
+            if (meta.user_gender) specs.push({ icon: 'fas fa-user', text: `Poster: ${meta.user_gender}` });
+            if (meta.target_gender) specs.push({ icon: 'fas fa-user-friends', text: `Seeking: ${meta.target_gender}` });
+            
+            if (meta.target_min_age && meta.target_max_age) {
+                specs.push({ icon: 'fas fa-clock', text: `Age: ${meta.target_min_age}-${meta.target_max_age} yrs` });
+            }
+            
+            if (meta.accommodation_type) specs.push({ icon: 'fas fa-home', text: meta.accommodation_type });
+            if (meta.accommodation_gender) specs.push({ icon: 'fas fa-venus-mars', text: meta.accommodation_gender });
+            if (meta.location) specs.push({ icon: 'fas fa-map-marker-alt', text: meta.location });
+            
+            if (meta.pq_action) specs.push({ icon: 'fas fa-exchange-alt', text: meta.pq_action });
+            if (meta.pq_course) specs.push({ icon: 'fas fa-book-open', text: meta.pq_course });
+
+            return specs;
+        }
+
+        /**
+         * Renders a single request card for the feed.
+         */
+        function renderFindCard(request) {
+            const username = request.user ? request.user.username : 'Unknown User';
+            const department = request.user ? (request.user.department || 'N/A') : 'N/A';
+            const avatarUrl = request.user && request.user.avatar_url;
+            const time = timeAgo(request.created_at);
+            const isPoster = request.user_id === currentUserId;
+
+            let avatarHtml;
+            // The `find-avatar` class handles the sizing now
+            if (avatarUrl) {
+                avatarHtml = `<img src="${avatarUrl}" class="find-avatar" alt="${username}'s avatar" onerror="this.onerror=null; this.src='${PLACEHOLDER_AVATAR}'">`;
+            } else {
+                avatarHtml = `<a href="${getProfileUrl(request.user_id)}"><i class="fas fa-user-circle find-avatar" style="line-height: 45px; border: none; background-color: var(--border-color); color: var(--text-secondary);"></i></a>`;
+            }
+            
+            const waLink = createWhatsAppLink(request.whatsapp_number);
+            const specs = getRequestSpecs(request);
+            
+            const specsHtml = specs.map(spec => 
+                `<span class="spec-item"><i class="${spec.icon}"></i> ${spec.text}</span>`
+            ).join('');
+
+            const deleteButton = isPoster ? 
+                `<button class="delete-btn" title="Delete Request" onclick="deleteFindRequest('${request.id}')"><i class="fas fa-trash"></i></button>` : '';
+
+            return `
+                <div class="find-card" data-request-id="${request.id}">
+                    ${deleteButton}
+                    <div class="find-card-header">
+                        <a href="${getProfileUrl(request.user_id)}" style="text-decoration: none; display: flex; align-items: center;">
+                             ${avatarUrl && !avatarUrl.includes('<i') ? `<img src="${avatarUrl}" class="find-avatar" alt="${username}'s avatar" onerror="this.onerror=null; this.src='${PLACEHOLDER_AVATAR}'">` : avatarHtml}
+                        </a>
+                        <div class="find-info">
+                            <p class="find-title">
+                                <i class="fas fa-map-pin" style="color: var(--accent-red);"></i> 
+                                <a href="${getProfileUrl(request.user_id)}" style="color: inherit; text-decoration: none;">@${username}</a> is finding a <span class="find-type-highlight">${request.find_type}</span>
+                            </p>
+                            <span class="find-meta">${department} | Posted ${time}</span>
+                        </div>
+                    </div>
+                    
+                    <div class="find-specs">
+                        ${specsHtml}
+                    </div>
+
+                    <p class="find-description">${request.description}</p>
+                    
+                    <a href="${waLink}" target="_blank" class="whatsapp-btn" title="Chat on WhatsApp">
+                        <i class="fab fa-whatsapp"></i> Chat @${username} Now!
+                    </a>
+                </div>
+            `;
+        }
+        
+        /**
+         * Fetches a batch of requests and appends them to the feed.
+         */
+        async function fetchFindRequests(isInitialLoad = false) {
+            // Check if currentUserId is set (means user is logged in)
+            if (!currentUserId && !isInitialLoad) { 
+                 return;
+            }
+
+            if (isInitialLoad) {
+                findFeedContainer.innerHTML = '<p style="color: var(--text-secondary); text-align: center;">Loading requests...</p>';
+                requestOffset = 0;
+                allRequestsLoaded = false;
+            }
+            
+            if (allRequestsLoaded) {
+                 updateLoadMoreButtonState();
+                 return;
+            }
+            
+            if (!isInitialLoad) {
+                 loadMoreButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading...';
+                 loadMoreButton.disabled = true;
+            }
+
+            // Fetch requests, joining with the user table for details
+            const { data: requests, error } = await supabaseClient
+                .from('find_requests') 
+                .select(`
+                    id, find_type, description, whatsapp_number, created_at, user_id, meta_data,
+                    user:users (username, avatar_url, department) 
+                `)
+                .order('created_at', { ascending: false })
+                .range(requestOffset, requestOffset + REQUESTS_PER_PAGE - 1);
+            
+            if (error) { 
+                findFeedContainer.innerHTML = `<p style="color: red; text-align: center;">Error fetching requests: ${error.message}</p>`; 
+                updateLoadMoreButtonState();
+                return;
+            }
+            
+            if (requests.length < REQUESTS_PER_PAGE) {
+                allRequestsLoaded = true;
+            }
+
+            if (isInitialLoad) {
+                findFeedContainer.innerHTML = ''; 
+            }
+
+            if (requests.length === 0 && isInitialLoad) {
+                findFeedContainer.innerHTML = '<p style="color: var(--text-secondary); text-align: center;">Be the first to post a finding request!</p>';
+            } else {
+                requests.forEach(request => {
+                    findFeedContainer.insertAdjacentHTML('beforeend', renderFindCard(request));
+                });
+            }
+
+            if (requests.length > 0) {
+                requestOffset += requests.length;
+            }
+            
+            updateLoadMoreButtonState();
+        }
+        
+        /**
+         * Handles the click on the "Load More" button.
+         */
+        function loadNextPage() {
+            fetchFindRequests(false);
+        }
+
+        /**
+         * Manages the visibility and state of the Load More button.
+         */
+        function updateLoadMoreButtonState() {
+            if (!loadMoreButton) return;
+            
+            if (allRequestsLoaded) {
+                loadMoreButton.style.display = 'none'; 
+                if (!document.getElementById('end-of-find-feed')) {
+                    const endMsg = document.createElement('p');
+                    endMsg.id = 'end-of-find-feed';
+                    endMsg.textContent = 'You have reached the end of the finding feed.';
+                    endMsg.style.cssText = 'text-align: center; color: var(--text-secondary); margin-top: 20px;';
+                    findFeedContainer.insertAdjacentElement('afterend', endMsg); 
+                }
+            } else {
+                loadMoreButton.style.display = 'block';
+                loadMoreButton.innerHTML = 'Load More Requests';
+                loadMoreButton.disabled = false;
+                const endMsg = document.getElementById('end-of-find-feed');
+                if (endMsg) endMsg.remove();
+            }
+        }
+        
+        // =================================================================================
+        // --- POST DELETION LOGIC ---
+        // =================================================================================
+        
+        async function deleteFindRequest(requestId) {
+            if (!currentUserId) {
+                alert("You must be logged in to delete posts.");
+                return;
+            }
+            
+            if (!confirm("Are you sure you want to delete this finding request? This cannot be undone.")) {
+                return;
+            }
+
+            const card = document.querySelector(`.find-card[data-request-id="${requestId}"]`);
+            if (card) {
+                card.style.opacity = 0.5;
+                card.style.pointerEvents = 'none';
+            }
+            
+            // 1. Delete from find_requests table (RLS should ensure only poster can delete)
+            const { error: findError } = await supabaseClient
+                .from('find_requests')
+                .delete()
+                .eq('id', requestId)
+                .eq('user_id', currentUserId); // Crucial security check
+
+            if (findError) {
+                alert(`Error deleting request: ${findError.message}`);
+                if (card) {
+                    card.style.opacity = 1;
+                    card.style.pointerEvents = 'auto';
+                }
+                console.error('Delete Find Request Error:', findError);
+                return;
+            }
+
+            // 2. Optionally, delete the corresponding post from the main 'messages' feed
+            const { data: messageData } = await supabaseClient
+                 .from('messages')
+                 .select('id')
+                 .contains('meta_data', { find_request_id: requestId })
+                 .single();
+            
+            if (messageData) {
+                await supabaseClient.from('messages').delete().eq('id', messageData.id);
+            }
+            
+            // 3. Remove from UI and show success
+            if (card) {
+                card.style.transition = 'opacity 0.3s, transform 0.3s';
+                card.style.opacity = 0;
+                card.style.transform = 'scale(0.9)';
+                setTimeout(() => {
+                    card.remove();
+                    alert("Request successfully deleted.");
+                }, 300);
+            }
+            
+            // Re-check for an empty feed state
+            if (findFeedContainer.children.length === 1) { 
+                 fetchFindRequests(true);
+            }
+        }
+
+        // =================================================================================
+        // --- INITIALIZATION ---
+        // =================================================================================
+        document.addEventListener('DOMContentLoaded', async () => {
+            // 1. User check and setup
+            const user = await checkUserSession();
+            
+            // 2. Attach Event Listeners
+            if (menuToggleBtn) menuToggleBtn.addEventListener('click', toggleMenu);
+            if (menuLogoutLink) menuLogoutLink.addEventListener('click', handleLogout);
+            
+            document.addEventListener('click', (e) => {
+                if (menuSidebar.classList.contains('open') && 
+                    !menuSidebar.contains(e.target) && 
+                    e.target !== menuToggleBtn && 
+                    !menuToggleBtn.contains(e.target)) {
+                    menuSidebar.classList.remove('open');
+                }
+            });
+            
+            findRequestForm.addEventListener('submit', handleFindSubmission);
+            
+            // 3. Dynamic Form Selector Logic
+            findTypeSelector.querySelectorAll('.bubble-btn').forEach(button => {
+                button.addEventListener('click', (e) => {
+                    const selectedType = e.currentTarget.getAttribute('data-type');
+                    
+                    // Update active button state
+                    findTypeSelector.querySelectorAll('.bubble-btn').forEach(btn => 
+                        btn.classList.remove('selected')
+                    );
+                    e.currentTarget.classList.add('selected');
+                    
+                    // Show form and render specific fields
+                    findRequestForm.style.display = 'block';
+                    findTypeInput.value = selectedType;
+                    findStatus.textContent = ''; // Clear status on new selection
+                    renderDynamicFields(selectedType);
+                    
+                    // Only fetch feed if the user is logged in
+                    if (user) {
+                        fetchFindRequests(true); 
+                    }
+                });
+            });
+            
+            // If the user is logged in, load the feed immediately (assuming a default view)
+            if (user) {
+                fetchFindRequests(true); 
+            }
+            
+            // NOTE: Add PWA, Notification, and Chat subscription logic here from feed.html
+        });
+
+    </script>
+</body>
+</html>
