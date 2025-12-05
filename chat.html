@@ -19,6 +19,9 @@
             --text-secondary: #aaaaaa; 
             --border-color: #383838; 
             --shadow-dark: 0 4px 15px rgba(0, 0, 0, 0.5);
+            --mention-highlight: #ffcc00; 
+            --notification-badge: #ff3b30;
+            --mention-color: #00ffff; /* Bright Cyan for mentions */
         }
 
         /* --- Light Mode Definition --- */
@@ -30,6 +33,9 @@
             --text-secondary: #6c757d; 
             --border-color: #e0e6ed; 
             --shadow-dark: 0 4px 15px rgba(0, 0, 0, 0.1);
+            --mention-highlight: #ffeb3b; 
+            --notification-badge: #ff3b30;
+            --mention-color: #007bff; /* Primary color for mentions in light mode */
         }
 
         /* --- Global & Scrollbar --- */
@@ -56,13 +62,34 @@
             font-size: 0.6em; 
             font-weight: 400; 
             opacity: 0.8;
-            margin-top: -3px; /* Pull it closer to the main title */
+            margin-top: -3px; 
         }
         .icon-btn { 
             background: none; border: none; color: white; font-size: 1.6em; cursor: pointer; transition: opacity 0.2s; 
             padding: 0 5px; 
+            position: relative;
         }
         .icon-btn:hover { opacity: 0.8; }
+        
+        /* 🚩 UPDATED: Notification badge in header (Smaller & Stylish) */
+        #globalNotificationBadge {
+            position: absolute;
+            top: 5px;
+            right: 0px;
+            background-color: var(--notification-badge); /* Uses the defined red color */
+            color: white;
+            font-size: 0.65em; /* Smaller font size */
+            font-weight: 700;
+            border-radius: 4px; /* Slightly rounded square */
+            padding: 1px 5px; /* Smaller padding */
+            min-width: 18px; /* Minimum width */
+            text-align: center;
+            line-height: 1.4;
+            transform: translate(30%, -30%); /* Adjusted position */
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.5); /* Subtle shadow */
+        }
+        
+        /* The old #notificationBadge block is now removed/replaced */
 
         /* --- 1. User/Conversation List View (#usersListView) --- */
         #usersListView {
@@ -70,7 +97,27 @@
             margin: 0 auto;
             padding-bottom: 20px;
         }
-
+        .universal-chat-item {
+            background-color: var(--card-bg); 
+            border-top: 2px solid var(--primary-color);
+            position: sticky;
+            top: 59px; 
+            z-index: 50;
+            box-shadow: var(--shadow-dark); 
+            padding: 18px 20px; 
+        }
+        .universal-chat-avatar {
+            background-color: var(--primary-color);
+            color: white;
+            width: 50px; 
+            height: 50px; 
+            border-radius: 50%; 
+            margin-right: 15px;
+            font-size: 24px; 
+            line-height: 50px; 
+            text-align: center;
+            flex-shrink: 0;
+        }
         .section-header {
             padding: 10px 20px 5px;
             margin-top: 20px;
@@ -79,7 +126,6 @@
             border-bottom: 1px solid var(--border-color);
             font-weight: 500;
         }
-        
         .user-item {
             display: flex;
             align-items: center;
@@ -91,14 +137,12 @@
         .user-item:hover {
             background-color: var(--card-bg);
         }
-        
         .user-avatar {
             width: 50px; height: 50px; border-radius: 50%; object-fit: cover; margin-right: 15px;
             font-size: 30px; line-height: 50px; text-align: center;
             background-color: var(--border-color);
             color: var(--text-secondary);
         }
-        
         .user-info {
             flex-grow: 1;
             min-width: 0;
@@ -123,7 +167,6 @@
              font-style: italic;
              color: var(--primary-color);
         }
-        
         .metadata-container {
             display: flex;
             flex-direction: column;
@@ -131,16 +174,13 @@
             margin-left: 10px;
             flex-shrink: 0;
         }
-
         .message-time {
             font-size: 0.75em;
             color: var(--text-secondary);
             margin-bottom: 5px;
         }
-        
-        /* New: Unread Badge */
         .unread-badge {
-            background-color: #ff3b30; /* Red/Alert color */
+            background-color: var(--notification-badge); 
             color: white;
             font-size: 0.7em;
             font-weight: bold;
@@ -192,6 +232,8 @@
             display: flex;
             flex-direction: column;
             gap: 10px;
+            /* 🚩 NEW: Smooth scroll animation */
+            scroll-behavior: smooth; 
         }
         
         /* Message Bubbles */
@@ -201,7 +243,27 @@
             border-radius: 18px;
             line-height: 1.4;
             word-wrap: break-word;
+            position: relative; 
+            cursor: pointer; 
         }
+        .message-bubble:hover {
+            opacity: 0.9;
+        }
+        
+        /* Highlight style for mentions */
+        .message-bubble.mention-highlight {
+            /* Border/shadow for the bubble when the user is mentioned */
+            border: 2px solid var(--mention-highlight);
+            box-shadow: 0 0 10px rgba(255, 204, 0, 0.5);
+        }
+        
+        /* 🚩 NEW: Style for the mentioned text itself (@name) */
+        .message-content em.mention-text {
+            color: var(--mention-color); 
+            font-style: italic; 
+            font-weight: bold; 
+        }
+
         .incoming {
             background-color: var(--card-bg);
             align-self: flex-start;
@@ -213,6 +275,7 @@
             align-self: flex-end;
             border-bottom-right-radius: 5px;
         }
+        
         .message-time-bubble {
             display: block;
             font-size: 0.7em;
@@ -228,15 +291,17 @@
             display: flex;
             flex-shrink: 0;
         }
+
         .chat-input input[type="text"] {
             flex-grow: 1;
             padding: 12px 15px;
-            border-radius: 25px;
+            border-radius: 25px; 
             border: 1px solid var(--border-color);
             background-color: var(--card-bg);
             color: var(--text-color);
             margin-right: 10px;
         }
+        
         .chat-input button {
             background-color: var(--primary-color);
             color: white;
@@ -251,14 +316,14 @@
         }
         
         /* Utility */
-        .hidden { display: none; }
+        .hidden { display: none !important; }
     </style>
 </head>
 <body data-theme="dark">
 
     <header class="header">
         <div class="header-left">
-            <button class="icon-btn" onclick="window.location.href='index.html'" title="Back to Feed">
+            <button class="icon-btn" onclick="window.location.href='feed.html'" title="Back to Feed">
                 <i class="fas fa-arrow-left"></i>
             </button>
             <div style="margin-left: 10px;">
@@ -267,8 +332,9 @@
             </div>
         </div>
         <div class="header-right">
-            <button class="icon-btn" title="Settings">
-                <i class="fas fa-cog"></i>
+            <button class="icon-btn" id="listNotificationBtn" title="Unread Messages">
+                <i class="fas fa-bell"></i>
+                <span id="globalNotificationBadge" class="hidden">0</span>
             </button>
         </div>
     </header>
@@ -310,7 +376,12 @@
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndmaGFpYXNka2ttd2p6cm5kY21pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQxNTE5MDUsImV4cCI6MjA3OTcyNzkwNX0.jTBRJi4lpmbv4R5rxF_CS9GrF5UMVxiIH9Th9frGWWI';
         const REDIRECT_PAGE = 'auth.html'; 
         const PLACEHOLDER_AVATAR = 'https://via.placeholder.com/50/383838/f0f0f0?text=E'; 
-
+        
+        // CONSTANTS FOR UNIVERSAL CHAT
+        const UNIVERSAL_CONVO_ID = '00000000-0000-0000-0000-000000000001'; 
+        const UNIVERSAL_CHAT_USERNAME = 'EksuHub Global Channel'; 
+        const MESSAGE_HISTORY_LIMIT = 50; 
+        
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         
         // --- DOM Elements ---
@@ -323,15 +394,38 @@
         const messageArea = document.getElementById('messageArea');
         const messageInput = document.getElementById('messageInput');
         const sendButton = document.getElementById('sendButton');
+        const globalNotificationBadge = document.getElementById('globalNotificationBadge');
         
         // --- Global State ---
         let currentUserId = null; 
+        let currentUsername = null; 
         let activeConversationId = null;
         let activeRecipientId = null;
-        let activeRecipientUsername = null;
-        let activeRecipientAvatarUrl = null;
-        let activeSubscription = null; 
         
+        let manualRefreshInterval = null; 
+        let lastMessageTimestamp = null; // Track the newest message timestamp for polling filter
+        
+        // Color map for Universal Chat Usernames
+        const colorPalette = [
+            '#FF6347', '#3CB371', '#4682B4', '#FFD700', '#A020F0',
+            '#00CED1', '#FF4500', '#7FFF00', '#DA70D6', '#20B2AA'
+        ];
+        const userColorMap = {}; 
+        
+        function getUsernameColor(userId) {
+            if (!userColorMap[userId]) {
+                const availableColors = colorPalette.filter(color => !Object.values(userColorMap).includes(color));
+                
+                if (availableColors.length === 0) {
+                    userColorMap[userId] = colorPalette[Math.floor(Math.random() * colorPalette.length)];
+                } else {
+                    userColorMap[userId] = availableColors[Math.floor(Math.random() * colorPalette.length)];
+                }
+            }
+            return userColorMap[userId];
+        }
+
+
         // --- UTILITY FUNCTIONS ---
         
         function initializeTheme() {
@@ -346,11 +440,24 @@
                 return null;
             }
             currentUserId = user.id;
+            
+            const { data: userData, error: userError } = await supabaseClient
+                .from('users')
+                .select('username')
+                .eq('id', currentUserId)
+                .single();
+
+            if (userError || !userData) {
+                 console.error("Could not fetch current user's username:", userError);
+                 currentUsername = 'You'; 
+            } else {
+                currentUsername = userData.username;
+            }
+
             return user;
         }
 
         function getCanonicalUserPair(id1, id2) {
-            // Returns the two IDs sorted lexically (required by the 'conversations' table check constraint)
             return id1 < id2 ? { user1: id1, user2: id2 } : { user1: id2, user2: id1 };
         }
         
@@ -358,18 +465,14 @@
             const date = new Date(timestamp);
             const now = new Date();
             if (date.toDateString() === now.toDateString()) {
-                // Today: show time (e.g., 2:30 PM)
                 return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
             } else if (now.getTime() - date.getTime() < 7 * 24 * 60 * 60 * 1000) {
-                 // Within the last week: show weekday (e.g., Mon)
                 return date.toLocaleDateString([], { weekday: 'short' });
             } else {
-                // Older: show date (e.g., 11/20/25)
                 return date.toLocaleDateString([], { month: 'numeric', day: 'numeric', year: '2-digit' });
             }
         }
         
-        // Fisher-Yates shuffle for randomization
         function shuffleArray(array) {
             for (let i = array.length - 1; i > 0; i--) {
                 const j = Math.floor(Math.random() * (i + 1));
@@ -377,11 +480,121 @@
             }
         }
 
+        function scrollToBottom() {
+            // CSS scroll-behavior: smooth handles the animation
+            messageArea.scrollTop = messageArea.scrollHeight;
+        }
+
+        function isUserTypingNewContent() {
+            return messageInput.value.trim().length > 0;
+        }
+        
+        // --- POLLING REFRESH FUNCTIONS ---
+        async function unobtrusiveManualRefresh() {
+            if (activeConversationId && chatModal.classList.contains('open')) {
+                const oldScrollTop = messageArea.scrollTop;
+                const oldScrollHeight = messageArea.scrollHeight;
+                
+                // Determine if user is near the bottom (within 20px)
+                const userWasAtBottom = (oldScrollTop + messageArea.clientHeight >= oldScrollHeight - 20);
+
+                const newMessagesArrived = await loadMessages(activeConversationId, true); 
+
+                if (newMessagesArrived) {
+                    if (userWasAtBottom) {
+                        scrollToBottom(); // Scroll smoothly to the new bottom
+                    } else {
+                        // User was reading history, keep their position relative to the new height
+                        messageArea.scrollTop = oldScrollTop + (messageArea.scrollHeight - oldScrollHeight);
+                    }
+                }
+            }
+        }
+        
+        function startManualRefresh() {
+            if (manualRefreshInterval) clearInterval(manualRefreshInterval);
+            manualRefreshInterval = setInterval(unobtrusiveManualRefresh, 3000); // 3 seconds refresh
+        }
+        
+        function stopManualRefresh() {
+            if (manualRefreshInterval) clearInterval(manualRefreshInterval);
+            manualRefreshInterval = null;
+        }
+
+        function setupMessageInputListeners() {
+            sendButton.addEventListener('click', sendMessage);
+            
+            messageInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' && !e.shiftKey) { 
+                    e.preventDefault(); 
+                    if (isUserTypingNewContent()) {
+                       sendMessage();
+                    }
+                }
+            });
+
+            messageInput.addEventListener('input', () => {
+                sendButton.disabled = !isUserTypingNewContent();
+            });
+            
+            // Tap-to-Mention Listener (Delegated to parent area)
+            messageArea.addEventListener('click', (e) => {
+                const bubble = e.target.closest('.message-bubble');
+                if (bubble && bubble.classList.contains('incoming')) {
+                    const senderUsername = bubble.getAttribute('data-sender-username');
+                    if (senderUsername) {
+                        handleTapToMention(senderUsername);
+                    }
+                }
+            });
+        }
+        
+        // --- Handle Tap to Mention ---
+        function handleTapToMention(username) {
+            const mentionText = `@${username} `;
+            let currentInput = messageInput.value.trim();
+            
+            if (currentInput.endsWith(mentionText.trim())) return;
+            
+            if (currentInput.length > 0 && !currentInput.endsWith(' ')) {
+                 currentInput += ' '; 
+            }
+            
+            messageInput.value = currentInput + mentionText;
+            messageInput.focus();
+            sendButton.disabled = false;
+        }
+
 
         // --- PHASE 1: USER LIST VIEW LOGIC ---
+        
+        async function fetchUniversalChatData() {
+             const { data: latestMsg, error: msgError } = await supabaseClient
+                .from('chat_messages')
+                .select(`content, created_at, sender_id, is_read`)
+                .eq('conversation_id', UNIVERSAL_CONVO_ID)
+                .order('created_at', { ascending: false })
+                .limit(1)
+                .maybeSingle();
+
+            if (msgError) console.warn('Could not fetch Universal Chat latest message:', msgError);
+            
+            const { count: unreadCount, error: countError } = await supabaseClient
+                .from('chat_messages')
+                .select('*', { count: 'exact', head: true })
+                .eq('conversation_id', UNIVERSAL_CONVO_ID)
+                .eq('is_read', false)
+                .neq('sender_id', currentUserId); 
+
+            if (countError) console.warn('Could not fetch Universal Chat unread count:', countError);
+
+            return { latestMsg, unreadCount: unreadCount || 0 };
+        }
+
 
         async function fetchAllUsersAndConversations() {
-            // 1. Fetch all users
+            const universalData = await fetchUniversalChatData();
+            
             const { data: allUsers, error: userError } = await supabaseClient
                 .from('users')
                 .select('id, username, avatar_url')
@@ -394,7 +607,6 @@
                 return;
             }
 
-            // 2. Fetch all messages to calculate unread counts and latest preview
             const { data: allMessages, error: msgError } = await supabaseClient
                 .from('chat_messages')
                 .select(`
@@ -405,19 +617,19 @@
                     conversation_id,
                     conversation:conversations(user1_id, user2_id)
                 `)
+                .neq('conversation_id', UNIVERSAL_CONVO_ID) 
                 .order('created_at', { ascending: false });
 
             if (msgError) console.warn('Could not fetch messages for preview/counts:', msgError);
 
-            const conversationDataMap = {}; // Will hold latest message and unread count per convo ID
+            const conversationDataMap = {}; 
+            let totalUnreadCount = universalData.unreadCount;
 
             if (allMessages) {
-                // Group and process messages
                 for (const msg of allMessages) {
                     const convoId = msg.conversation_id;
                     
                     if (!conversationDataMap[convoId]) {
-                        // This is the latest message found for this conversation ID
                         conversationDataMap[convoId] = {
                             convoId: convoId,
                             latestMsg: {
@@ -432,25 +644,68 @@
                         };
                     }
 
-                    // Calculate unread count (only count incoming unread messages)
                     if (!msg.is_read && msg.sender_id !== currentUserId) {
                         conversationDataMap[convoId].unreadCount++;
+                        totalUnreadCount++;
                     }
                 }
             }
+            
+            updateGlobalNotification(totalUnreadCount);
 
-            renderUsersList(allUsers, conversationDataMap);
+            renderUsersList(allUsers, conversationDataMap, universalData);
+        }
+        
+        function updateGlobalNotification(count) {
+            if (count > 0) {
+                globalNotificationBadge.textContent = count > 99 ? '99+' : count;
+                globalNotificationBadge.classList.remove('hidden');
+            } else {
+                globalNotificationBadge.classList.add('hidden');
+            }
         }
 
-        function renderUsersList(users, conversationDataMap) {
+
+        function renderUsersList(users, conversationDataMap, universalData) {
             usersListView.innerHTML = '';
             listStatus.classList.add('hidden');
 
-            if (users.length === 0) {
-                usersListView.innerHTML = '<p style="text-align: center; color: var(--text-secondary); padding: 20px;">No other users found on the platform.</p>';
-                return;
+            // --- A. Render Universal Chat Item ---
+            const universalItem = document.createElement('div');
+            universalItem.className = 'user-item universal-chat-item';
+            universalItem.setAttribute('data-recipient-id', 'universal'); 
+            
+            const uLastMsg = universalData.latestMsg;
+            const uUnreadCount = universalData.unreadCount;
+            
+            let uPreviewText = 'Welcome! Say hello to the community.';
+            if (uLastMsg) {
+                uPreviewText = (uLastMsg.sender_id === currentUserId ? 'You: ' : '') + uLastMsg.content.replace(/\n/g, ' ');
             }
+            
+            const uTimeText = uLastMsg ? formatTime(uLastMsg.created_at) : '';
 
+            universalItem.innerHTML = `
+                <div class="universal-chat-avatar"><i class="fas fa-globe"></i></div>
+                <div class="user-info">
+                    <strong>${UNIVERSAL_CHAT_USERNAME}</strong>
+                    <span class="last-message">${uPreviewText}</span>
+                </div>
+                <div class="metadata-container">
+                    <span class="message-time">${uTimeText}</span>
+                    ${uUnreadCount > 0 ? `<span class="unread-badge">${uUnreadCount}</span>` : ''}
+                </div>
+            `;
+            
+            universalItem.addEventListener('click', () => {
+                openChatModal(UNIVERSAL_CONVO_ID, 'UNIVERSAL_CHAT_RECIPIENT', UNIVERSAL_CHAT_USERNAME, null); 
+            });
+
+            usersListView.appendChild(universalItem);
+
+
+            // --- B. Render Private Chats ---
+            
             const existingChats = [];
             const newChats = [];
 
@@ -458,7 +713,6 @@
                 
                 let convoData = null;
                 
-                // Find the associated conversation data using user IDs
                 for (const id in conversationDataMap) {
                     const data = conversationDataMap[id];
                     if ((data.user1_id === user.id && data.user2_id === currentUserId) || 
@@ -468,7 +722,6 @@
                     }
                 }
 
-                // Avatar and Placeholder Logic
                 let avatarHtml;
                 if (user.avatar_url) {
                     avatarHtml = `<img src="${user.avatar_url}" class="user-avatar" alt="${user.username}'s avatar" onerror="this.onerror=null; this.src='${PLACEHOLDER_AVATAR}'">`;
@@ -482,10 +735,9 @@
                 
                 
                 if (convoData) {
-                    // --- Existing Chat Logic ---
-                    
                     const lastMsg = convoData.latestMsg;
-                    const previewText = (lastMsg.sender_id === currentUserId ? 'You: ' : '') + lastMsg.content; 
+                    
+                    const finalPreviewText = (lastMsg.sender_id === currentUserId ? 'You: ' : '') + lastMsg.content.replace(/\n/g, ' '); 
                     const timeText = formatTime(lastMsg.created_at);
                     const unreadCount = convoData.unreadCount;
                     
@@ -493,7 +745,7 @@
                         ${avatarHtml}
                         <div class="user-info">
                             <strong>@${user.username}</strong>
-                            <span class="last-message">${previewText}</span>
+                            <span class="last-message">${finalPreviewText}</span>
                         </div>
                         <div class="metadata-container">
                             <span class="message-time">${timeText}</span>
@@ -508,7 +760,6 @@
                     });
 
                 } else {
-                    // --- New Chat Logic ---
                     item.innerHTML = `
                         ${avatarHtml}
                         <div class="user-info">
@@ -521,41 +772,33 @@
                 }
                 
                 item.addEventListener('click', () => {
-                    // Convo ID is available in the object for existing chats, or null for new ones
                     const idToPass = convoData ? convoData.convoId : null; 
                     openChatModal(idToPass, user.id, user.username, user.avatar_url);
                 });
             });
             
-            // 3. Sorting & Rendering
-
-            // Sort existing chats by last message time (descending)
             existingChats.sort((a, b) => b.lastMsgTime - a.lastMsgTime);
-            
-            // Randomize new chats
             shuffleArray(newChats);
 
-            // Add Header for Existing Chats
             if (existingChats.length > 0) {
                 const headerExisting = document.createElement('div');
                 headerExisting.className = 'section-header';
-                headerExisting.textContent = 'Existing Chats';
+                headerExisting.textContent = 'Private Chats';
                 usersListView.appendChild(headerExisting);
                 existingChats.forEach(item => usersListView.appendChild(item.element));
             }
 
-            // Add Header for New Chats
             if (newChats.length > 0) {
                 const headerNew = document.createElement('div');
                 headerNew.className = 'section-header';
-                headerNew.textContent = 'Start a New Chat';
+                headerNew.textContent = 'Start a New Private Chat';
                 usersListView.appendChild(headerNew);
                 newChats.forEach(item => usersListView.appendChild(item.element));
             }
         }
 
 
-        // --- PHASE 2: FULL-SCREEN CHAT MODAL LOGIC (Modified to Mark Read) ---
+        // --- PHASE 2: FULL-SCREEN CHAT MODAL LOGIC ---
 
         async function getOrCreateConversation(recipientId) {
             
@@ -567,7 +810,6 @@
 
             const { user1, user2 } = getCanonicalUserPair(currentUserId, recipientId);
             
-            // 1. Check for existing conversation
             const { data: convo, error } = await supabaseClient
                 .from('conversations')
                 .select('id')
@@ -584,7 +826,6 @@
                 return convo.id;
             }
 
-            // 2. If not found, create a new one
             const { data: newConvo, error: createError } = await supabaseClient
                 .from('conversations')
                 .insert([{ user1_id: user1, user2_id: user2 }])
@@ -603,187 +844,288 @@
 
         async function openChatModal(existingConvoId, recipientId, username, avatarUrl) {
             
-            // 1. Get or Create Conversation ID
             let convoId = existingConvoId;
-            if (!convoId) {
+            let isUniversalChat = (convoId === UNIVERSAL_CONVO_ID);
+
+            if (!convoId && !isUniversalChat) {
                 convoId = await getOrCreateConversation(recipientId);
                 if (!convoId) {
                     return;
                 }
             }
 
-            // 2. Set Global State
+            lastMessageTimestamp = null; 
             activeConversationId = convoId;
-            activeRecipientId = recipientId;
-            activeRecipientUsername = username;
-            activeRecipientAvatarUrl = avatarUrl;
-
-            // 3. Update Modal Header & Show Modal
+            activeRecipientId = recipientId; 
+            
             chatHeaderUsername.textContent = `@${username}`;
-            chatHeaderAvatar.src = avatarUrl || PLACEHOLDER_AVATAR;
-            chatHeaderAvatar.classList.toggle('fa-user-circle', !avatarUrl);
-            chatHeaderAvatar.src = avatarUrl || '';
+            
+            if (isUniversalChat) {
+                chatHeaderAvatar.classList.remove('user-avatar');
+                chatHeaderAvatar.className = 'universal-chat-avatar'; 
+                chatHeaderAvatar.innerHTML = '<i class="fas fa-globe"></i>';
+                chatHeaderAvatar.src = ''; 
+            } else {
+                chatHeaderAvatar.classList.remove('universal-chat-avatar');
+                chatHeaderAvatar.className = 'user-avatar';
+                chatHeaderAvatar.src = avatarUrl || PLACEHOLDER_AVATAR;
+                chatHeaderAvatar.classList.toggle('fa-user-circle', !avatarUrl);
+                chatHeaderAvatar.src = avatarUrl || '';
+                chatHeaderAvatar.innerHTML = ''; 
+            }
 
             chatModal.classList.remove('hidden');
             chatModal.classList.add('open');
             document.body.style.overflow = 'hidden'; 
             
-            // 4. Load Messages, Setup Real-time, and MARK MESSAGES AS READ
-            await loadMessagesAndSetupRealtime(convoId);
+            // 1. Load messages history (will set the initial lastMessageTimestamp and scroll)
+            await loadMessages(convoId);
+            
+            // 2. Start Polling Refresh
+            startManualRefresh();
 
             messageInput.disabled = false;
-            sendButton.disabled = false;
+            sendButton.disabled = !isUserTypingNewContent(); 
             messageInput.focus();
-            
-            // NOTE: If you implemented the PG function, call it here:
-            // await markMessagesAsRead(convoId, currentUserId);
-            
-            // Since we don't have a PG function yet, we will just visually clear the counter.
         }
 
-        async function loadMessagesAndSetupRealtime(convoId) {
-            messageArea.innerHTML = '<p style="text-align: center; color: var(--text-secondary); margin-top: 20px;">Loading messages...</p>';
-
-            // Cleanup previous subscription
-            if (activeSubscription) {
-                supabaseClient.removeChannel(activeSubscription);
-            }
-
-            // Fetch and Render Messages
-            const { data: messages, error } = await supabaseClient
+        /**
+         * Loads messages using time-based filtering during polling, or limits results 
+         * during initial load.
+         */
+        async function loadMessages(convoId, isPolling = false) {
+            
+            let query = supabaseClient
                 .from('chat_messages')
-                .select('*')
+                .select(`*, sender:users(username)`) 
                 .eq('conversation_id', convoId)
-                .order('created_at', { ascending: true })
-                .limit(50); 
+                .order('created_at', { ascending: true });
+
+            if (isPolling && lastMessageTimestamp) {
+                // If polling, fetch only messages newer than the last displayed one
+                query = query.gt('created_at', lastMessageTimestamp); 
+            } else if (!isPolling) {
+                // Initial load: fetch the latest MESSAGE_HISTORY_LIMIT messages
+                query = query.limit(MESSAGE_HISTORY_LIMIT); 
+            }
+                
+            const { data: messages, error } = await query;
 
             if (error) {
-                messageArea.innerHTML = `<p style="text-align: center; color: red;">Error loading history: ${error.message}</p>`;
-                return;
+                if (!isPolling) {
+                   messageArea.innerHTML = `<p style="text-align: center; color: red;">Error loading history: ${error.message}.</p>`;
+                }
+                return false; 
             }
             
-            messageArea.innerHTML = '';
-            messages.forEach(msg => {
-                renderMessage(msg, msg.sender_id === currentUserId);
-            });
-            scrollToBottom();
+            if (messages.length === 0 && isPolling) {
+                return false; 
+            }
+            
+            const newestMessageTimestamp = messages.length > 0 ? messages[messages.length - 1].created_at : null;
 
-            // *** MARK MESSAGES AS READ (Client-side implementation) ***
-            // This attempts to mark all incoming, unread messages in this conversation as read
-            const { error: readError } = await supabaseClient
+            // --- Rendering Logic ---
+            
+            if (!isPolling) {
+                messageArea.innerHTML = ''; 
+            }
+            
+            const isUniversalChat = (convoId === UNIVERSAL_CONVO_ID);
+            
+            if (!isPolling && isUniversalChat) {
+                Object.keys(userColorMap).forEach(key => delete userColorMap[key]); 
+                const uniqueSenders = [...new Set(messages.map(m => m.sender_id))];
+                uniqueSenders.forEach(id => getUsernameColor(id));
+            }
+
+            messages.forEach(msg => {
+                // Only append messages if they don't already exist
+                if (!document.querySelector(`[data-message-id="${msg.id}"]`)) {
+                    const senderName = msg.sender?.username || 'Unknown User'; 
+                    renderMessage(msg, msg.sender_id === currentUserId, senderName, isUniversalChat);
+                }
+            });
+
+            // Update the timestamp after successful rendering
+            if (newestMessageTimestamp) {
+                 lastMessageTimestamp = newestMessageTimestamp;
+            }
+
+            // Scroll is handled by CSS smooth scroll behavior
+            if (!isPolling) {
+                // Only scroll immediately on initial load
+                scrollToBottom();
+            }
+
+            // Mark messages as read and update local UI badges
+            await markMessagesAsRead(convoId);
+            
+            const recipientIdCheck = (convoId === UNIVERSAL_CONVO_ID) ? 'universal' : activeRecipientId;
+            const listItem = document.querySelector(`.user-item[data-recipient-id="${recipientIdCheck}"]`);
+            if (listItem) {
+                const badge = listItem.querySelector('.unread-badge');
+                if (badge) badge.remove();
+            }
+
+            // 🚩 FIX: Removed the immediate call to fetchAllUsersAndConversations here.
+            // The list update (and global badge check) now only runs on modal close or message send.
+
+            return true; // Indicate that new messages were found and processed
+        }
+
+
+        async function markMessagesAsRead(convoId) {
+            await supabaseClient
                 .from('chat_messages')
                 .update({ is_read: true })
                 .eq('conversation_id', convoId)
                 .eq('is_read', false)
-                .neq('sender_id', currentUserId); // Only mark messages SENT TO us as read
-
-            if (readError) {
-                console.error("Failed to mark messages as read:", readError);
-            }
-            // --- End Mark Read ---
-            
-            // Setup Realtime Subscription
-            activeSubscription = supabaseClient.channel(`chat:${convoId}`)
-                .on(
-                    'postgres_changes',
-                    { 
-                        event: 'INSERT', 
-                        schema: 'public', 
-                        table: 'chat_messages',
-                        filter: `conversation_id=eq.${convoId}`
-                    },
-                    (payload) => {
-                        const newMessage = payload.new;
-                        if (newMessage.sender_id !== currentUserId) {
-                           renderMessage(newMessage, false);
-                           scrollToBottom();
-                           
-                           // Optimistically mark the newly arrived message as read
-                           supabaseClient.from('chat_messages')
-                                .update({ is_read: true })
-                                .eq('id', newMessage.id)
-                                .then(result => {
-                                    if (result.error) console.error("Realtime read mark failed:", result.error);
-                                });
-                        }
-                    }
-                )
-                .subscribe();
+                .neq('sender_id', currentUserId); 
         }
 
 
-        // --- MESSAGE RENDERING & SENDING ---
+        // --- MESSAGE RENDERING AND MENTION LOGIC ---
 
-        function renderMessage(message, isOutgoing) {
-            const bubble = document.createElement('div');
-            bubble.className = `message-bubble ${isOutgoing ? 'outgoing' : 'incoming'}`;
+        function checkAndFormatMentions(content) {
+            if (!currentUsername) return { html: content, mentioned: false };
             
-            const content = document.createTextNode(message.content);
+            const escapedUsername = currentUsername.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            const mentionRegex = new RegExp(`@${escapedUsername}\\b`, 'gi');
+            
+            let mentioned = mentionRegex.test(content);
+
+            // 🚩 FIX: Use <em class="mention-text"> for italics and color styling
+            const replacementText = '<em class="mention-text">$&</em>';
+            
+            const html = content.replace(mentionRegex, replacementText);
+
+            return { html: html.replace(/\n/g, '<br>'), mentioned };
+        }
+
+
+        function renderMessage(message, isOutgoing, senderUsername, isUniversalChat) {
+            
+            const bubble = document.createElement('div');
+            // Use the database message ID for correct tracking during polling
+            bubble.setAttribute('data-message-id', message.id); 
+            
+            bubble.className = `message-bubble ${isOutgoing ? 'outgoing' : 'incoming'}`;
+            bubble.setAttribute('data-sender-username', senderUsername); 
+            bubble.style.marginBottom = '5px'; 
+            
+            // --- 1. Sender Username (Universal Chat) ---
+            if (!isOutgoing && isUniversalChat) {
+                const usernameSpan = document.createElement('span');
+                usernameSpan.textContent = `@${senderUsername}`;
+                usernameSpan.style.cssText = `
+                    font-weight: bold;
+                    display: block;
+                    margin-left: 10px;
+                    margin-bottom: 3px;
+                    color: ${getUsernameColor(message.sender_id)};
+                `;
+                messageArea.appendChild(usernameSpan);
+            }
+            
+            // --- 2. Content and Mention Highlighting ---
+            const content = document.createElement('p');
+            content.className = 'message-content';
+            content.style.margin = '0';
+
+            const { html: formattedContent, mentioned } = checkAndFormatMentions(message.content);
+            content.innerHTML = formattedContent; 
+            
+            if (mentioned && !isOutgoing) {
+                bubble.classList.add('mention-highlight');
+            }
+
+            // --- 3. Append Time ---
             const time = document.createElement('span');
             time.className = 'message-time-bubble';
             time.textContent = formatTime(message.created_at);
             
             bubble.appendChild(content);
             bubble.appendChild(time);
-            messageArea.appendChild(bubble);
+            messageArea.appendChild(bubble); 
+
+            // --- 4. Alignment ---
+            if (isOutgoing) {
+                bubble.style.alignSelf = 'flex-end';
+            } else {
+                bubble.style.alignSelf = 'flex-start';
+            }
         }
 
-        function scrollToBottom() {
-            messageArea.scrollTop = messageArea.scrollHeight;
-        }
 
         async function sendMessage() {
-            const content = messageInput.value.trim();
-            if (!content || !activeConversationId || !currentUserId) return;
+            let userMessage = messageInput.value.trim();
             
-            messageInput.value = ''; 
-            messageInput.focus();
+            if (!userMessage || !activeConversationId || !currentUserId) return;
             
-            // 1. Optimistic Render
+            sendButton.disabled = true; 
+
+            // Optimistic Render
+            const tempId = 'temp-' + Date.now();
             const tempMessage = {
-                content: content,
+                id: tempId, 
+                content: userMessage, 
                 created_at: new Date().toISOString(),
                 sender_id: currentUserId,
-                is_read: true // Assume sender has read their own message
+                is_read: true, 
             };
-            renderMessage(tempMessage, true);
+            
+            renderMessage(tempMessage, true, 'You', activeConversationId === UNIVERSAL_CONVO_ID); 
             scrollToBottom();
-
-            // 2. Database Insert
-            const { error } = await supabaseClient
+            messageInput.value = ''; 
+            
+            const insertData = {
+                conversation_id: activeConversationId,
+                sender_id: currentUserId,
+                content: userMessage, 
+            };
+            
+            const { error, data } = await supabaseClient
                 .from('chat_messages')
-                .insert({
-                    conversation_id: activeConversationId,
-                    sender_id: currentUserId,
-                    content: content
-                });
+                .insert(insertData)
+                .select('id, created_at')
+                .single();
                 
             if (error) {
                 console.error('Error sending message:', error);
                 alert('Failed to send message due to a server error.');
+            } else if (data) {
+                // Replace temp ID with real ID for polling to work correctly
+                const tempBubble = document.querySelector(`[data-message-id="${tempId}"]`);
+                if (tempBubble) {
+                    tempBubble.setAttribute('data-message-id', data.id);
+                }
+                // Update the last message timestamp immediately after sending
+                lastMessageTimestamp = data.created_at;
             }
             
-            // 3. Re-render list to update preview
-            setTimeout(fetchAllUsersAndConversations, 500);
+            setTimeout(fetchAllUsersAndConversations, 500); 
         }
 
         // --- BACK BUTTON LOGIC ---
         function closeChatModal() {
-            if (activeSubscription) {
-                supabaseClient.removeChannel(activeSubscription);
-            }
+            stopManualRefresh(); 
+            
             activeConversationId = null;
             activeRecipientId = null;
+            lastMessageTimestamp = null; 
 
             chatModal.classList.remove('open');
             document.body.style.overflow = ''; 
             
+            chatHeaderAvatar.className = 'user-avatar';
+            chatHeaderAvatar.innerHTML = '';
+
             setTimeout(() => {
                 chatModal.classList.add('hidden');
             }, 300);
             
-            // Re-fetch list to clear unread counts and ensure sorting is accurate
-            fetchAllUsersAndConversations();
+            // 🚩 FIX: Call to refresh list to update global badge after read status propagation
+            fetchAllUsersAndConversations(); 
         }
 
         // --- Initialization ---
@@ -794,13 +1136,7 @@
             if (user) {
                 await fetchAllUsersAndConversations();
                 
-                // Event Listeners
-                sendButton.addEventListener('click', sendMessage);
-                messageInput.addEventListener('keydown', (e) => {
-                    if (e.key === 'Enter') {
-                        sendMessage();
-                    }
-                });
+                setupMessageInputListeners(); 
                 
                 backToUsersListBtn.addEventListener('click', closeChatModal);
             }
