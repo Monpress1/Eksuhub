@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -69,8 +70,9 @@
         /* 3. LOGO AND ICON (Wing Placeholder) */
         /* ==================== */
         .logo-container {
-            margin-bottom: 50px;
+            margin-bottom: 5px;
             width: 100px;
+            margin-top:-30px;
             height: 100px;
             flex-shrink: 0; /* Prevent logo from shrinking */
         }
@@ -167,7 +169,7 @@
         input[type="submit"] { 
             width: 100%;
             padding: 15px;
-            margin-top: 50px; 
+            margin-top: 50px; /* Default margin for both Log In and Sign Up */
             background: var(--button-bg); 
             color: var(--button-text-color); 
             font-size: 1.1em;
@@ -179,6 +181,12 @@
             transition: opacity 0.3s, transform 0.2s;
             flex-shrink: 0;
         }
+        
+        /* ⭐ ADJUSTMENT: Move the Sign Up button up by reducing its top margin ⭐ */
+        #registrationForm input[type="submit"] {
+            margin-top: 30px; /* Reduced margin for the registration button */
+        }
+        
         input[type="submit"]:hover {
             opacity: 0.9;
             transform: translateY(-1px);
@@ -293,7 +301,7 @@
     </style>
 </head>
 <body>
-    <h1 style="font-family:fantasy;">EKSUHUB 2.0</h1>
+    <h1 style="font-family:fantasy; font-size:30px;">EKSUHUB 2.0</h1>
     <div class="auth-container">
         
         <div class="logo-container">
@@ -394,7 +402,7 @@
             <a href="#">terms of service</a><br><br>
         </div>
     </div>
-<br><br>
+<br><br> <br>...
     <script>
         // ====================================================================================
         // 1. SUPABASE AUTH LOGIC (MODIFIED FOR NEW ELEMENTS)
