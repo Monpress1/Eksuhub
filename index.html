@@ -1672,6 +1672,17 @@
 
 
     </script> 
+<!-- OneSignal SDK -->
+<script src="https://cdn.onesignal.com/sdks/OneSignalSDK.js" defer></script>
 
+<script>
+  window.OneSignal = window.OneSignal || [];
+  OneSignal.push(function() {
+    OneSignal.init({
+      appId: "a54e24ae-ba35-4c93-8057-3b754a5d59ea",
+      notifyButton: { enable: true }
+    });
+  });
+</script>
 </body>
 </html>
