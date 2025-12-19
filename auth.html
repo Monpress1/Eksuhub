@@ -1,588 +1,278 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EksuHub Auth - Minimal Design</title>
+    <title>EksuHub Auth 2.0</title>
     
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
     <style>
-        /* ==================== */
-        /* 1. COLOR & VARIABLES (Minimal Dark Theme) */
-        /* ==================== */
         :root {
-            --primary-light: #6a6ee0; /* Light Purple for accent */
-            --primary-dark: #2a3170;  /* Dark Blue/Purple for gradient */
-            --background-dark: #20242b; /* Primary background color */
+            --primary-light: #6a6ee0;
+            --background-dark: #20242b;
             --input-line-color: #6d6d6d;
             --input-text-color: #ffffff;
-            --button-bg: linear-gradient(90deg, #4d5af0, #6a6ee0); /* Purple/Blue gradient for button */
-            --button-text-color: #f0f0f0;
-            --button-disabled-color: #353c48;
-            --link-color: #92b4f9; /* Soft blue for links */
-            --header-logo-color: #a370ff; /* Purple for logo/icon */
-            --wave-color-bottom: #32d6a7; /* Teal for the bottom wave */
+            --button-bg: linear-gradient(90deg, #4d5af0, #6a6ee0);
+            --link-color: #92b4f9;
         }
 
-        /* ==================== */
-        /* 2. BASE STYLES & LAYOUT (Full Screen) */
-        /* ==================== */
         body { 
             font-family: 'IBM Plex Sans', sans-serif; 
             background: var(--background-dark);
-            margin: 0;
-            padding: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-            color: var(--input-text-color);
-            overflow: hidden; 
-            position: relative; 
+            margin: 0; padding: 0;
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            min-height: 100vh; color: var(--input-text-color);
+            overflow: hidden; position: relative; 
         }
         
-        /* The Card Container: Now a Flex Container for vertical layout */
         .auth-container {
-            /* Full dark background gradient to mimic the image */
             background: linear-gradient(180deg, #262a32 0%, #1e2229 100%);
-            width: 100%;
-            max-width: 400px; 
-            height: 100vh;
-            padding: 50px 30px; 
-            box-sizing: border-box;
-            
-            /* ADDED: Use Flexbox to manage vertical space */
-            display: flex;
-            flex-direction: column; 
-            align-items: center;
-            
-            position: relative; 
-            z-index: 10;
+            width: 100%; max-width: 400px; height: 100vh;
+            padding: 40px 25px; box-sizing: border-box;
+            display: flex; flex-direction: column; align-items: center;
+            position: relative; z-index: 10;
         }
 
-        /* ==================== */
-        /* 3. LOGO AND ICON (Wing Placeholder) */
-        /* ==================== */
-        .logo-container {
-            margin-bottom: 5px;
-            width: 100px;
-            margin-top:-30px;
-            height: 100px;
-            flex-shrink: 0; /* Prevent logo from shrinking */
+        /* --- LOADER OVERLAY --- */
+        #loader-overlay {
+            display: none;
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(32, 36, 43, 0.9);
+            z-index: 1000; justify-content: center; align-items: center;
         }
+        .spinner {
+            width: 50px; height: 50px;
+            border: 5px solid rgba(255, 255, 255, 0.1);
+            border-left-color: var(--primary-light);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
 
-        /* SVG Placeholder for the wing logo */
-        .wing-logo {
-            width: 100%;
-            height: 100%;
-            fill: none; 
-        }
-        .wing-logo path:nth-child(1) {
-            fill: #9747FF; /* Purple */
-            opacity: 0.8;
-        }
-        .wing-logo path:nth-child(2) {
-            fill: #4D76FF; /* Blue */
-        }
+        .logo-container { margin-bottom: 5px; width: 80px; height: 80px; flex-shrink: 0; }
+        .wing-logo { width: 100%; height: 100%; }
+        .wing-logo path:nth-child(1) { fill: #9747FF; opacity: 0.8; }
+        .wing-logo path:nth-child(2) { fill: #4D76FF; }
 
-        /* ==================== */
-        /* 4. SCROLLABLE FORM AREA FIX */
-        /* ==================== */
         .form-scroll-area {
-            width: 100%;
-            /* Flex-grow allows this area to consume all available space between logo and footer */
-            flex-grow: 1; 
-            overflow-y: auto; 
-            scrollbar-width: none; /* Firefox */
-            -ms-overflow-style: none; /* IE and Edge */
-            padding-bottom: 20px; 
+            width: 100%; flex-grow: 1; overflow-y: auto; 
+            scrollbar-width: none; padding-bottom: 100px; 
         }
-        .form-scroll-area::-webkit-scrollbar {
-            display: none; /* Chrome, Safari, Opera */
-        }
+        .form-scroll-area::-webkit-scrollbar { display: none; }
         
-        /* Form elements inside the scroll area */
-        form {
-            width: 100%;
-            max-width: 300px; 
-            margin: 0 auto; 
-        }
-        
-        /* Hiding H2 and Toggle as per minimal design */
-        h2, .toggle-group {
-            display: none !important;
-        }
+        form { width: 100%; max-width: 320px; margin: 0 auto; }
 
-        /* Field Container for Icon and Input */
         .input-group {
-            display: flex;
-            align-items: center;
-            margin-bottom: 30px;
-            padding: 0 5px;
-            border-bottom: 1px solid var(--input-line-color);
-            transition: border-bottom 0.3s;
+            display: flex; align-items: center; margin-bottom: 20px;
+            padding: 5px 0; border-bottom: 1px solid var(--input-line-color);
         }
-        .input-group:focus-within {
-            border-bottom: 2px solid var(--primary-light); 
-        }
-
-        .input-group i {
-            color: var(--input-line-color);
-            font-size: 1.2em;
-            width: 30px; 
-            text-align: center;
-            transition: color 0.3s;
-        }
-        .input-group:focus-within i {
-            color: var(--primary-light); 
-        }
-
+        .input-group i { color: var(--input-line-color); width: 30px; text-align: center; }
+        
         input:not([type="submit"]), select { 
-            flex-grow: 1;
-            padding: 10px 0 10px 10px;
-            background: transparent; 
-            color: var(--input-text-color); 
-            border: none;
-            border-radius: 0; 
-            font-size: 1em;
-            outline: none;
+            flex-grow: 1; padding: 10px; background: transparent; 
+            color: white; border: none; font-size: 14px; outline: none;
         }
 
-        /* Styling for the Password field eye icon (if used) */
-        #registrationForm .input-group, #loginForm .input-group {
-            margin-top: 10px;
+        /* --- AVATAR UPLOAD --- */
+        .avatar-upload {
+            display: flex; flex-direction: column; align-items: center; margin-bottom: 20px;
         }
+        .avatar-label {
+            width: 60px; height: 60px; border-radius: 50%;
+            background: #353c48; display: flex; align-items: center;
+            justify-content: center; cursor: pointer; border: 2px dashed var(--input-line-color);
+        }
+        .avatar-label i { font-size: 20px; color: var(--primary-light); }
+        #avatarFile { display: none; }
 
-        /* Placeholder styles to match minimal aesthetic */
-        input::placeholder {
-            color: var(--input-line-color);
-            opacity: 0.7;
-        }
-        
-        /* Submit Button */
+        /* --- TOGGLE SWITCH --- */
+        .toggle-wrapper { display: flex; align-items: center; margin: 20px 0; gap: 12px; }
+        .switch { position: relative; display: inline-block; width: 40px; height: 22px; flex-shrink: 0; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #353c48; transition: .4s; border-radius: 34px; }
+        .slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background: var(--button-bg); }
+        input:checked + .slider:before { transform: translateX(18px); }
+        .toggle-text { font-size: 0.75em; color: var(--input-line-color); }
+
         input[type="submit"] { 
-            width: 100%;
-            padding: 15px;
-            margin-top: 50px; /* Default margin for both Log In and Sign Up */
-            background: var(--button-bg); 
-            color: var(--button-text-color); 
-            font-size: 1.1em;
-            font-weight: 600;
-            border: none;
-            border-radius: 10px;
-            cursor: pointer;
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5), 0 5px 15px rgba(106, 110, 224, 0.4);
-            transition: opacity 0.3s, transform 0.2s;
-            flex-shrink: 0;
-        }
-        
-        /* ⭐ ADJUSTMENT: Move the Sign Up button up by reducing its top margin ⭐ */
-        #registrationForm input[type="submit"] {
-            margin-top: 30px; /* Reduced margin for the registration button */
-        }
-        
-        input[type="submit"]:hover {
-            opacity: 0.9;
-            transform: translateY(-1px);
+            width: 100%; padding: 15px; background: var(--button-bg); 
+            color: white; font-weight: 600; border: none; border-radius: 10px; cursor: pointer;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
         }
 
-        /* Text Links */
-        .forgot-password, .secondary-action {
-            display: block;
-            text-align: center;
-            margin-top: 20px;
-            font-size: 0.9em;
-            color: var(--input-line-color);
-            cursor: pointer;
-        }
-        .forgot-password:hover, .secondary-action:hover {
-            color: var(--link-color);
-        }
+        .secondary-action { display: block; text-align: center; margin-top: 20px; font-size: 0.9em; color: var(--input-line-color); cursor: pointer; }
+        #message { text-align: center; padding: 10px; margin-top: 10px; display: none; font-size: 0.8em; border-radius: 5px; }
+        .error { background: rgba(244, 67, 54, 0.1); color: #f44336; }
+        .success { background: rgba(76, 175, 80, 0.1); color: #4CAF50; }
 
-        /* Hidden/Unused elements from original logic */
-        hr, label, .avatar-upload-container, .top-ui-section {
-            display: none !important;
-        }
-        #message {
-            display: none; /* Hide by default, shown by JS */
-            text-align: center;
-            padding: 10px;
-            margin-top: 20px;
-            border-radius: 8px;
-            font-size: 0.9em;
-        }
-        .success { background-color: rgba(76, 175, 80, 0.2); color: #4CAF50; border: 1px solid #4CAF50; }
-        .error { background-color: rgba(244, 67, 54, 0.2); color: #f44336; border: 1px solid #f44336; }
-
-
-        /* ==================== */
-        /* 5. BOTTOM WAVE AND LEGAL TEXT (Fixed Position) */
-        /* ==================== */
-
-        /* Container for waves */
-        .wave-container {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            height: 100px; 
-            overflow: hidden;
-            pointer-events: none; 
-            flex-shrink: 0; /* Prevent wave from shrinking */
-        }
-        
-        /* Simple Wave (Two layers) */
-        .wave {
-            position: absolute;
-            bottom: 0;
-            width: 200%;
-            height: 100%;
-            animation: wave-motion 10s linear infinite;
-        }
-        .wave:nth-child(1) {
-            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320"><path fill="%232e3344" fill-opacity="1" d="M0,192L48,160C96,128,192,64,288,74.7C384,85,480,171,576,208C672,245,768,235,864,213.3C960,192,1056,160,1152,149.3C1248,139,1344,149,1392,154.7L1440,160L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path></svg>') repeat-x;
-            opacity: 0.4;
-            height: 130px;
-            transform: translate(50%, 0);
-        }
-        .wave:nth-child(2) {
-            background: linear-gradient(90deg, #4d5af0, #6a6ee0, #32d6a7);
-            opacity: 0.8;
-            height: 150px;
-            transform: translate(0%, 0);
-        }
-
-        @keyframes wave-motion {
-            0% { transform: translateX(0) translateY(0); }
-            50% { transform: translateX(-50%) translateY(-5px); }
-            100% { transform: translateX(0) translateY(0); }
-        }
-
-        /* Legal Text */
-        .legal-text {
-            position: absolute;
-            bottom: 30px;
-            font-size: 0.8em;
-            color: #ccc;
-            text-align: center;
-            width: 80%;
-            z-index: 15; 
-            flex-shrink: 0; 
-        }
-        .legal-text a {
-            color: var(--link-color);
-            text-decoration: none;
-            font-weight: 600;
-        }
-
-        /* Styling for the secondary registration fields when they appear */
-        #registrationForm .secondary-fields {
-            margin-top: 30px;
-        }
-        #registrationForm .secondary-fields .input-group {
-            margin-bottom: 20px;
-        }
-        #registrationForm select {
-            width: 100%;
-            margin-bottom: 20px; 
-            padding-left: 10px;
-            border-bottom: 1px solid var(--input-line-color);
-        }
-
-        #registrationForm .toggle-action-text {
-            display: block !important; 
-        }
+        .legal-text { position: absolute; bottom: 20px; font-size: 0.7em; color: #777; text-align: center; width: 80%; }
     </style>
 </head>
 <body>
-    <h1 style="font-family:fantasy; font-size:30px;">EKSUHUB 2.0</h1>
+    <div id="loader-overlay"><div class="spinner"></div></div>
+
+    <h1 style="font-family:fantasy; font-size:26px; margin: 15px 0;">EKSUHUB 2.0</h1>
+    
     <div class="auth-container">
-        
         <div class="logo-container">
-            <svg class="wing-logo" viewBox="0 0 119 123" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <svg class="wing-logo" viewBox="0 0 119 123" fill="none">
                 <path d="M54.5 120.5C54.5 120.5 5.5 106.5 0.5 56.5C-4.5 6.5 60.5 6.5 60.5 6.5C60.5 6.5 83.5 1.5 101.5 12C119.5 22.5 120.5 57.5 119.5 64.5C118.5 71.5 107.5 98.5 87.5 106.5C67.5 114.5 54.5 120.5 54.5 120.5Z" />
                 <path d="M57.5 115C57.5 115 11.5 101 6.5 51C1.5 1 63.5 1 63.5 1C63.5 1 86.5 -4 104.5 6.5C122.5 17 123.5 52 122.5 59C121.5 66 110.5 93 90.5 101C70.5 109 57.5 115 57.5 115Z" />
             </svg>
         </div>
 
         <div class="form-scroll-area">
-        
             <form id="loginForm">
-                <div class="input-group">
-                    <i class="fa-solid fa-user"></i>
-                    <input type="email" id="login_email" placeholder="email@example.com" required>
+                <div class="input-group"><i class="fa-solid fa-envelope"></i><input type="email" id="login_email" placeholder="Email" required></div>
+                <div class="input-group"><i class="fa-solid fa-lock"></i><input type="password" id="login_password" placeholder="Password" required></div>
+                <div class="toggle-wrapper">
+                    <label class="switch"><input type="checkbox" id="login_terms"><span class="slider"></span></label>
+                    <span class="toggle-text">I agree to Terms & Enable Notifications</span>
                 </div>
-
-                <div class="input-group">
-                    <i class="fa-solid fa-lock"></i>
-                    <input type="password" id="login_password" placeholder="••••••••" required>
-                </div>
-                
-                <span class="forgot-password">FORGOT PASSWORD?</span>
-                
                 <input type="submit" value="LOG IN">
-                
-                <span class="secondary-action" id="secondaryActionLogin">Don't have an account? Sign Up</span>
+                <span class="secondary-action" onclick="toggleAuth('signup')">New here? Create Account</span>
             </form>
 
             <form id="registrationForm" style="display: none;">
-                <div class="input-group">
-                    <i class="fa-solid fa-user"></i>
-                    <input type="email" id="signup_email" placeholder="email@example.com" required>
-                </div>
-
-                <div class="input-group">
-                    <i class="fa-solid fa-lock"></i>
-                    <input type="password" id="signup_password" placeholder="••••••••" required>
-                </div>
-
-                <div class="secondary-fields">
-                    <div class="input-group">
-                        <i class="fa-solid fa-tag"></i>
-                        <input type="text" id="username" placeholder="Username (Unique Handle)" required>
-                    </div>
-                    
-                    <div class="input-group">
-                        <i class="fa-solid fa-venus-mars"></i>
-                        <select id="gender" required>
-                            <option value="" disabled selected>Select Gender</option>
-                            <option value="Male">Male</option>
-                            <option value="Female">Female</option>
-                            <option value="Other">Other</option>
-                        </select>
-                    </div>
-
-                    <div class="input-group">
-                        <i class="fa-solid fa-building-columns"></i>
-                        <input type="text" id="faculty" placeholder="Faculty" required>
-                    </div>
-
-                    <div class="input-group">
-                        <i class="fa-solid fa-book"></i>
-                        <input type="text" id="department" placeholder="Department" required>
-                    </div>
-
-                    <div class="input-group">
-                        <i class="fa-solid fa-graduation-cap"></i>
-                        <select id="level" required>
-                            <option value="" disabled selected>Select Academic Level</option>
-                            <option value="100">100</option>
-                            <option value="200">200</option>
-                            <option value="300">300</option>
-                            <option value="400">400</option>
-                            <option value="500">500</option>
-                        </select>
-                    </div>
-                    
+                <div class="avatar-upload">
+                    <label for="avatarFile" class="avatar-label"><i class="fa-solid fa-camera"></i></label>
+                    <span style="font-size: 10px; margin-top: 5px; color: #777;">Upload Photo</span>
                     <input type="file" id="avatarFile" accept="image/*">
                 </div>
 
-                <input type="submit" value="SIGN UP">
+                <div class="input-group"><i class="fa-solid fa-envelope"></i><input type="email" id="signup_email" placeholder="Email" required></div>
+                <div class="input-group"><i class="fa-solid fa-lock"></i><input type="password" id="signup_password" placeholder="Password" required></div>
+                <div class="input-group"><i class="fa-solid fa-at"></i><input type="text" id="username" placeholder="Username" required></div>
                 
-                <span class="secondary-action toggle-action-text" id="secondaryActionSignup">Already have an account? Log In</span>
+                <div class="input-group">
+                    <i class="fa-solid fa-venus-mars"></i>
+                    <select id="gender" required>
+                        <option value="" disabled selected>Gender</option>
+                        <option>Male</option><option>Female</option>
+                    </select>
+                </div>
+
+                <div class="input-group"><i class="fa-solid fa-building"></i><input type="text" id="faculty" placeholder="Faculty" required></div>
+                <div class="input-group"><i class="fa-solid fa-book"></i><input type="text" id="department" placeholder="Department" required></div>
+                
+                <div class="input-group">
+                    <i class="fa-solid fa-graduation-cap"></i>
+                    <select id="level" required>
+                        <option value="" disabled selected>Level</option>
+                        <option>100</option><option>200</option><option>300</option><option>400</option><option>500</option>
+                    </select>
+                </div>
+
+                <div class="toggle-wrapper">
+                    <label class="switch"><input type="checkbox" id="signup_terms"><span class="slider"></span></label>
+                    <span class="toggle-text">I agree to Terms & Enable Notifications</span>
+                </div>
+
+                <input type="submit" value="SIGN UP">
+                <span class="secondary-action" onclick="toggleAuth('login')">Already have an account? Log In</span>
             </form>
-            
             <p id="message"></p>
-        
-        </div>
-        <div class="wave-container">
-            <div class="wave"></div>
-            <div class="wave" style="opacity: 0.6; transform: translate(0, 50px);"></div>
         </div>
 
-        <div class="legal-text">
-            By logging in you agree to our 
-            <a href="#">privacy policy</a> & 
-            <a href="#">terms of service</a><br><br>
-        </div>
+        <div class="legal-text">By continuing you agree to our <a href="#" style="color:var(--link-color)">Privacy Policy</a></div>
     </div>
-<br><br> <br>...
-    <script>
-        // ====================================================================================
-        // 1. SUPABASE AUTH LOGIC (MODIFIED FOR NEW ELEMENTS)
-        // ====================================================================================
 
-        // --- CONFIGURATION: YOUR ACTUAL KEYS INCLUDED ---
+    <script>
         const SUPABASE_URL = 'https://wfhaiasdkkmwjzrndcmi.supabase.co'; 
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndmaGFpYXNka2ttd2p6cm5kY21pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQxNTE5MDUsImV4cCI6MjA3OTcyNzkwNX0.jTBRJi4lpmbv4R5rxF_CS9GrF5UMVxiIH9Th9frGWWI';
-        // ----------------------------------------------------
-
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-        
-        // DOM Elements
-        const loginForm = document.getElementById('loginForm');
-        const registrationForm = document.getElementById('registrationForm');
-        const messageElement = document.getElementById('message');
-        
-        // New secondary action links to replace old toggle buttons
-        const secondaryActionLogin = document.getElementById('secondaryActionLogin');
-        const secondaryActionSignup = document.getElementById('secondaryActionSignup');
-        
-        const avatarFile = document.getElementById('avatarFile');
+        const VAPID_KEY = 'BCsdeMpKPh58L1p16fhaZvmIwyQF9mgp1IRwO39bxSc6qtefudhOlSSgdk5sILLtgUsoEqbNu5NccmCjt_RBkU4';
 
-        const REDIRECT_PAGE = 'index.html'; 
-        
-        // The displayMessage function is updated to show message element when needed
-        function displayMessage(text, isError = false) {
-            messageElement.textContent = text;
-            messageElement.className = isError ? 'error message-visible' : 'success message-visible';
-            messageElement.style.display = 'block'; 
-            
-            setTimeout(() => {
-                messageElement.style.display = 'none'; 
-                messageElement.classList.remove('message-visible');
-            }, 5000); 
-        }
-        
-        function toggleAuthMode(mode) {
-            if (mode === 'login') {
-                loginForm.style.display = 'block';
-                registrationForm.style.display = 'none';
-            } else { 
-                loginForm.style.display = 'none';
-                registrationForm.style.display = 'block';
-            }
-            messageElement.textContent = ''; 
-            messageElement.style.display = 'none';
+        function toggleAuth(mode) {
+            document.getElementById('loginForm').style.display = mode === 'login' ? 'block' : 'none';
+            document.getElementById('registrationForm').style.display = mode === 'signup' ? 'block' : 'none';
         }
 
-        async function uploadAvatar(userId, file) {
-            const fileExt = file.name.split('.').pop();
-            const fileName = `${userId}.${fileExt}`;
-            const filePath = `${userId}/${fileName}`; 
-            const bucketName = 'avatars'; 
+        function showLoader(show) { document.getElementById('loader-overlay').style.display = show ? 'flex' : 'none'; }
 
-            const { data, error } = await supabaseClient.storage
-                .from(bucketName)
-                .upload(filePath, file, {
-                    cacheControl: '3600',
-                    upsert: false 
+        function displayMsg(text, isErr) {
+            const el = document.getElementById('message');
+            el.textContent = text; el.className = isErr ? 'error' : 'success'; el.style.display = 'block';
+        }
+
+        // --- PUSH SYNC ---
+        async function syncPush() {
+            try {
+                const res = await Notification.requestPermission();
+                if(res !== 'granted') return;
+                const reg = await navigator.serviceWorker.register('sw.js');
+                const sub = await reg.pushManager.subscribe({
+                    userVisibleOnly: true,
+                    applicationServerKey: urlBase64ToUint8Array(VAPID_KEY)
                 });
-
-            if (error) {
-                throw new Error(`Storage upload failed: ${error.message}`);
-            }
-
-            const { data: publicUrlData } = supabaseClient.storage
-                .from(bucketName)
-                .getPublicUrl(filePath);
-            
-            return publicUrlData.publicUrl;
+                const { data: { user } } = await supabaseClient.auth.getUser();
+                await supabaseClient.from('push_subscriptions').upsert({
+                    user_id: user?.id,
+                    subscription_json: sub.toJSON()
+                });
+            } catch(e) { console.error(e); }
         }
 
-        async function handleLogin(event) {
-            event.preventDefault();
-            displayMessage('Attempting login...');
+        document.querySelectorAll('input[type="checkbox"]').forEach(t => t.addEventListener('change', e => { if(e.target.checked) syncPush(); }));
 
-            const email = document.getElementById('login_email').value;
-            const password = document.getElementById('login_password').value;
-
+        // --- AUTH LOGIC ---
+        document.getElementById('loginForm').onsubmit = async (e) => {
+            e.preventDefault();
+            if(!document.getElementById('login_terms').checked) return displayMsg("Accept terms first", true);
+            showLoader(true);
             const { error } = await supabaseClient.auth.signInWithPassword({
-                email: email,
-                password: password,
+                email: id('login_email').value, password: id('login_password').value
             });
+            if(error) { showLoader(false); displayMsg(error.message, true); }
+            else window.location.href = 'index.html';
+        };
 
-            if (error) {
-                console.error('Login Error:', error.message);
-                displayMessage(`Login Failed: ${error.message}`, true);
-            } else {
-                displayMessage('Login Successful! Redirecting...', false);
-                setTimeout(() => {
-                    window.location.href = REDIRECT_PAGE; 
-                }, 1000);
-            }
-        }
-
-        async function handleRegistration(event) {
-            event.preventDefault();
-
-            displayMessage('Processing registration...');
-
-            const file = avatarFile.files[0]; 
-            const email = document.getElementById('signup_email').value;
-            const password = document.getElementById('signup_password').value;
-            const username = document.getElementById('username').value;
-            const gender = document.getElementById('gender').value;
-            const faculty = document.getElementById('faculty').value;
-            const department = document.getElementById('department').value;
-            const level = document.getElementById('level').value;
-
-            const { data: authData, error: authError } = await supabaseClient.auth.signUp({
-                email: email,
-                password: password,
-            });
-
-            if (authError) {
-                console.error('Auth Error:', authError.message);
-                displayMessage(`Registration failed (Auth): ${authError.message}`, true);
-                return;
-            }
-
-            const user = authData.user;
-            let avatarUrl = null; 
-
-            if (!user || authData.session === null) {
-                displayMessage("Registration successful! Please check your email to confirm your account, then log in.", false);
-                registrationForm.reset(); 
-                return; 
-            }
+        document.getElementById('registrationForm').onsubmit = async (e) => {
+            e.preventDefault();
+            if(!document.getElementById('signup_terms').checked) return displayMsg("Accept terms first", true);
+            showLoader(true);
             
-            if (file) {
-                try {
-                    displayMessage('Uploading avatar...');
-                    avatarUrl = await uploadAvatar(user.id, file);
-                } catch (e) {
-                    console.error('Avatar Upload Error:', e.message);
-                    displayMessage(`Registration failed during avatar upload: ${e.message}.`, true);
-                    return;
-                }
+            const { data, error: authErr } = await supabaseClient.auth.signUp({
+                email: id('signup_email').value, password: id('signup_password').value
+            });
+
+            if(authErr) { showLoader(false); return displayMsg(authErr.message, true); }
+
+            // Handle Avatar Upload
+            let avatarUrl = null;
+            const file = id('avatarFile').files[0];
+            if(file && data.user) {
+                const path = `${data.user.id}/${Date.now()}_avatar`;
+                await supabaseClient.storage.from('avatars').upload(path, file);
+                avatarUrl = supabaseClient.storage.from('avatars').getPublicUrl(path).data.publicUrl;
             }
 
-            const { error: profileError } = await supabaseClient
-                .from('users')
-                .insert([
-                    {
-                        id: user.id, 
-                        username: username,
-                        gender: gender,
-                        faculty: faculty,
-                        department: department,
-                        level: level,
-                        avatar_url: avatarUrl, 
-                    },
-                ]);
-
-            if (profileError) {
-                console.error('Profile Insertion Error:', profileError.message);
-                displayMessage(`Registration failed (Profile): ${profileError.message}.`, true);
-            } else {
-                displayMessage(`Registration Successful! Welcome, ${username}! Redirecting...`, false);
-                registrationForm.reset(); 
-                
-                setTimeout(() => {
-                    window.location.href = REDIRECT_PAGE; 
-                }, 1000);
+            // Create Profile and Redirect Immediately
+            if(data.user) {
+                await supabaseClient.from('users').insert([{
+                    id: data.user.id, username: id('username').value, gender: id('gender').value,
+                    faculty: id('faculty').value, department: id('department').value, level: id('level').value,
+                    avatar_url: avatarUrl
+                }]);
+                window.location.href = 'index.html';
             }
+        };
+
+        function id(name) { return document.getElementById(name); }
+        function urlBase64ToUint8Array(s) {
+            const pad = '='.repeat((4 - s.length % 4) % 4);
+            const b64 = (s + pad).replace(/-/g, '+').replace(/_/g, '/');
+            const raw = window.atob(b64);
+            const out = new Uint8Array(raw.length);
+            for (let i = 0; i < raw.length; ++i) out[i] = raw.charCodeAt(i);
+            return out;
         }
-
-        // --- Event Listeners ---
-        loginForm.addEventListener('submit', handleLogin);
-        registrationForm.addEventListener('submit', handleRegistration);
-        
-        secondaryActionLogin.addEventListener('click', (e) => { e.preventDefault(); toggleAuthMode('signup'); });
-        secondaryActionSignup.addEventListener('click', (e) => { e.preventDefault(); toggleAuthMode('login'); });
-        
-        document.addEventListener('DOMContentLoaded', () => {
-            toggleAuthMode('login');
-        });
-
-    </script> 
-
+    </script>
 </body>
 </html>

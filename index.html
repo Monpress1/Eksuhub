@@ -1,15 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
-<script>
-  window.OneSignalDeferred = window.OneSignalDeferred || [];
-  OneSignalDeferred.push(async function(OneSignal) {
-    await OneSignal.init({
-      appId: "d0551ffa-5bef-44c4-a74f-0a586ef17795",
-    });
-  });
-</script>
+    
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>EksuHub Feed</title>
@@ -26,16 +18,9 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
-    <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
+  
 
-    <script>
-  window.OneSignalDeferred = window.OneSignalDeferred || [];
-  OneSignalDeferred.push(async function(OneSignal) {
-    await OneSignal.init({
-      appId: "a54e24ae-ba35-4c93-8057-3b754a5d59ea",
-    });
-  });
-</script>
+    
     
     <style>
         /* --- Root Variables: Dark Mode (Default) --- */
@@ -374,12 +359,37 @@
             font-size: 1.1em; font-weight: 700; color: #4CAF50; /* Green for price */
             margin-top: 5px;
         }
+#enableNotifications {
+  background: linear-gradient(135deg, #6e8efb, #a777e3);
+  color: white;
+  padding: 6px 8px;
+  border: none;
+  border-radius: 12px;
+  font-family: 'Inter', sans-serif;
+  font-weight: 600;
+  font-size: 16px;
+  cursor: pointer;
+  box-shadow: 0 4px 15px rgba(110, 142, 251, 0.4);
+  transition: all 0.3s ease;
+  width:130px;
+  height:60px;
+}
+
+#enableNotifications:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(110, 142, 251, 0.6);
+  filter: brightness(1.1);
+}
+
+#enableNotifications:active {
+  transform: translateY(1px);
+}
 
     </style>
 </head>
-    <div class='onesignal-customlink-container'></div>
-<body data-theme="dark">
-<div class='onesignal-customlink-container'></div>
+    
+
+
     <div id="android-prompt-overlay" class="pwa-prompt-overlay">
       <div class="pwa-prompt-content">
         <i class="fab fa-android pwa-icon"></i>
@@ -502,6 +512,35 @@
         <a href="#" id="menuLogoutLink" class="menu-item logout-item" title="Logout">
             <i class="fas fa-sign-out-alt"></i> Logout
         </a>
+        <br><br><br><br><br><br>
+        <button id="enableNotifications">
+  <i class="fa-solid fa-bell"></i> Activate Notifications
+</button>
+
+<script>
+  const notifyBtn = document.getElementById('enableNotifications');
+
+  // 2. Check on page load if it should be hidden
+  if (localStorage.getItem('campusNotificationsEnabled') === 'true') {
+    notifyBtn.style.display = 'none';
+  }
+
+  // 3. The Click Event
+  notifyBtn.addEventListener('click', () => {
+    // Save the choice to local storage
+    localStorage.setItem('campusNotificationsEnabled', 'true');
+    
+    // Optional: Add a nice fade-out effect
+    notifyBtn.style.transition = 'opacity 0.5s ease';
+    notifyBtn.style.opacity = '0';
+    
+    setTimeout(() => {
+      notifyBtn.style.display = 'none';
+      
+    }, 500);
+  });
+</script>
+
     </div>
 
     <div class="main-container">
@@ -567,6 +606,9 @@
         const REDIRECT_PAGE = 'auth.html'; 
 
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        
+        
+
         
         // --- FEED ALGORITHM CONFIGURATION ---
         const FEED_DISTRIBUTION_WEIGHTS = {
@@ -1258,10 +1300,14 @@
                     likeIcon.classList.add('liked'); 
                 }
             }
-            
-            if (error) {
-                console.error('Like action failed:', error);
-                alert('Action failed due to server error. Check console.');
+                        if (error) {
+                // Expanded logging to reveal the hidden object data
+                console.error('Like action failed. Full error object:', error);
+                console.log('Error Message:', error.message);
+                console.log('Error Code:', error.code);
+                console.log('Error Details:', error.details);
+
+                alert('Action failed: ' + (error.message || 'Check console for details.'));
                 likeIcon.classList.toggle('liked', !likeIcon.classList.contains('liked'));
             } else {
                 likeCountSpan.textContent = newCount;
@@ -1273,7 +1319,8 @@
 
             postActionSpan.style.pointerEvents = 'auto';
         }
-        
+
+           
         // --- Comment Functions ---
         function renderExistingComments(comments) {
             if (comments.length === 0) { existingComments.innerHTML = '<p style="text-align: center; color: var(--text-secondary);">No comments yet. Be the first!</p>'; return; }
@@ -1689,10 +1736,82 @@
                 });
             }
         });
+// 1. Helper function (Matches your placement)
+function urlBase64ToUint8Array(base64String) {
+  const padding = '='.repeat((4 - base64String.length % 4) % 4);
+  const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+  const rawData = window.atob(base64);
+  const outputArray = new Uint8Array(rawData.length);
+  for (let i = 0; i < rawData.length; ++i) {
+    outputArray[i] = rawData.charCodeAt(i);
+  }
+  return outputArray;
+}
 
+// 2. Main logic
+document.addEventListener("DOMContentLoaded", () => {
+  const btn = document.getElementById("enableNotifications");
+
+  if (!btn) {
+    console.error("Button with ID 'enableNotifications' not found in HTML!");
+    return;
+  }
+
+  btn.addEventListener("click", async () => {
+    const publicVapidKey = 'BCsdeMpKPh58L1p16fhaZvmIwyQF9mgp1IRwO39bxSc6qtefudhOlSSgdk5sILLtgUsoEqbNu5NccmCjt_RBkU4';
+
+    try {
+      if (!("Notification" in window)) {
+        alert("This browser does not support notifications");
+        return;
+      }
+
+      let permission = Notification.permission;
+
+      // 1. If we haven't asked yet, ask now
+      if (permission === "default") {
+        permission = await Notification.requestPermission();
+      }
+      
+      // 2. If granted (either just now or previously)
+      if (permission === "granted") {
+        console.log("Permission is granted. Syncing with database...");
+        
+        // Use '/sw.js' if 'sw.js' gives a file not found error
+        const registration = await navigator.serviceWorker.register('sw.js');
+        await navigator.serviceWorker.ready;
+
+        const subscription = await registration.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: urlBase64ToUint8Array(publicVapidKey)
+        });
+
+        // Get user from Supabase Auth
+        const { data: { user } } = await supabaseClient.auth.getUser();
+
+        // 3. Save/Update in Database
+        const { error } = await supabaseClient
+          .from('push_subscriptions')
+          .upsert({ 
+            user_id: user ? user.id : null, 
+            subscription_json: subscription.toJSON(),
+            last_updated: new Date().toISOString()
+          }, { onConflict: 'subscription_json' });
+
+        if (error) throw error;
+        
+        alert("Device Synced! You are ready for notifications. 🎉");
+      } else {
+        alert("Notifications are blocked in your settings.");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Sync Error: " + err.message);
+    }
+  });
+});
 
     </script> 
-<!-- OneSignal SDK -->
-<script src="https://cdn.onesignal.com/sdks/OneSignalSDK.js" defer></script>
+
 
 </body></html>

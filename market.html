@@ -9,906 +9,248 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
 
     <style>
-        /* ==================================== */
-        /* --- Root Variables & Base Styling --- */
-        /* ==================================== */
         :root {
-            --primary-color: #0088ff; /* EksuHub Blue */
-            --secondary-color: #ffc107; /* Gold/Yellow */
-            --bg-color: #f0f2f5; /* Light Mode Background */
+            --primary-color: #0088ff;
+            --bg-color: #f0f2f5;
             --card-bg: #ffffff;
             --text-color: #333;
             --text-secondary: #6c757d;
             --border-color: #e0e6ed;
-            --shadow-light: 0 2px 8px rgba(0, 0, 0, 0.1); 
             --shadow-medium: 0 5px 15px rgba(0, 0, 0, 0.15);
             --border-radius: 13px;
-            --font-family-main: 'Inter', sans-serif; 
         }
 
-        /* --- Dark Mode Adaptation --- */
         :root[data-theme="dark"] {
-            --primary-color: #0088ff; 
-            --bg-color: #121212; /* Deep Black Background */
-            --card-bg: #1e1e1e; /* Darker Card Background */
-            --text-color: #f0f0f0; /* Light Text */
-            --text-secondary: #aaaaaa; 
-            --border-color: #333333; 
-            --shadow-light: 0 2px 8px rgba(0, 0, 0, 0.5);
-            --shadow-medium: 0 5px 15px rgba(0, 0, 0, 0.5);
+            --bg-color: #121212;
+            --card-bg: #1e1e1e;
+            --text-color: #f0f0f0;
+            --text-secondary: #aaaaaa;
+            --border-color: #333333;
         }
 
         body { 
-            font-family: var(--font-family-main); 
-            margin: 0; 
-            padding: 0; 
-            background-color: var(--bg-color); 
-            color: var(--text-color); 
-            line-height: 1.6;
-            padding-bottom: 60px;
+            font-family: 'Inter', sans-serif; 
+            margin: 0; background-color: var(--bg-color); color: var(--text-color); 
+            line-height: 1.6; padding-bottom: 80px; 
         }
-        
-        /* ==================================== */
-        /* --- Header & Navigation (Modern Curved) --- */
-        /* ==================================== */
+
         .header { 
-            background-color: var(--card-bg); /* Use card bg for sleek look */
-            color: var(--text-color); 
-            padding: 10px 20px; 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
-            box-shadow: var(--shadow-medium);
-            position: sticky; top: 0; z-index: 1000;
+            background-color: var(--card-bg); padding: 10px 20px; 
+            display: flex; justify-content: space-between; align-items: center; 
+            box-shadow: var(--shadow-medium); position: sticky; top: 0; z-index: 1000;
             border-bottom: 1px solid var(--border-color);
         }
+        .header h1 { margin: 0; font-size: 1.4rem; font-weight: 800; color: var(--primary-color); }
+        .icon-btn { background: none; border: none; color: var(--primary-color); font-size: 1.4rem; cursor: pointer; padding: 5px; }
+        .list-btn { background: var(--primary-color); color: white; border: none; padding: 8px 16px; border-radius: 20px; font-weight: bold; cursor: pointer; }
 
-        .header h1 { 
-            margin: 0; 
-            font-size: 1.5rem; 
-            font-weight: 800;
-            color: var(--primary-color);
-        }
-
-        .header .icon, .back-btn { 
-            font-size: 1.5rem; 
-            cursor: pointer; 
-            color: var(--primary-color);
-            text-decoration: none;
-            padding: 0 5px;
-        }
-        
-        .list-btn { 
-            background-color: var(--primary-color); 
-            color: white; 
-            border: none; 
-            padding: 8px 15px; 
-            border-radius: 20px;
-            cursor: pointer; 
-            font-size: 0.9rem; 
-            font-weight: bold; 
-            transition: background-color 0.3s; 
-            box-shadow: var(--shadow-light);
-            margin-left: 10px; /* Separator from new toggle button */
-        }
-        .list-btn:hover { background-color: #006aff; }
-
-        /* ==================================== */
-        /* --- Controls (Search & Filters) --- */
-        /* ==================================== */
-        .controls { 
-            padding: 15px 20px; 
-            background: var(--bg-color); 
-            position: relative;
-            z-index: 5;
-        }
-        
+        .controls { padding: 15px 20px; }
         .search-container { 
-            display: flex; 
-            align-items: center;
-            border-radius: 30px; 
-            overflow: hidden; 
-            width: 100%;
-            background-color: var(--card-bg); 
-            box-shadow: var(--shadow-light); 
-            border: 1px solid var(--border-color);
+            display: flex; align-items: center; background: var(--card-bg); 
+            border-radius: 30px; border: 1px solid var(--border-color); padding: 0 15px;
         }
-
-        .search-input { 
-            padding: 12px 15px; 
-            border: none; 
-            flex-grow: 1; 
-            font-size: 1rem; 
-            background: transparent;
-            color: var(--text-color);
-        }
-        .search-input::placeholder { color: var(--text-secondary); } /* Placeholder dark mode fix */
-        .search-icon { 
-            color: var(--text-secondary); 
-            padding: 12px 15px; 
-        }
-
-        /* Filter Row/Pills */
-        .filter-header {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-top: 15px;
-        }
+        .search-input { flex: 1; border: none; padding: 12px; background: transparent; color: var(--text-color); outline: none; }
         
-        .filter-toggle-btn {
-            display: block; 
-            background: none;
-            border: none;
-            color: var(--primary-color);
-            font-size: 1.2rem;
-            cursor: pointer;
-            padding: 5px;
+        .filter-pills-container { display: flex; gap: 10px; overflow-x: auto; padding: 15px 0; }
+        .filter-pill { 
+            padding: 8px 16px; background: var(--border-color); border-radius: 20px; 
+            white-space: nowrap; cursor: pointer; font-size: 0.85rem; color: var(--text-secondary);
         }
+        .filter-pill.active { background: var(--primary-color); color: white; }
 
-        .filter-pills-container {
-            display: flex;
-            gap: 10px;
-            overflow-x: auto;
-            padding-bottom: 5px; 
-            white-space: nowrap; 
-        }
-        
-        .filter-pill {
-            display: inline-block;
-            padding: 8px 15px;
-            border-radius: 20px; 
-            cursor: pointer;
-            font-size: 0.9rem;
-            font-weight: 500;
-            background-color: var(--border-color); 
-            color: var(--text-secondary); 
-            border: 1px solid transparent;
-            transition: all 0.2s ease;
-        }
-
-        .filter-pill:hover, .filter-pill.active {
-            background-color: var(--primary-color);
-            color: white;
-        }
-        
-        /* ==================================== */
-        /* --- Product Grid & Card --- */
-        /* ==================================== */
-        .product-grid { 
-            padding: 20px; 
-            display: grid; 
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); 
-            gap: 20px; 
-        }
-        
-        .product-card { 
-            background: var(--card-bg); 
-            border-radius: var(--border-radius); 
-            overflow: hidden; 
-            box-shadow: var(--shadow-medium); 
-            transition: transform 0.3s, box-shadow 0.3s; 
-        }
-        .product-card:hover { transform: translateY(-3px); box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2); }
-        .product-card img { width: 100%; height: 180px; object-fit: cover; }
+        .product-grid { padding: 0 20px; display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
+        .product-card { background: var(--card-bg); border-radius: var(--border-radius); overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .product-card img { width: 100%; height: 200px; object-fit: cover; }
         .product-info { padding: 15px; }
-        .product-info h2 { font-size: 1.2rem; margin-top: 0; margin-bottom: 5px; color: var(--primary-color); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;}
-        .product-price { font-size: 1.6rem; font-weight: 800; color: #dc3545; margin-bottom: 10px; display: block;}
-        
-        /* Tags */
-        .tag-row { margin-bottom: 8px; display: flex; flex-wrap: wrap; gap: 5px;}
-        .product-tag { 
-            display: inline-block; 
-            padding: 3px 8px; 
-            border-radius: 15px; 
-            font-size: 0.7rem; 
-            font-weight: bold; 
-            text-transform: uppercase;
-        }
-        .tag-neg { background-color: #ffc107; color: #333; }
-        .tag-new { background-color: #28a745; color: white; }
-        .tag-used { background-color: #007bff; color: white; }
-        .tag-location, .tag-seller { 
-            color: var(--text-secondary); 
-            font-weight: 500; 
-            font-size: 0.85rem; 
-            margin-top: 5px; 
-            display: block;
-        }
-        .tag-seller i { margin-right: 5px; color: var(--primary-color); }
+        .product-price { font-size: 1.4rem; font-weight: 800; color: #dc3545; display: block; }
         
         .whatsapp-btn { 
-            background-color: #25d366; 
-            color: white; 
-            padding: 10px; 
-            border-radius: var(--border-radius); 
-            text-decoration: none; 
-            display: block; 
-            text-align: center; 
-            margin-top: 15px; 
-            font-weight: 600; 
-            transition: background-color 0.2s;
-        }
-        .whatsapp-btn:hover { background-color: #128c7e; }
-
-        #loading { text-align: center; padding: 50px; font-size: 1.2em; color: var(--text-secondary); }
-        
-        /* Pagination Controls */
-        .pagination {
-            display: flex; justify-content: center; align-items: center; gap: 20px;
-            padding: 20px; margin-top: 20px;
-        }
-        .pagination button {
-            background-color: var(--primary-color); color: white; border: none;
-            padding: 10px 20px; border-radius: 20px; cursor: pointer; font-weight: bold;
-            transition: background-color 0.3s;
-        }
-        .pagination button:hover:not(:disabled) {
-            background-color: #006aff;
-        }
-        .pagination button:disabled {
-            background-color: var(--text-secondary);
-            cursor: not-allowed;
-            opacity: 0.6;
-        }
-        .pagination span {
-            font-weight: 600;
-            color: var(--primary-color);
+            display: block; background: #25d366; color: white; text-align: center; 
+            padding: 10px; border-radius: 10px; text-decoration: none; margin-top: 15px; font-weight: bold;
         }
 
-        /* ==================================== */
-        /* --- Modal Styling (List Form) --- */
-        /* ==================================== */
-        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.7); }
-        .modal-content { 
-            background-color: var(--card-bg); 
-            margin: 5vh auto; 
-            padding: 30px; 
-            border-radius: var(--border-radius); 
-            width: 90%; 
-            max-width: 500px; 
-            position: relative; 
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3); 
-            color: var(--text-color);
-        }
-        
-        .form-row { margin-bottom: 15px; }
-        .modal-content label { display: block; margin-bottom: 5px; font-weight: 600; color: var(--primary-color); }
-        .modal-content input[type="text"], .modal-content input[type="number"], 
-        .modal-content textarea, .modal-content input[type="file"], .modal-content select { 
-            width: 100%; 
-            padding: 12px; 
-            border: 1px solid var(--border-color); 
-            border-radius: 5px; 
-            box-sizing: border-box;
-            transition: border-color 0.2s;
-            background-color: var(--bg-color);
-            color: var(--text-color);
-        }
-        .modal-content input:focus, .modal-content select:focus, .modal-content textarea:focus {
-            border-color: var(--primary-color);
-            outline: none;
-        }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 2000; align-items: center; justify-content: center; }
+        .modal-content { background: var(--card-bg); width: 90%; max-width: 500px; padding: 25px; border-radius: 15px; max-height: 90vh; overflow-y: auto; position: relative; }
+        .close-btn { position: absolute; top: 10px; right: 15px; font-size: 1.5rem; cursor: pointer; }
+        .form-row { margin-bottom: 12px; }
+        .form-row label { display: block; font-weight: bold; margin-bottom: 4px; font-size: 0.85rem; }
+        .form-row input, .form-row select, .form-row textarea { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-color); color: var(--text-color); box-sizing: border-box; }
 
-        .checkbox-group { display: flex; align-items: center; margin-top: 10px; margin-bottom: 20px; }
-        .checkbox-group input { width: 20px; height: 20px; margin-right: 10px; }
-        
-        .modal-content button[type="submit"] {
-            background-color: var(--primary-color);
-            color: white;
-            padding: 12px;
-            border: none;
-            border-radius: 5px;
-            width: 100%;
-            font-size: 1rem;
-            cursor: pointer;
-            font-weight: 600;
-            transition: background-color 0.3s;
-        }
-        .modal-content button[type="submit"]:hover {
-            background-color: #006aff;
-        }
-
-        .close-btn {
-            position: absolute; top: 15px; right: 25px; font-size: 2em; font-weight: bold; cursor: pointer; color: var(--text-secondary);
-        }
-
-        /* Bottom Navigation Bar (Copied from Feed) */
-        .bottom-navigation {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            display: flex;
-            justify-content: space-around;
-            background-color: var(--card-bg);
-            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
-            z-index: 20;
-            padding: 5px 0;
-        }
-
-        .bottom-navigation a {
-            flex: 1;
-            text-align: center;
-            padding: 10px 0;
-            color: var(--text-secondary);
-            text-decoration: none;
-            font-size: 0.75rem;
-            transition: color 0.3s;
-        }
-
-        .bottom-navigation a i {
-            display: block;
-            font-size: 1.2rem;
-            margin-bottom: 3px;
-        }
-
-        .bottom-navigation a:hover, .bottom-navigation a.active {
-            color: var(--primary-color);
-        }
-
-        /* Status Message */
-        #message {
-            margin: 10px 20px; padding: 10px; border-radius: 5px; text-align: center; font-weight: bold; display: none;
-        }
-        .success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
-        .warning { background-color: #fff3cd; color: #856404; border: 1px solid #ffeeba; }
-        .error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
-
+        .bottom-navigation { position: fixed; bottom: 0; width: 100%; display: flex; background: var(--card-bg); border-top: 1px solid var(--border-color); padding: 10px 0; }
+        .bottom-navigation a { flex: 1; text-align: center; color: var(--text-secondary); text-decoration: none; font-size: 0.7rem; }
+        .bottom-navigation a.active { color: var(--primary-color); }
+        .bottom-navigation i { display: block; font-size: 1.2rem; margin-bottom: 2px; }
     </style>
 </head>
-<body> <div class="header">
-        <div class="header-left">
-             <a href="feed.html" class="back-btn" aria-label="Go Back to Home/Feed">
-                <i class="fas fa-arrow-left"></i>
-            </a>
+<body>
+
+    <div class="header">
+        <div class="header-left" style="display:flex; align-items:center; gap:10px;">
+            <a href="index.html" class="icon-btn"><i class="fas fa-arrow-left"></i></a>
             <h1>EKSU MARKET</h1>
         </div>
         <div class="header-right">
-             <i class="fas fa-shopping-cart icon" aria-label="Shopping Cart"></i>
-            <button id="themeToggle" class="icon" aria-label="Toggle Dark Mode" style="background: none; border: none; cursor: pointer; padding: 0 5px; margin-right: 5px;"></button>
+            <button id="themeToggleBtn" class="icon-btn" style="margin-right:10px;"></button>
             <button class="list-btn" onclick="checkAuthAndOpenModal()">SELL</button>
         </div>
     </div>
 
     <div class="controls">
         <div class="search-container">
-            <div class="search-icon"><i class="fas fa-search"></i></div>
-            <input type="text" id="searchInput" class="search-input" placeholder="Search product name, description, or location..." aria-label="Search">
-            <button class="filter-toggle-btn" id="filterToggleBtn" aria-label="Toggle Filters"><i class="fas fa-sliders-h"></i></button>
+            <i class="fas fa-search" style="color:var(--text-secondary)"></i>
+            <input type="text" id="searchInput" class="search-input" placeholder="Search products...">
         </div>
-
-        <div class="filter-header">
-            <div class="filter-pills-container" id="filterPillsContainer">
-                <span class="filter-pill active" data-category="">All Categories</span>
-                <span class="filter-pill" data-category="Gadgets">Gadgets</span>
-                <span class="filter-pill" data-category="Clothes">Clothes</span>
-                <span class="filter-pill" data-category="Foodstuff">Foodstuff</span>
-                <span class="filter-pill" data-category="Books">Books</span>
-                <span class="filter-pill" data-category="Services">Services</span>
-                <span class="filter-pill" data-category="Other">Other</span>
-            </div>
+        <div class="filter-pills-container" id="filterPills">
+            <span class="filter-pill active" data-category="">All</span>
+            <span class="filter-pill" data-category="Gadgets">Gadgets</span>
+            <span class="filter-pill" data-category="Clothes">Clothes</span>
+            <span class="filter-pill" data-category="Foodstuff">Foodstuff</span>
+            <span class="filter-pill" data-category="Books">Books</span>
         </div>
     </div>
 
-    <div id="message"></div>
+    <div id="loading" style="text-align:center; padding:20px;">Loading...</div>
+    <div class="product-grid" id="productGrid"></div>
 
-    <div id="loading">Loading products...</div>
-    <div class="product-grid" id="productGrid">
-    </div>
-
-    <div class="pagination" id="paginationControls">
-        <button id="prevPageBtn" disabled>Previous</button>
-        <span id="pageInfo">Page 1 of 1</span>
-        <button id="nextPageBtn" disabled>Next</button>
-    </div>
-
-    <div id="sellProductModal" class="modal">
+    <div id="sellModal" class="modal">
         <div class="modal-content">
-            <span class="close-btn" onclick="closeSellModal()" aria-label="Close Modal">&times;</span>
-            <h2>List Your Item for Sale</h2>
-            
+            <span class="close-btn" onclick="closeSellModal()">&times;</span>
+            <h2 style="margin-top:0">List an Item</h2>
             <form id="productForm">
-                
+                <div class="form-row"><label>Item Name</label><input type="text" id="pName" required></div>
                 <div class="form-row">
-                    <label for="productName">Product Name</label>
-                    <input type="text" id="productName" name="productName" required>
-                </div>
-                
-                <div class="form-row">
-                    <label for="category">Category</label>
-                    <select id="category" name="category" required>
-                        <option value="">-- Select Category --</option>
+                    <label>Category</label>
+                    <select id="pCat" required>
                         <option value="Gadgets">Gadgets</option>
                         <option value="Clothes">Clothes</option>
                         <option value="Foodstuff">Foodstuff</option>
                         <option value="Books">Books</option>
-                        <option value="Services">Services</option>
-                        <option value="Other">Other</option>
                     </select>
                 </div>
-
-                <div class="form-row">
-                    <label for="condition">Item Condition</label>
-                    <select id="condition" name="condition" required>
-                        <option value="">-- Select Condition --</option>
-                        <option value="New">New</option>
-                        <option value="Used but Neat">Used but Neat</option>
-                        <option value="Used">Used</option>
-                    </select>
-                </div>
-
-                <div class="form-row">
-                    <label for="price">Price (₦)</label>
-                    <input type="number" id="price" name="price" step="0.01" min="0" required>
-                </div>
-                
-                <div class="checkbox-group">
-                    <input type="checkbox" id="isNegotiable" name="isNegotiable">
-                    <label for="isNegotiable">Negotiable</label>
-                </div>
-
-                <div class="form-row">
-                    <label for="imageFile">Product Main Image (Required - Max 1)</label>
-                    <input type="file" id="imageFile" name="imageFile" accept="image/*" required>
-                </div>
-                
-                <div class="form-row">
-                    <label for="description">Product Description</label>
-                    <textarea id="description" name="description" required></textarea>
-                </div>
-
-                <div class="form-row">
-                    <label for="location">Location (e.g., Iworoko-Ekiti, Ado Ekiti)</label>
-                    <input type="text" id="location" name="location" required>
-                </div>
-                
-                <div class="form-row">
-                    <label for="whatsappNumber">WhatsApp No</label>
-                    <input type="text" id="whatsappNumber" name="whatsappNumber" placeholder="e.g., 080XXXXXXXX" required>
-                </div>
-                
-                <button type="submit" id="submitButton">LIST PRODUCT</button>
+                <div class="form-row"><label>Price (₦)</label><input type="number" id="pPrice" required></div>
+                <div class="form-row"><label>Location</label><input type="text" id="pLoc" required></div>
+                <div class="form-row"><label>WhatsApp Number</label><input type="text" id="pWa" required></div>
+                <div class="form-row"><label>Description</label><textarea id="pDesc" rows="3" placeholder="Describe the item..." required></textarea></div>
+                <div class="form-row"><label>Image</label><input type="file" id="pImage" accept="image/*" required></div>
+                <button type="submit" id="submitBtn" class="list-btn" style="width:100%; padding:12px;">LIST PRODUCT</button>
             </form>
         </div>
     </div>
-        
-  <div class="bottom-navigation">
-    <a href="index.html"><i class="fas fa-home"></i>Feed</a>
-    <a href="chat.html"><i class="fas fa-comments"></i>Chat</a>
-    <a href="confession.html"><i class="fas fa-mask"></i>Confession</a>
-    <a href="market.html" class="active"><i class="fas fa-store"></i>Market</a>
-    <a href="profile.html"><i class="fas fa-user"></i>Profile</a>
-  </div>
+
+    <div class="bottom-navigation">
+        <a href="index.html"><i class="fas fa-home"></i>Feed</a>
+        <a href="chat.html"><i class="fas fa-comments"></i>Chat</a>
+        <a href="market.html" class="active"><i class="fas fa-store"></i>Market</a>
+        <a href="profile.html"><i class="fas fa-user"></i>Profile</a>
+    </div>
+
     <script>
-        // =================================================================================
-        // --- Supabase Configuration & Globals (FROM NEW FEED CODE) ---
-        // =================================================================================
         const SUPABASE_URL = 'https://wfhaiasdkkmwjzrndcmi.supabase.co'; 
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndmaGFpYXNka2ttd2p6cm5kY21pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQxNTE5MDUsImV4cCI6MjA3OTcyNzkwNX0.jTBRJi4lpmbv4R5rxF_CS9GrF5UMVxiIH9Th9frGWWI';
-        const REDIRECT_PAGE = 'auth.html'; 
         
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-        
-        const PRODUCTS_TABLE = 'products';
-        const STORAGE_BUCKET = 'market-images'; 
-        
-        let allProducts = [];
-        let filteredProducts = [];
-        let currentPage = 1;
-        const productsPerPage = 10;
-        let currentUserId = null; // To be set after session check
-        
-        // --- DOM ELEMENTS & MODAL FUNCTIONS ---
-        const modal = document.getElementById('sellProductModal');
-        const searchInput = document.getElementById('searchInput');
-        const filterPillsContainer = document.getElementById('filterPillsContainer');
-        const productGrid = document.getElementById('productGrid');
-        const prevPageBtn = document.getElementById('prevPageBtn');
-        const nextPageBtn = document.getElementById('nextPageBtn');
-        const pageInfo = document.getElementById('pageInfo');
-        const filterToggleBtn = document.getElementById('filterToggleBtn');
-        const themeToggleBtn = document.getElementById('themeToggle'); // NEW
-        
-        let selectedCategory = ''; 
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        function openSellModal() { modal.style.display = 'block'; }
-        function closeSellModal() { modal.style.display = 'none'; }
-        window.onclick = (event) => { if (event.target == modal) { closeSellModal(); } }
-        
-        // --- USER AUTH CHECK (FROM FEED CODE) ---
-        async function checkUserSession() {
-            const { data: { user }, error } = await supabase.auth.getUser();
-            if (error || !user) {
-                return null;
-            }
-            currentUserId = user.id;
-            return user;
+        let allProducts = [];
+        let selectedCategory = '';
+        let currentUserId = null;
+
+        // Theme Toggle
+        const themeBtn = document.getElementById('themeToggleBtn');
+        function applyTheme(theme) {
+            document.documentElement.setAttribute('data-theme', theme);
+            localStorage.setItem('theme', theme);
+            themeBtn.innerHTML = theme === 'dark' ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
         }
+        themeBtn.onclick = () => {
+            const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+            applyTheme(isDark ? 'light' : 'dark');
+        };
 
         async function checkAuthAndOpenModal() {
-            const user = await checkUserSession();
-            if (!user) {
-                alert("You must be logged in to list a product.");
-                window.location.href = REDIRECT_PAGE; // Redirect to login page
-            } else {
-                openSellModal();
-            }
+            const { data: { user } } = await supabaseClient.auth.getUser();
+            if (!user) { window.location.href = 'auth.html'; }
+            else { currentUserId = user.id; document.getElementById('sellModal').style.display = 'flex'; }
         }
-        
-        // ** Helper Functions (compressImage, sanitizeFilename, displayMessage are reused/adapted) **
-        function compressImage(file) {
-            return new Promise((resolve, reject) => {
-                const reader = new FileReader();
-                reader.onerror = reject;
-                reader.onload = (event) => {
-                    const img = new Image();
-                    img.onerror = reject;
-                    img.onload = () => {
-                        const canvas = document.createElement('canvas');
-                        const MAX_WIDTH = 1200; 
-                        let width = img.width;
-                        let height = img.height;
-                        if (width > MAX_WIDTH) {
-                            height = height * (MAX_WIDTH / width);
-                            width = MAX_WIDTH;
-                        }
-                        canvas.width = width;
-                        canvas.height = height;
-                        const ctx = canvas.getContext('2d');
-                        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                        canvas.toBlob((blob) => {
-                            const compressedFile = new File([blob], file.name, {
-                                type: 'image/jpeg'
-                            });
-                            resolve(compressedFile);
-                        }, 'image/jpeg', 0.4); 
-                    };
-                    img.src = event.target.result;
-                };
-                reader.readAsDataURL(file);
-            });
-        }
-        
-        function sanitizeFilename(name){ 
-            const idx = name.lastIndexOf('.'); 
-            const base = idx === -1 ? name : name.slice(0, idx); 
-            const ext = idx === -1 ? '' : name.slice(idx); 
-            const safe = base 
-                .normalize('NFKD') 
-                .replace(/[^\w\s-]/g, '') 
-                .trim() 
-                .replace(/\s+/g, '-') 
-                .replace(/-+/g,'-'); 
-            return `${safe}${ext}`; 
-        }
+        function closeSellModal() { document.getElementById('sellModal').style.display = 'none'; }
 
-        function displayMessage(text, type, isError = false) {
-            const messageDiv = document.getElementById('message');
-            messageDiv.textContent = text;
-            messageDiv.className = type;
-            messageDiv.style.display = 'block';
-            if (!isError) {
-                 setTimeout(() => { messageDiv.style.display = 'none'; }, 5000);
-            }
-        }
-
-        // =================================================================================
-        // --- PRODUCT LISTING LOGIC (Updated to use currentUserId) ---
-        // =================================================================================
-        document.getElementById('productForm').addEventListener('submit', async function(event) {
-            event.preventDefault(); 
-            
-            // Re-check auth just in case
-            if (!currentUserId) {
-                displayMessage('You must be logged in to list a product.', 'error', true);
-                return;
-            }
-
-            const productName = document.getElementById('productName').value;
-            const category = document.getElementById('category').value;
-            const condition = document.getElementById('condition').value;
-            const price = parseFloat(document.getElementById('price').value);
-            const isNegotiable = document.getElementById('isNegotiable').checked;
-            const description = document.getElementById('description').value;
-            const location = document.getElementById('location').value;
-            let whatsappNumber = document.getElementById('whatsappNumber').value; 
-            const imageFile = document.getElementById('imageFile').files[0];
-            
-            const submitButton = document.getElementById('submitButton');
-            
-            if (!productName || !description || isNaN(price) || price < 0 || !imageFile || !category || !condition || !location || !whatsappNumber) {
-                displayMessage('All required fields must be filled.', 'error', true);
-                return;
-            }
-
-            // --- WHATSAPP NUMBER SANITIZATION & PREFIXING ---
-            whatsappNumber = whatsappNumber.replace(/[^0-9+]/g, '');
-            if (whatsappNumber.startsWith('0')) {
-                whatsappNumber = `+234${whatsappNumber.substring(1)}`;
-            } else if (!whatsappNumber.startsWith('+234')) {
-                 whatsappNumber = `+234${whatsappNumber}`;
-            }
-            
-            submitButton.disabled = true;
-            displayMessage('Listing product...', 'warning');
-
-            let imageUrl = null;
-            
-            try {
-                // 1. --- IMAGE FILE UPLOAD LOGIC ---
-                displayMessage('Compressing and uploading product image...', 'warning');
-
-                const compressedImage = await compressImage(imageFile);
-                const safeFileName = sanitizeFilename(compressedImage.name);
-                const filePath = `images/${currentUserId}/${Date.now()}-${safeFileName}`; // Use user ID subfolder
-                
-                const { error: uploadError } = await supabase.storage
-                    .from(STORAGE_BUCKET) 
-                    .upload(filePath, compressedImage, { cacheControl: '3600', upsert: false });
-
-                if (uploadError) {
-                    throw new Error(`STORAGE UPLOAD FAILED (Image): ${uploadError.message}.`); 
-                }
-
-                const { data: publicUrlData } = supabase.storage.from(STORAGE_BUCKET).getPublicUrl(filePath);
-                imageUrl = publicUrlData.publicUrl;
-                
-                // 2. --- DATABASE INSERT LOGIC (Adding seller_id column) ---
-                const productData = {
-                    seller_id: currentUserId, // !!! NEW FIELD !!!
-                    name: productName, 
-                    price: price,
-                    location: location,
-                    whatsapp_number: whatsappNumber,
-                    is_negotiable: isNegotiable,
-                    condition: condition,
-                    category: category,
-                    description: description, 
-                    image_url: imageUrl,
-                };
-
-                const { error: insertError } = await supabase
-                    .from(PRODUCTS_TABLE) 
-                    .insert([productData]);
-
-                if (insertError) {
-                    const specificError = insertError.message.includes('RLS')
-                        ? `DB INSERT FAILED: RLS policy on '${PRODUCTS_TABLE}' denied the request.`
-                        : `DB INSERT FAILED: ${insertError.message}`;
-                    
-                    throw new Error(specificError);
-                }
-
-                displayMessage(`Product "${productName}" successfully listed!`, 'success');
-                document.getElementById('productForm').reset();
-                closeSellModal();
-                await fetchProducts(); 
-                
-            } catch (error) {
-                console.error('Final Listing Error:', error);
-                
-                const displayMessageText = error.message.includes('RLS') || error.message.includes('STORAGE') || error.message.includes('DB INSERT')
-                    ? error.message 
-                    : `An unknown error occurred: ${error.message}`;
-
-                displayMessage(displayMessageText, 'error', true);
-            } finally {
-                submitButton.disabled = false;
-            }
-        });
-
-        // =================================================================================
-        // --- PRODUCT FETCHING, FILTERING, RENDERING & PAGINATION LOGIC (Updated to include seller username) ---
-        // =================================================================================
-        
         async function fetchProducts() {
-            const loading = document.getElementById('loading');
-            loading.style.display = 'block';
-
-            // Query needs to JOIN the 'users' table to get the seller's username
-            const { data: products, error } = await supabase
-                .from(PRODUCTS_TABLE)
-                .select(`
-                    *,
-                    seller:users(username)
-                `)
-                .order('id', { ascending: false });
-
-            loading.style.display = 'none';
-
-            if (error) {
-                console.error('Error fetching products:', error);
-                displayMessage(`Error loading products: ${error.message}`, 'error', true);
-                return;
-            }
-
-            allProducts = products || []; 
-            currentPage = 1;
-            applyFiltersAndPagination(); 
-        }
-        
-        function applyFiltersAndPagination() {
-            // ... (Filter logic remains the same)
-            const searchTerm = searchInput.value.toLowerCase().trim();
-            
-            filteredProducts = allProducts.filter(product => {
-                const searchMatch = product.name.toLowerCase().includes(searchTerm) ||
-                                    (product.description && product.description.toLowerCase().includes(searchTerm)) ||
-                                    (product.location && product.location.toLowerCase().includes(searchTerm)) ||
-                                    (product.seller && product.seller.username && product.seller.username.toLowerCase().includes(searchTerm)); // Search by seller username
-
-                const categoryMatch = !selectedCategory || product.category === selectedCategory;
-                
-                return searchMatch && categoryMatch;
-            });
-            
-            renderCurrentPage();
-        }
-        
-        function renderCurrentPage() {
-            // ... (Pagination logic remains the same)
-            const totalPages = Math.ceil(filteredProducts.length / productsPerPage);
-            
-            if (currentPage > totalPages && totalPages > 0) {
-                currentPage = totalPages;
-            } else if (currentPage < 1 && totalPages > 0) {
-                 currentPage = 1;
-            } else if (totalPages === 0) {
-                currentPage = 1; 
-            }
-
-            const start = (currentPage - 1) * productsPerPage;
-            const end = start + productsPerPage;
-            const productsToShow = filteredProducts.slice(start, end);
-            
-            productGrid.innerHTML = '';
-            
-            if (filteredProducts.length === 0) {
-                productGrid.innerHTML = '<p style="text-align:center; padding: 20px; width: 100%;">No products match your current search/filter criteria.</p>';
-                pageInfo.textContent = 'Page 0 of 0';
-                prevPageBtn.disabled = true;
-                nextPageBtn.disabled = true;
-                return;
-            }
-
-            productsToShow.forEach(renderProductCard);
-            updatePaginationControls(totalPages);
+            const { data, error } = await supabaseClient.from('products').select('*, seller:users(username)').order('id', { ascending: false });
+            if (data) { allProducts = data; renderProducts(); }
+            document.getElementById('loading').style.display = 'none';
         }
 
-        function updatePaginationControls(totalPages) {
-            pageInfo.textContent = `Page ${currentPage} of ${totalPages}`;
-            prevPageBtn.disabled = currentPage === 1;
-            nextPageBtn.disabled = currentPage === totalPages || totalPages === 0;
-            productGrid.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }
-
-        function renderProductCard(product) {
-            const card = document.createElement('div');
-            card.className = 'product-card';
+        function renderProducts() {
+            const grid = document.getElementById('productGrid');
+            const search = document.getElementById('searchInput').value.toLowerCase();
+            grid.innerHTML = '';
             
-            const imageSrc = product.image_url || 'https://via.placeholder.com/400x200/0088ff/ffffff?text=EKSU+MARKET'; 
-            
-            let conditionTagClass = 'tag-new';
-            if (product.condition && product.condition.includes('Used')) {
-                conditionTagClass = 'tag-used';
-            }
-
-            const cleanNumber = product.whatsapp_number ? product.whatsapp_number.replace(/[^\d+]/g, '') : '';
-            const whatsappLink = cleanNumber 
-                ? `https://wa.me/${cleanNumber}?text=Hello!%20I%20am%20interested%20in%20your%20product:%20${encodeURIComponent(product.name)}.`
-                : '#'; 
-                
-            // Display Seller Username
-            const sellerUsername = product.seller && product.seller.username ? `@${product.seller.username}` : 'Seller Unknown';
-            const sellerInfo = `<span class="tag-seller"><i class="fas fa-user-tag"></i> ${sellerUsername}</span>`;
-
-
-            card.innerHTML = `
-                <img src="${imageSrc}" alt="${product.name}">
-                <div class="product-info">
-                    <h2>${product.name}</h2>
-                    <div class="tag-row">
-                        <span class="product-tag">${product.category || 'Uncategorized'}</span>
-                        <span class="product-tag ${conditionTagClass}">${product.condition || 'Unknown'}</span>
-                        ${product.is_negotiable ? '<span class="product-tag tag-neg">NEGOTIABLE</span>' : ''}
+            allProducts.filter(p => {
+                const matchSearch = p.name.toLowerCase().includes(search);
+                const matchCat = !selectedCategory || p.category === selectedCategory;
+                return matchSearch && matchCat;
+            }).forEach(p => {
+                const wa = p.whatsapp_number.startsWith('0') ? '234' + p.whatsapp_number.slice(1) : p.whatsapp_number;
+                const card = document.createElement('div');
+                card.className = 'product-card';
+                card.innerHTML = `
+                    <img src="${p.image_url}" onerror="this.src='https://via.placeholder.com/300'">
+                    <div class="product-info">
+                        <span class="product-price">₦${p.price.toLocaleString()}</span>
+                        <h3 style="margin:5px 0">${p.name}</h3>
+                        <p style="font-size:0.8rem; color:var(--text-secondary); margin:0;">📍 ${p.location}</p>
+                        <a href="https://wa.me/${wa}" class="whatsapp-btn">Chat Seller</a>
                     </div>
-                    
-                    <span class="product-price">₦${product.price ? product.price.toLocaleString() : '0'}</span>
-                    
-                    <span class="tag-location">📍 ${product.location || 'Unknown Location'}</span>
-                    ${sellerInfo} <a href="${whatsappLink}" target="_blank" class="whatsapp-btn" ${cleanNumber ? '' : 'disabled'} >
-                        <i class="fab fa-whatsapp"></i> Chat on WhatsApp
-                    </a>
-                </div>
-            `;
-            productGrid.appendChild(card);
+                `;
+                grid.appendChild(card);
+            });
         }
 
-        // =================================================================================
-        // --- THEME TOGGLE LOGIC (NEW) ---
-        // =================================================================================
-        const htmlElement = document.documentElement;
+        document.getElementById('productForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('submitBtn');
+            btn.disabled = true;
+            btn.innerText = "Processing...";
 
-        function setInitialTheme() {
-            // 1. Check if theme is saved in localStorage
-            const savedTheme = localStorage.getItem('theme');
+            const file = document.getElementById('pImage').files[0];
+            const filePath = `market/${Date.now()}_${file.name}`;
             
-            // 2. Default to 'dark' if no preference is saved
-            const initialTheme = savedTheme || 'dark'; 
-            
-            applyTheme(initialTheme);
-        }
+            // 1. Upload Image
+            const { error: uploadError } = await supabaseClient.storage.from('market-images').upload(filePath, file);
+            if (uploadError) { alert("Upload failed"); btn.disabled = false; return; }
 
-        function applyTheme(theme) {
-            htmlElement.setAttribute('data-theme', theme);
-            localStorage.setItem('theme', theme);
-            // Update the button icon based on the active theme
-            if (theme === 'dark') {
-                themeToggleBtn.innerHTML = '<i class="fas fa-sun"></i>'; // Show sun to suggest switching to light
-            } else {
-                themeToggleBtn.innerHTML = '<i class="fas fa-moon"></i>'; // Show moon to suggest switching to dark
-            }
-        }
+            const { data: urlData } = supabaseClient.storage.from('market-images').getPublicUrl(filePath);
 
-        function toggleTheme() {
-            const currentTheme = htmlElement.getAttribute('data-theme') || 'light';
-            const newTheme = currentTheme === 'light' ? 'dark' : 'light';
-            applyTheme(newTheme);
-        }
-        
-        // =================================================================================
-        // --- EVENT LISTENERS & INITIALIZATION ---
-        // =================================================================================
-        
-        searchInput.addEventListener('input', () => {
-             currentPage = 1; 
-             applyFiltersAndPagination();
-        });
-        
-        filterPillsContainer.addEventListener('click', (event) => {
-            const target = event.target;
-            if (target.classList.contains('filter-pill')) {
+            // 2. Insert into DB (Included description)
+            const { error: insError } = await supabaseClient.from('products').insert([{
+                name: document.getElementById('pName').value,
+                category: document.getElementById('pCat').value,
+                price: parseInt(document.getElementById('pPrice').value),
+                location: document.getElementById('pLoc').value,
+                whatsapp_number: document.getElementById('pWa').value,
+                description: document.getElementById('pDesc').value, // ADDED THIS
+                image_url: urlData.publicUrl,
+                seller_id: currentUserId,
+                condition: 'Used' // Defaulting this to prevent null errors elsewhere
+            }]);
+
+            if (!insError) { alert("Item Posted!"); location.reload(); }
+            else { alert(insError.message); btn.disabled = false; }
+        };
+
+        document.getElementById('searchInput').oninput = renderProducts;
+        document.querySelectorAll('.filter-pill').forEach(pill => {
+            pill.onclick = () => {
                 document.querySelectorAll('.filter-pill').forEach(p => p.classList.remove('active'));
-                target.classList.add('active');
-                selectedCategory = target.getAttribute('data-category');
-                currentPage = 1; 
-                applyFiltersAndPagination();
-            }
-        });
-        
-        prevPageBtn.addEventListener('click', () => {
-            if (currentPage > 1) {
-                currentPage--;
-                renderCurrentPage();
-            }
+                pill.classList.add('active');
+                selectedCategory = pill.dataset.category;
+                renderProducts();
+            };
         });
 
-        nextPageBtn.addEventListener('click', () => {
-            const totalPages = Math.ceil(filteredProducts.length / productsPerPage);
-            if (currentPage < totalPages) {
-                currentPage++;
-                renderCurrentPage();
-            }
-        });
-        
-        filterToggleBtn.addEventListener('click', () => {
-            const pills = document.getElementById('filterPillsContainer');
-            if (window.innerWidth < 768) {
-                pills.style.display = pills.style.display === 'flex' ? 'none' : 'flex';
-                pills.style.flexWrap = pills.style.display === 'flex' ? 'wrap' : 'nowrap';
-            }
-        });
-        
-        themeToggleBtn.addEventListener('click', toggleTheme); // NEW listener
-
-        // Initialize the page
-        document.addEventListener('DOMContentLoaded', async () => {
-            setInitialTheme(); // Set theme first
-            await checkUserSession(); // Check auth on load to set currentUserId
+        document.addEventListener('DOMContentLoaded', () => {
+            applyTheme(localStorage.getItem('theme') || 'dark');
             fetchProducts();
         });
-        
     </script>
 </body>
 </html>
