@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -373,12 +374,14 @@
   transition: all 0.3s ease;
   width:130px;
   height:60px;
+  opacity:73.0%;
 }
 
 #enableNotifications:hover {
   transform: translateY(-2px);
   box-shadow: 0 6px 20px rgba(110, 142, 251, 0.6);
   filter: brightness(1.1);
+  opacity:100%;
 }
 
 #enableNotifications:active {
@@ -517,29 +520,7 @@
   <i class="fa-solid fa-bell"></i> Activate Notifications
 </button>
 
-<script>
-  const notifyBtn = document.getElementById('enableNotifications');
 
-  // 2. Check on page load if it should be hidden
-  if (localStorage.getItem('campusNotificationsEnabled') === 'true') {
-    notifyBtn.style.display = 'none';
-  }
-
-  // 3. The Click Event
-  notifyBtn.addEventListener('click', () => {
-    // Save the choice to local storage
-    localStorage.setItem('campusNotificationsEnabled', 'true');
-    
-    // Optional: Add a nice fade-out effect
-    notifyBtn.style.transition = 'opacity 0.5s ease';
-    notifyBtn.style.opacity = '0';
-    
-    setTimeout(() => {
-      notifyBtn.style.display = 'none';
-      
-    }, 500);
-  });
-</script>
 
     </div>
 
