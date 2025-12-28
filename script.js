@@ -850,3 +850,79 @@ function showBotGuide() {
             });
         }
     });
+// 1. Helper function (Matches your placement)
+function urlBase64ToUint8Array(base64String) {
+  const padding = '='.repeat((4 - base64String.length % 4) % 4);
+  const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+  const rawData = window.atob(base64);
+  const outputArray = new Uint8Array(rawData.length);
+  for (let i = 0; i < rawData.length; ++i) {
+    outputArray[i] = rawData.charCodeAt(i);
+  }
+  return outputArray;
+}
+
+// 2. Main logic
+document.addEventListener("DOMContentLoaded", () => {
+  const btn = document.getElementById("enableNotifications");
+
+  if (!btn) {
+    console.error("Button with ID 'enableNotifications' not found in HTML!");
+    return;
+  }
+
+  btn.addEventListener("click", async () => {
+    const publicVapidKey = 'BCsdeMpKPh58L1p16fhaZvmIwyQF9mgp1IRwO39bxSc6qtefudhOlSSgdk5sILLtgUsoEqbNu5NccmCjt_RBkU4';
+
+    try {
+      if (!("Notification" in window)) {
+        alert("This browser does not support notifications");
+        return;
+      }
+
+      let permission = Notification.permission;
+
+      // 1. If we haven't asked yet, ask now
+      if (permission === "default") {
+        permission = await Notification.requestPermission();
+      }
+      
+      // 2. If granted (either just now or previously)
+      if (permission === "granted") {
+        console.log("Permission is granted. Syncing with database...");
+        
+        // Use '/sw.js' if 'sw.js' gives a file not found error
+        const registration = await navigator.serviceWorker.register('sw.js');
+        await navigator.serviceWorker.ready;
+
+        const subscription = await registration.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: urlBase64ToUint8Array(publicVapidKey)
+        });
+
+        // Get user from Supabase Auth
+        const { data: { user } } = await supabaseClient.auth.getUser();
+
+        // 3. Save/Update in Database
+        const { error } = await supabaseClient
+          .from('push_subscriptions')
+          .upsert({ 
+            user_id: user ? user.id : null, 
+            subscription_json: subscription.toJSON(),
+            last_updated: new Date().toISOString()
+          }, { onConflict: 'subscription_json' });
+
+        if (error) throw error;
+        
+        alert("Device Synced! You are ready for notifications. 🎉");
+      } else {
+        alert("Notifications are blocked in your settings.");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Sync Error: " + err.message);
+    }
+  });
+});
+
+    
