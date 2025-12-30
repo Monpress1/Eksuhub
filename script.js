@@ -186,7 +186,7 @@ function renderCoinSidebar(coins) {
              onclick="showCoinInfo(${coins})"
              style="
             position: absolute; 
-            bottom: 15.0px; 
+            bottom: 130px; 
             left: 15px; 
             right: 15px; 
             background: var(--card-bg); 
@@ -324,10 +324,12 @@ async function renderPYMKSlider() {
     if (suggestions.length === 0) return ''; 
 
     const cards = suggestions.map(u => `
-        <div class="pymk-card" style="flex: 0 0 140px; background: var(--card-bg); padding: 15px; border-radius: 12px; text-align: center; border: 1px solid var(--border-color); margin-right: 10px;">
-            <img src="${u.avatar_url || PLACEHOLDER_AVATAR}" style="width: 60px; height: 60px; border-radius: 50%; object-fit: cover; margin-bottom: 8px;">
-            <div style="font-weight: bold; font-size: 0.9em; color: var(--text-color); overflow:hidden; text-overflow:ellipsis;">@${u.username}</div>
-            <div style="font-size: 0.75em; color: var(--text-secondary); margin-bottom: 2px; overflow:hidden; text-overflow:ellipsis;">${u.department || 'Student'}</div>
+        <div class="pymk-card" style="flex: 0 0 140px; background: var(--card-bg); padding: 15px; border-radius: 12px; text-align: center; border: 1px solid var(--border-color); margin-right: 10px;"> 
+            <span style="display: inline-block; width: 60px; height: 60px; border-radius: 50%; background-color: #ddd; text-align: center; line-height: 60px; font-size:50px;">
+  ${u.avatar_url ? `<img src="${u.avatar_url}" style="width: 60px; height: 60px; border-radius: 50%; object-fit: cover;" />` : '👤'}
+</span>
+            <div style="font-weight: bold; font-size: 0.9em; color: var(--text-color); overflow:hidden; height:16.0px; text-overflow:ellipsis;">@${u.username}</div>
+         <br>   <div style="font-size: 0.6em; color: var(--text-secondary); margin-bottom: 2px; overflow:hidden; height:16px; text-overflow:ellipsis;">${u.department || 'Student'}</div>
             <div style="font-size: 0.75em; color: var(--text-secondary); margin-bottom: 10px;">${u.level ? u.level + ' Lvl' : ''}</div>
             <a href="${getProfileUrl(u.id)}" style="display:block; background: var(--primary-color); color: white; padding: 6px; border-radius: 6px; text-decoration: none; font-size: 0.8em;">View Profile</a>
         </div>
@@ -429,7 +431,7 @@ function createPostElement(post, commentsMap) {
     const userCoins = (post.user && post.user.coins) ? post.user.coins : 0;
     const displayName = RewardsEngine.injectBadge(username, userCoins);
     const department = post.user ? post.user.department : '';
-    const avatarUrl = post.user && post.user.avatar_url;
+    const avatarUrl = post.user && post.user.avatar_url; 
     const time = timeAgo(post.created_at);
     
     const heartReactions = post.reactions ? post.reactions.filter(r => r.emoji === 'heart') : [];
@@ -439,35 +441,46 @@ function createPostElement(post, commentsMap) {
     
     const inlineComment = postComments.length > 0 ? `<div class="random-comment"><strong>@${postComments[0].user.username}</strong>: ${postComments[0].content.substring(0, 50)}...</div>` : '';
     
+    // --- VIDEO THUMBNAIL LOGIC GOES HERE ---
     let mediaHtml = '';
     if (post.image_url) {
         const url = post.image_url.toLowerCase();
-        const mediaClass = (url.endsWith('.mp4') || url.endsWith('.webm')) ? 'post-video' : 'post-image';
-        mediaHtml = mediaClass === 'post-video' ? `<video src="${post.image_url}" controls class="${mediaClass}"></video>` : `<img src="${post.image_url}" class="${mediaClass}" onerror="this.onerror=null; this.src='${PLACEHOLDER_AVATAR}'">`;
+        const isVideo = url.endsWith('.mp4') || url.endsWith('.webm') || url.includes('video');
+        
+        mediaHtml = isVideo 
+            ? `<video src="${post.image_url}#t=0.001" preload="metadata" controls class="post-video" style="width: 100%; border-radius: 8px;"></video>` 
+            : `<img src="${post.image_url}" class="post-image" style="width: 100%; border-radius: 8px;" onerror="this.style.display='none'">`;
     }
     
-    const avatarHtml = avatarUrl ? `<img src="${avatarUrl}" class="post-avatar" onerror="this.onerror=null; this.src='${PLACEHOLDER_AVATAR}'">` : `<i class="fas fa-user-circle post-avatar" style="line-height: 45px; border: none;"></i>`;
-    const postContentHtml = post.content.trim() ? `<p class="post-content-text">${post.content}</p>` : `<p class="post-content-text" style="color:var(--text-secondary);font-style:italic;">No description.</p>`;
+    // Avatar Logic (using the span method you preferred)
+    const avatarHtml = `
+        <span style="display: inline-block; width: 45px; height: 45px; border-radius: 50%; background-color: #f0f2f5; text-align: center; line-height: 45px; overflow: hidden; flex-shrink: 0;">
+          ${avatarUrl ? `<img src="${avatarUrl}" style="width: 100%; height: 100%; object-fit: cover; display: block;" />` : '👤'}
+        </span>`;
+
+    const postContentHtml = post.content.trim() ? `<p class="post-content-text" style="margin: 12px 0;">${post.content}</p>` : '';
 
     const el = document.createElement('div');
     el.className = 'post-card';
     el.id = `post-${post.id}`;
+    el.style.marginBottom = '20px';
     el.innerHTML = `
-        <div class="post-header">
-            <a href="${getProfileUrl(userId)}" style="text-decoration: none; display: contents;">${avatarHtml}</a>
+        <div class="post-header" style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+            <a href="${getProfileUrl(userId)}" style="text-decoration: none; display: flex;">${avatarHtml}</a>
             <div class="post-info">
                 <a href="${getProfileUrl(userId)}" style="color: inherit; text-decoration: none;">
-                    <strong>${displayName}</strong>
+                    <strong style="font-size: 0.95rem;">${displayName}</strong>
                 </a>
-                <span>${department} | ${time}</span>
+                <div style="font-size: 0.75rem; color: var(--text-secondary);">${department || 'Student'} | ${time}</div>
             </div>
         </div>
-        ${postContentHtml} ${mediaHtml}
-        <div class="post-actions">
-            <span class="action-button like-toggle" data-post-id="${post.id}" onclick="handleLikeClick('${post.id}')">
+        ${postContentHtml} 
+        ${mediaHtml}
+        <div class="post-actions" style="margin-top: 12px; display: flex; gap: 15px;">
+            <span class="action-button like-toggle" data-post-id="${post.id}" onclick="handleLikeClick('${post.id}')" style="cursor: pointer;">
                 <i class="fas fa-heart like-icon ${hasUserLiked ? 'liked' : ''}"></i> <span class="like-count">${postLikes}</span>
             </span>
-            <span class="action-button comment-btn" data-post-id="${post.id}" onclick="handleCommentClick('${post.id}')">
+            <span class="action-button comment-btn" data-post-id="${post.id}" onclick="handleCommentClick('${post.id}')" style="cursor: pointer;">
                 <i class="fas fa-comment-dots"></i> <span class="comment-count">${postComments.length}</span>
             </span>
         </div>
@@ -475,7 +488,6 @@ function createPostElement(post, commentsMap) {
     return el;
 }
 
-// --- REEL RENDERER ---
 function renderReelCard(reel) {
     return `
         <div class="post-card reel-container" style="background: #000; padding: 0; overflow: hidden; border-radius: 15px; margin-bottom: 20px; border: 1px solid #222;">
@@ -504,6 +516,7 @@ function loadNextPage() {
 }
 
 // --- MAIN FEED FETCH FUNCTION ---
+// --- UPDATED: BALANCED FEED FETCH FUNCTION ---
 async function fetchFeedPosts(offset = 0, isInitialLoad = true) {
     const loadMoreButton = document.getElementById('load-more-btn');
     
@@ -519,6 +532,7 @@ async function fetchFeedPosts(offset = 0, isInitialLoad = true) {
     }
     
     try {
+        // 1. Fetch all data sources in parallel
         const [
             { data: rawPosts, error: postError }, 
             newUserAnnouncements, 
@@ -539,13 +553,17 @@ async function fetchFeedPosts(offset = 0, isInitialLoad = true) {
         
         if (postError) throw postError;
 
+        // Prevent duplicates and handle empty states
         const uniqueNewPosts = (rawPosts || []).filter(p => !displayedPostIds.has(p.id));
         uniqueNewPosts.forEach(p => displayedPostIds.add(p.id));
 
         if (rawPosts.length < POSTS_PER_PAGE) allPostsLoaded = true;
 
-        const postPool = uniqueNewPosts.map(p => ({ ...p, type: 'post' }));
-        const reelPool = (reelsData?.items || []).reduce((acc, item) => {
+        // 2. Prepare the pools
+        let postPool = uniqueNewPosts.map(p => ({ ...p, type: 'post' }));
+        let annPool = [...newUserAnnouncements];
+        let marketPool = [...marketProducts];
+        let reelPool = (reelsData?.items || []).reduce((acc, item) => {
             const match = item.url?.match(/(?:reel|reels|p)\/([a-zA-Z0-9_-]+)/);
             if (match && match[1]) {
                 acc.push({ id: match[1], type: 'reel', created_at: item.date_published || new Date().toISOString() });
@@ -553,33 +571,38 @@ async function fetchFeedPosts(offset = 0, isInitialLoad = true) {
             return acc;
         }, []);
 
+        // 3. Interleaving Logic: Mix items instead of stacking them
         let combinedFeed = [];
-        const availableItems = { 
-            post: postPool, 
-            newUser: newUserAnnouncements, 
-            marketProduct: marketProducts, 
-            reel: reelPool 
-        };
+        
+        // Loop while we still have posts to show
+        while (postPool.length > 0) {
+            // Add 2-3 standard posts first
+            for (let i = 0; i < 3 && postPool.length > 0; i++) {
+                combinedFeed.push(postPool.shift());
+            }
 
-        for (let i = 0; i < 3; i++) {
-            if (availableItems.post.length > 0) {
-                combinedFeed.push(availableItems.post.shift());
+            // Inject 1 Reel if available
+            if (reelPool.length > 0) {
+                combinedFeed.push(reelPool.shift());
+            }
+
+            // Inject 1 Announcement if available
+            if (annPool.length > 0) {
+                combinedFeed.push(annPool.shift());
+            }
+
+            // Add 2 more posts
+            for (let i = 0; i < 2 && postPool.length > 0; i++) {
+                combinedFeed.push(postPool.shift());
+            }
+
+            // Inject 1 Market product
+            if (marketPool.length > 0) {
+                combinedFeed.push(marketPool.shift());
             }
         }
 
-        const weightKeys = Object.keys(FEED_DISTRIBUTION_WEIGHTS);
-        while (Object.values(availableItems).some(arr => arr.length > 0)) {
-            let itemAdded = false;
-            for (const type of weightKeys) {
-                if (!isInitialLoad && type !== 'post') continue; 
-                if (availableItems[type] && availableItems[type].length > 0) {
-                    combinedFeed.push(availableItems[type].shift());
-                    itemAdded = true;
-                }
-            }
-            if (!itemAdded) break;
-        }
-
+        // Fetch comments for the posts in this batch
         const postIds = combinedFeed.filter(i => i.type === 'post').map(p => p.id);
         let commentsMap = {};
         if (postIds.length > 0) {
@@ -595,19 +618,28 @@ async function fetchFeedPosts(offset = 0, isInitialLoad = true) {
 
         if (isInitialLoad) feedContainer.innerHTML = '';
         
+        // 4. Render to DOM
         combinedFeed.forEach((item, index) => {
-            if (isInitialLoad && index === 3 && pymkHtml) {
+            // Put People You May Know after the first few items
+            if (isInitialLoad && index === 4 && pymkHtml) {
                 feedContainer.insertAdjacentHTML('beforeend', pymkHtml);
             }
-            if (item.type === 'post') feedContainer.appendChild(createPostElement(item, commentsMap));
-            else if (item.type === 'reel') feedContainer.insertAdjacentHTML('beforeend', renderReelCard(item));
-            else if (item.type === 'newUser') feedContainer.insertAdjacentHTML('beforeend', renderNewUserAnnouncement(item));
-            else if (item.type === 'marketProduct') feedContainer.insertAdjacentHTML('beforeend', renderMarketCard(item));
+
+            if (item.type === 'post') {
+                feedContainer.appendChild(createPostElement(item, commentsMap));
+            } else if (item.type === 'reel') {
+                feedContainer.insertAdjacentHTML('beforeend', renderReelCard(item));
+            } else if (item.type === 'newUser') {
+                feedContainer.insertAdjacentHTML('beforeend', renderNewUserAnnouncement(item));
+            } else if (item.type === 'marketProduct') {
+                feedContainer.insertAdjacentHTML('beforeend', renderMarketCard(item));
+            }
         });
 
         postOffset += rawPosts.length;
         updateLoadMoreButtonState();
 
+        // Process Instagram embeds
         if (window.instgrm) {
             window.instgrm.Embeds.process();
         } else {
@@ -619,9 +651,35 @@ async function fetchFeedPosts(offset = 0, isInitialLoad = true) {
 
    } catch (err) {
         console.error("Feed Error Detailed:", err);
-        updateLoadMoreButtonState();
+        if (loadMoreButton) {
+            loadMoreButton.innerHTML = 'Error loading feed. Try again.';
+            loadMoreButton.disabled = false;
+        }
    }
 }
+
+function updateLoadMoreButtonState() {
+    const loadMoreButton = document.getElementById('load-more-btn');
+    if (!loadMoreButton) return;
+    
+    if (allPostsLoaded) {
+        loadMoreButton.style.display = 'none'; 
+        if (!document.getElementById('end-of-feed-msg')) {
+            const endMsg = document.createElement('p');
+            endMsg.id = 'end-of-feed-msg';
+            endMsg.textContent = '🙌 You are all caught up!';
+            endMsg.style.cssText = 'text-align: center; color: var(--text-secondary); margin: 30px 0; font-weight: bold;';
+            feedContainer.insertAdjacentElement('afterend', endMsg); 
+        }
+    } else {
+        loadMoreButton.style.display = 'block';
+        loadMoreButton.innerHTML = 'Show More Posts';
+        loadMoreButton.disabled = false;
+        const endMsg = document.getElementById('end-of-feed-msg');
+        if (endMsg) endMsg.remove();
+    }
+}
+
 
 
 function updateLoadMoreButtonState() {
