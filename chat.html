@@ -50,13 +50,19 @@
         }
         
         /* --- Header (List View) --- */
-        .header {
-            background-color: var(--primary-color); 
-            color: white;
-            padding: 15px 20px;
-            display: flex; justify-content: space-between; align-items: center; 
-            position: sticky; top: 0; z-index: 100;
-        }
+       header, .chat-header {
+        background: var(--header-bg);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border-bottom: 1px solid var(--border-color);
+        padding: 8px 16px; /* Reduced padding for "shorter" look */
+        display: flex; 
+        align-items: center; 
+        position: sticky; 
+        top: 0; 
+        z-index: 100;
+        height: 60px; /* Fixed shorter height */
+    }
         .header h1 { margin: 0; font-size: 1.6em; font-weight: 600; }
         .header small { 
             display: block; 
@@ -138,12 +144,27 @@
         .user-item:hover {
             background-color: var(--card-bg);
         }
-        .user-avatar {
-            width: 50px; height: 50px; border-radius: 50%; object-fit: cover; margin-right: 15px;
-            font-size: 30px; line-height: 50px; text-align: center;
-            background-color: var(--border-color);
-            color: var(--text-secondary);
-        }
+       .user-avatar {
+    width: 50px; 
+    height: 50px; 
+    border-radius: 15px; /* Squircle looks more modern than 50% circle */
+    object-fit: cover; 
+    margin-right: 15px;
+    
+    /* THE GRADIENT */
+    background: linear-gradient(135deg, #8A2BE2 0%, #00D4FF 100%);
+    
+    /* Glow Effect */
+    
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    
+    font-size: 24px; 
+    line-height: 50px; 
+    text-align: center;
+    color: white;
+    font-weight: bold;
+}
+
         .user-info {
             flex-grow: 1;
             min-width: 0;
@@ -213,12 +234,14 @@
 
         /* Chat Modal Header (Back Button) */
         .chat-header {
-            background-color: var(--primary-color);
+            background-color: black;
             color: white;
-            padding: 15px;
+            padding: 7px;
             display: flex;
             align-items: center;
             flex-shrink: 0;
+            opacity:40%;
+            
         }
         .chat-header h3 { margin: 0; font-size: 1.2em; flex-grow: 1; }
         .chat-header-info {
@@ -226,28 +249,61 @@
             align-items: center;
         }
 
-        /* Message Area */
-        .message-area {
-            flex-grow: 1;
-            padding: 10px 15px;
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            /* 🚩 NEW: Smooth scroll animation */
-            scroll-behavior: smooth; 
-        }
-        
-        /* Message Bubbles */
-        .message-bubble {
-            max-width: 80%;
-            padding: 10px 15px;
-            border-radius: 18px;
-            line-height: 1.4;
-            word-wrap: break-word;
-            position: relative; 
-            cursor: pointer; 
-        }
+       /* --- Redesigned Message Area --- */
+.message-area {
+    flex-grow: 1;
+    padding: 20px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    
+    /* Smoothness Fixes */
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch; /* Momentum scroll for iOS */
+    overscroll-behavior-y: contain;
+    
+    /* Background Detail (Optional: subtle pattern) */
+    background-image: radial-gradient(var(--border-color) 0.5px, transparent 0.5px);
+    background-size: 20px 20px;
+    background-color: var(--background-color);
+}
+
+/* --- Redesigned Bubbles --- */
+.message-bubble {
+    max-width: 75%;
+    padding: 12px 16px;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    border-radius: 20px;
+    position: relative;
+    transition: transform 0.2s ease, filter 0.2s ease;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
+
+/* Subtle Hover Effect */
+.message-bubble:hover {
+    transform: scale(1.01);
+    filter: brightness(1.1);
+}
+
+/* Specific Corners for "Tail" look */
+.incoming {
+    background-color: var(--card-bg);
+    color: var(--text-color);
+    align-self: flex-start;
+    border-bottom-left-radius: 4px; /* The "Tail" */
+    border: 1px solid var(--border-color);
+}
+
+.outgoing {
+    background-color: var(--primary-color);
+    color: white;
+    align-self: flex-end;
+    border-bottom-right-radius: 4px; /* The "Tail" */
+    background: linear-gradient(135deg, var(--primary-color), #0066ff);
+}
+
         .message-bubble:hover {
             opacity: 0.9;
         }
@@ -317,6 +373,9 @@
             background-color: #006aff;
         }
         
+        /* --- Modern Chasing Dots Overlay --- */
+
+
         /* Utility */
         .hidden { display: none !important; }
     </style>
@@ -334,13 +393,10 @@
             </div>
         </div>
         <div class="header-right">
-            <button class="icon-btn" id="listNotificationBtn" title="Unread Messages">
-                <i class="fas fa-bell"></i>
-                <span id="globalNotificationBadge" class="hidden">0</span>
-            </button>
+            
         </div>
     </header>
-
+<br>
     <div id="usersListView">
         <p id="listStatus" style="text-align: center; color: var(--text-secondary); padding: 20px;">
             Loading all users...
@@ -348,31 +404,35 @@
     </div>
     
     <div id="chatModal" class="hidden">
-        
-        <div class="chat-header">
-            <button class="icon-btn" id="backToUsersListBtn" title="Back">
-                <i class="fas fa-arrow-left"></i>
-            </button>
-            <div class="chat-header-info" style="margin-left: 10px;">
-                <img id="chatHeaderAvatar" class="user-avatar" style="width: 40px; height: 40px; margin-right: 10px; line-height: 40px;">
-                <h3 id="chatHeaderUsername">Chat Partner</h3>
-            </div>
-        </div>
-        
-        <div class="message-area" id="messageArea">
-            <p style="text-align: center; color: var(--text-secondary); margin-top: 20px;">Loading messages...</p>
-        </div>
-        
-        <div class="chat-input">
-            <input type="text" id="messageInput" placeholder="Type a message..." disabled>
-            <button id="sendButton" disabled>
-                <i class="fas fa-paper-plane"></i>
-            </button>
-        </div>
-        
+    
+    <div id="chatLoader" class="loader-hidden">
+        <div class="loader-dot"></div>
     </div>
 
-    <script>
+    <div class="chat-header">
+        <button class="icon-btn" id="backToUsersListBtn" title="Back">
+            <i class="fas fa-arrow-left"></i>
+        </button>
+        <div class="chat-header-info" style="margin-left: 10px;">
+            <img id="chatHeaderAvatar" class="user-avatar" style="width: 40px; height: 40px; margin-right: 10px; line-height: 40px;">
+            <h3 id="chatHeaderUsername">Chat Partner</h3>
+        </div>
+    </div>
+    
+    <div class="message-area" id="messageArea">
+        <p style="text-align: center; color: var(--text-secondary); margin-top: 20px;">Loading messages...</p>
+    </div>
+    
+    <div class="chat-input">
+        <input type="text" id="messageInput" placeholder="Type a message..." disabled>
+        <button id="sendButton" disabled>
+            <i class="fas fa-paper-plane"></i>
+        </button>
+    </div>
+</div>
+
+
+        <script>
         // --- CONFIGURATION ---
         const SUPABASE_URL = 'https://wfhaiasdkkmwjzrndcmi.supabase.co'; 
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndmaGFpYXNka2ttd2p6cm5kY21pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQxNTE5MDUsImV4cCI6MjA3OTcyNzkwNX0.jTBRJi4lpmbv4R5rxF_CS9GrF5UMVxiIH9Th9frGWWI';
@@ -381,8 +441,8 @@
         
         // CONSTANTS FOR UNIVERSAL CHAT
         const UNIVERSAL_CONVO_ID = '00000000-0000-0000-0000-000000000001'; 
-        const UNIVERSAL_CHAT_USERNAME = 'EksuHub Global Channel'; 
-        const MESSAGE_HISTORY_LIMIT = 50; 
+        const UNIVERSAL_CHAT_USERNAME = 'GENERAL'; 
+        const MESSAGE_HISTORY_LIMIT = 30; 
         
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         
@@ -396,7 +456,7 @@
         const messageArea = document.getElementById('messageArea');
         const messageInput = document.getElementById('messageInput');
         const sendButton = document.getElementById('sendButton');
-        const globalNotificationBadge = document.getElementById('globalNotificationBadge');
+;
         
         // --- Global State ---
         let currentUserId = null; 
@@ -405,7 +465,10 @@
         let activeRecipientId = null;
         
         let manualRefreshInterval = null; 
-        let lastMessageTimestamp = null; // Track the newest message timestamp for polling filter
+        let lastMessageTimestamp = null; 
+
+        // 1️⃣ Add reply state (global) - FIXED
+        let replyToMessage = null; 
         
         // Color map for Universal Chat Usernames
         const colorPalette = [
@@ -483,7 +546,6 @@
         }
 
         function scrollToBottom() {
-            // CSS scroll-behavior: smooth handles the animation
             messageArea.scrollTop = messageArea.scrollHeight;
         }
 
@@ -496,17 +558,14 @@
             if (activeConversationId && chatModal.classList.contains('open')) {
                 const oldScrollTop = messageArea.scrollTop;
                 const oldScrollHeight = messageArea.scrollHeight;
-                
-                // Determine if user is near the bottom (within 20px)
                 const userWasAtBottom = (oldScrollTop + messageArea.clientHeight >= oldScrollHeight - 20);
 
                 const newMessagesArrived = await loadMessages(activeConversationId, true); 
 
                 if (newMessagesArrived) {
                     if (userWasAtBottom) {
-                        scrollToBottom(); // Scroll smoothly to the new bottom
+                        scrollToBottom();
                     } else {
-                        // User was reading history, keep their position relative to the new height
                         messageArea.scrollTop = oldScrollTop + (messageArea.scrollHeight - oldScrollHeight);
                     }
                 }
@@ -515,7 +574,7 @@
         
         function startManualRefresh() {
             if (manualRefreshInterval) clearInterval(manualRefreshInterval);
-            manualRefreshInterval = setInterval(unobtrusiveManualRefresh, 3000); // 3 seconds refresh
+            manualRefreshInterval = setInterval(unobtrusiveManualRefresh, 3000);
         }
         
         function stopManualRefresh() {
@@ -539,7 +598,6 @@
                 sendButton.disabled = !isUserTypingNewContent();
             });
             
-            // Tap-to-Mention Listener (Delegated to parent area)
             messageArea.addEventListener('click', (e) => {
                 const bubble = e.target.closest('.message-bubble');
                 if (bubble && bubble.classList.contains('incoming')) {
@@ -551,17 +609,13 @@
             });
         }
         
-        // --- Handle Tap to Mention ---
         function handleTapToMention(username) {
             const mentionText = `@${username} `;
             let currentInput = messageInput.value.trim();
-            
             if (currentInput.endsWith(mentionText.trim())) return;
-            
             if (currentInput.length > 0 && !currentInput.endsWith(' ')) {
                  currentInput += ' '; 
             }
-            
             messageInput.value = currentInput + mentionText;
             messageInput.focus();
             sendButton.disabled = false;
@@ -653,26 +707,17 @@
                 }
             }
             
-            updateGlobalNotification(totalUnreadCount);
-
+            
             renderUsersList(allUsers, conversationDataMap, universalData);
         }
         
-        function updateGlobalNotification(count) {
-            if (count > 0) {
-                globalNotificationBadge.textContent = count > 99 ? '99+' : count;
-                globalNotificationBadge.classList.remove('hidden');
-            } else {
-                globalNotificationBadge.classList.add('hidden');
-            }
-        }
+         
 
 
         function renderUsersList(users, conversationDataMap, universalData) {
             usersListView.innerHTML = '';
             listStatus.classList.add('hidden');
 
-            // --- A. Render Universal Chat Item ---
             const universalItem = document.createElement('div');
             universalItem.className = 'user-item universal-chat-item';
             universalItem.setAttribute('data-recipient-id', 'universal'); 
@@ -705,16 +750,11 @@
 
             usersListView.appendChild(universalItem);
 
-
-            // --- B. Render Private Chats ---
-            
             const existingChats = [];
             const newChats = [];
 
             users.forEach(user => {
-                
                 let convoData = null;
-                
                 for (const id in conversationDataMap) {
                     const data = conversationDataMap[id];
                     if ((data.user1_id === user.id && data.user2_id === currentUserId) || 
@@ -735,10 +775,8 @@
                 item.className = 'user-item';
                 item.setAttribute('data-recipient-id', user.id);
                 
-                
                 if (convoData) {
                     const lastMsg = convoData.latestMsg;
-                    
                     const finalPreviewText = (lastMsg.sender_id === currentUserId ? 'You: ' : '') + lastMsg.content.replace(/\n/g, ' '); 
                     const timeText = formatTime(lastMsg.created_at);
                     const unreadCount = convoData.unreadCount;
@@ -754,13 +792,7 @@
                             ${unreadCount > 0 ? `<span class="unread-badge">${unreadCount}</span>` : ''}
                         </div>
                     `;
-                    
-                    existingChats.push({ 
-                        element: item, 
-                        lastMsgTime: convoData.lastMsgTime,
-                        convoId: convoData.convoId
-                    });
-
+                    existingChats.push({ element: item, lastMsgTime: convoData.lastMsgTime, convoId: convoData.convoId });
                 } else {
                     item.innerHTML = `
                         ${avatarHtml}
@@ -783,18 +815,13 @@
             shuffleArray(newChats);
 
             if (existingChats.length > 0) {
-                const headerExisting = document.createElement('div');
-                headerExisting.className = 'section-header';
-                headerExisting.textContent = 'Private Chats';
-                usersListView.appendChild(headerExisting);
+                const h = document.createElement('div'); h.className = 'section-header'; h.textContent = 'Private Chats';
+                usersListView.appendChild(h);
                 existingChats.forEach(item => usersListView.appendChild(item.element));
             }
-
             if (newChats.length > 0) {
-                const headerNew = document.createElement('div');
-                headerNew.className = 'section-header';
-                headerNew.textContent = 'Start a New Private Chat';
-                usersListView.appendChild(headerNew);
+                const h = document.createElement('div'); h.className = 'section-header'; h.textContent = 'Start a New Private Chat';
+                usersListView.appendChild(h);
                 newChats.forEach(item => usersListView.appendChild(item.element));
             }
         }
@@ -803,163 +830,144 @@
         // --- PHASE 2: FULL-SCREEN CHAT MODAL LOGIC ---
 
         async function getOrCreateConversation(recipientId) {
-            
-            if (!currentUserId || !recipientId) {
-                console.error("Cannot create conversation: currentUserId or recipientId is missing.");
-                alert("Authentication Error: Please refresh the page and log in again.");
-                return null;
-            }
-
+            if (!currentUserId || !recipientId) return null;
             const { user1, user2 } = getCanonicalUserPair(currentUserId, recipientId);
-            
-            const { data: convo, error } = await supabaseClient
-                .from('conversations')
-                .select('id')
-                .eq('user1_id', user1)
-                .eq('user2_id', user2)
-                .maybeSingle();
-
-            if (error) {
-                console.error('Error checking conversation:', error);
-                return null;
-            }
-
-            if (convo) {
-                return convo.id;
-            }
-
-            const { data: newConvo, error: createError } = await supabaseClient
-                .from('conversations')
-                .insert([{ user1_id: user1, user2_id: user2 }])
-                .select('id')
-                .single();
-
-            if (createError) {
-                console.error('Error creating conversation:', createError);
-                alert(`Failed to create conversation. Database Error: ${createError.message}`); 
-                return null;
-            }
-
-            return newConvo.id;
+            const { data: convo } = await supabaseClient.from('conversations').select('id').eq('user1_id', user1).eq('user2_id', user2).maybeSingle();
+            if (convo) return convo.id;
+            const { data: newConvo } = await supabaseClient.from('conversations').insert([{ user1_id: user1, user2_id: user2 }]).select('id').single();
+            return newConvo ? newConvo.id : null;
         }
 
 
-        async function openChatModal(existingConvoId, recipientId, username, avatarUrl) {
-            
-            let convoId = existingConvoId;
-            let isUniversalChat = (convoId === UNIVERSAL_CONVO_ID);
+        // --- OPTIMIZED CHAT MODAL LOGIC ---
 
-            if (!convoId && !isUniversalChat) {
-                convoId = await getOrCreateConversation(recipientId);
-                if (!convoId) {
-                    return;
-                }
+async function openChatModal(existingConvoId, recipientId, username, avatarUrl) {
+    // 1. INSTANT UI FEEDBACK (No 'await' here)
+    chatModal.classList.remove('hidden');
+    // Force a tiny frame delay to ensure transition triggers smoothly
+    requestAnimationFrame(() => {
+        chatModal.classList.add('open');
+    });
+    
+    document.body.style.overflow = 'hidden'; 
+    chatHeaderUsername.textContent = `@${username}`;
+    
+    // Set loading state immediately
+    messageArea.innerHTML = '<p style="text-align: center; color: var(--text-secondary); margin-top: 20px;">Loading conversation...</p>';
+
+    // Set Avatar UI
+    let isUniversalChat = (existingConvoId === UNIVERSAL_CONVO_ID);
+    if (isUniversalChat) {
+        chatHeaderAvatar.className = 'universal-chat-avatar'; 
+        chatHeaderAvatar.innerHTML = '<i class="fas fa-globe"></i>';
+        chatHeaderAvatar.src = ''; 
+    } else {
+        chatHeaderAvatar.className = 'user-avatar';
+        chatHeaderAvatar.src = avatarUrl || PLACEHOLDER_AVATAR;
+        chatHeaderAvatar.innerHTML = ''; 
+    }
+
+    // 2. BACKGROUND DATA SETUP
+    lastMessageTimestamp = null; 
+    activeRecipientId = recipientId; 
+
+    let convoId = existingConvoId;
+    if (!convoId && !isUniversalChat) {
+        // We must await this because we can't load messages without an ID
+        convoId = await getOrCreateConversation(recipientId);
+        if (!convoId) return;
+    }
+
+    activeConversationId = convoId;
+    
+    // 3. FIRE AND FORGET (Do NOT await these)
+    loadMessages(convoId).then(() => {
+        markMessagesAsRead(convoId); // Mark read ONLY after initial load is done
+    });
+    
+    startManualRefresh();
+    messageInput.disabled = false;
+    sendButton.disabled = !isUserTypingNewContent(); 
+    messageInput.focus();
+}
+
+// --- SINGLE CLEAN LOAD MESSAGES FUNCTION ---
+// (Delete both old versions and use this one)
+
+async function loadMessages(convoId, isPolling = false) {
+    let query = supabaseClient
+        .from('chat_messages')
+        .select(`*, sender:users(username)`)
+        .eq('conversation_id', convoId)
+        .order('created_at', { ascending: true });
+
+    if (isPolling && lastMessageTimestamp) {
+        query = query.gt('created_at', lastMessageTimestamp); 
+    } else if (!isPolling) {
+        query = query.limit(MESSAGE_HISTORY_LIMIT);
+    }
+        
+    const { data: messages, error } = await query;
+    if (error || (messages && messages.length === 0 && isPolling)) return false;
+    
+    if (!isPolling) messageArea.innerHTML = ''; 
+    
+    const isUniversal = (convoId === UNIVERSAL_CONVO_ID);
+    if (!isPolling && isUniversal) {
+        Object.keys(userColorMap).forEach(key => delete userColorMap[key]); 
+    }
+
+    if (messages) {
+        messages.forEach(msg => {
+            if (!document.querySelector(`[data-message-id="${msg.id}"]`)) {
+                renderMessage(msg, msg.sender_id === currentUserId, msg.sender?.username || 'User', isUniversal);
             }
+        });
 
-            lastMessageTimestamp = null; 
-            activeConversationId = convoId;
-            activeRecipientId = recipientId; 
-            
-            chatHeaderUsername.textContent = `@${username}`;
-            
-            if (isUniversalChat) {
-                chatHeaderAvatar.classList.remove('user-avatar');
-                chatHeaderAvatar.className = 'universal-chat-avatar'; 
-                chatHeaderAvatar.innerHTML = '<i class="fas fa-globe"></i>';
-                chatHeaderAvatar.src = ''; 
-            } else {
-                chatHeaderAvatar.classList.remove('universal-chat-avatar');
-                chatHeaderAvatar.className = 'user-avatar';
-                chatHeaderAvatar.src = avatarUrl || PLACEHOLDER_AVATAR;
-                chatHeaderAvatar.classList.toggle('fa-user-circle', !avatarUrl);
-                chatHeaderAvatar.src = avatarUrl || '';
-                chatHeaderAvatar.innerHTML = ''; 
-            }
-
-            chatModal.classList.remove('hidden');
-            chatModal.classList.add('open');
-            document.body.style.overflow = 'hidden'; 
-            
-            // 1. Load messages history (will set the initial lastMessageTimestamp and scroll)
-            await loadMessages(convoId);
-            
-            // 2. Start Polling Refresh
-            startManualRefresh();
-
-            messageInput.disabled = false;
-            sendButton.disabled = !isUserTypingNewContent(); 
-            messageInput.focus();
+        if (messages.length > 0) {
+            lastMessageTimestamp = messages[messages.length - 1].created_at;
         }
+    }
 
-        /**
-         * Loads messages using time-based filtering during polling, or limits results 
-         * during initial load.
-         */
+    if (!isPolling) scrollToBottom();
+    
+    // Update the list view badge immediately
+    const recipientIdCheck = (convoId === UNIVERSAL_CONVO_ID) ? 'universal' : activeRecipientId;
+    const listItem = document.querySelector(`.user-item[data-recipient-id="${recipientIdCheck}"]`);
+    if (listItem) {
+        const badge = listItem.querySelector('.unread-badge');
+        if (badge) badge.remove();
+    }
+    
+    return true;
+}
+
+
         async function loadMessages(convoId, isPolling = false) {
-            
-            let query = supabaseClient
-                .from('chat_messages')
-                .select(`*, sender:users(username)`) 
-                .eq('conversation_id', convoId)
-                .order('created_at', { ascending: true });
-
-            if (isPolling && lastMessageTimestamp) {
-                // If polling, fetch only messages newer than the last displayed one
-                query = query.gt('created_at', lastMessageTimestamp); 
-            } else if (!isPolling) {
-                // Initial load: fetch the latest MESSAGE_HISTORY_LIMIT messages
-                query = query.limit(MESSAGE_HISTORY_LIMIT); 
-            }
+            let query = supabaseClient.from('chat_messages').select(`*, sender:users(username)`).eq('conversation_id', convoId).order('created_at', { ascending: true });
+            if (isPolling && lastMessageTimestamp) query = query.gt('created_at', lastMessageTimestamp); 
+            else if (!isPolling) query = query.limit(MESSAGE_HISTORY_LIMIT);
                 
             const { data: messages, error } = await query;
-
-            if (error) {
-                if (!isPolling) {
-                   messageArea.innerHTML = `<p style="text-align: center; color: red;">Error loading history: ${error.message}.</p>`;
-                }
-                return false; 
-            }
+            if (error || (messages.length === 0 && isPolling)) return false;
             
-            if (messages.length === 0 && isPolling) {
-                return false; 
-            }
+            const newestTimestamp = messages.length > 0 ? messages[messages.length - 1].created_at : null;
+            if (!isPolling) messageArea.innerHTML = ''; 
             
-            const newestMessageTimestamp = messages.length > 0 ? messages[messages.length - 1].created_at : null;
-
-            // --- Rendering Logic ---
-            
-            if (!isPolling) {
-                messageArea.innerHTML = ''; 
-            }
-            
-            const isUniversalChat = (convoId === UNIVERSAL_CONVO_ID);
-            
-            if (!isPolling && isUniversalChat) {
+            const isUniversal = (convoId === UNIVERSAL_CONVO_ID);
+            if (!isPolling && isUniversal) {
                 Object.keys(userColorMap).forEach(key => delete userColorMap[key]); 
-                const uniqueSenders = [...new Set(messages.map(m => m.sender_id))];
-                uniqueSenders.forEach(id => getUsernameColor(id));
+                [...new Set(messages.map(m => m.sender_id))].forEach(id => getUsernameColor(id));
             }
 
             messages.forEach(msg => {
-                // Only append messages if they don't already exist
                 if (!document.querySelector(`[data-message-id="${msg.id}"]`)) {
-                    const senderName = msg.sender?.username || 'Unknown User'; 
-                    renderMessage(msg, msg.sender_id === currentUserId, senderName, isUniversalChat);
+                    renderMessage(msg, msg.sender_id === currentUserId, msg.sender?.username || 'User', isUniversal);
                 }
             });
 
-            // Update the timestamp after successful rendering
-            if (newestMessageTimestamp) {
-                 lastMessageTimestamp = newestMessageTimestamp;
-            }
-
-            // Scroll is handled by CSS smooth scroll behavior
-            if (!isPolling) {
-                // Only scroll immediately on initial load
-                scrollToBottom();
-            }
-
-            // Mark messages as read and update local UI badges
+            if (newestTimestamp) lastMessageTimestamp = newestTimestamp;
+            if (!isPolling) scrollToBottom();
             await markMessagesAsRead(convoId);
             
             const recipientIdCheck = (convoId === UNIVERSAL_CONVO_ID) ? 'universal' : activeRecipientId;
@@ -968,80 +976,62 @@
                 const badge = listItem.querySelector('.unread-badge');
                 if (badge) badge.remove();
             }
-
-            // 🚩 FIX: Removed the immediate call to fetchAllUsersAndConversations here.
-            // The list update (and global badge check) now only runs on modal close or message send.
-
-            return true; // Indicate that new messages were found and processed
+            return true;
         }
 
 
         async function markMessagesAsRead(convoId) {
-            await supabaseClient
-                .from('chat_messages')
-                .update({ is_read: true })
-                .eq('conversation_id', convoId)
-                .eq('is_read', false)
-                .neq('sender_id', currentUserId); 
+            await supabaseClient.from('chat_messages').update({ is_read: true }).eq('conversation_id', convoId).eq('is_read', false).neq('sender_id', currentUserId); 
         }
-
 
         // --- MESSAGE RENDERING AND MENTION LOGIC ---
 
         function checkAndFormatMentions(content) {
             if (!currentUsername) return { html: content, mentioned: false };
-            
-            const escapedUsername = currentUsername.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-            const mentionRegex = new RegExp(`@${escapedUsername}\\b`, 'gi');
-            
-            let mentioned = mentionRegex.test(content);
-
-            // 🚩 FIX: Use <em class="mention-text"> for italics and color styling
-            const replacementText = '<em class="mention-text">$&</em>';
-            
-            const html = content.replace(mentionRegex, replacementText);
-
+            const escaped = currentUsername.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            const regex = new RegExp(`@${escaped}\\b`, 'gi');
+            let mentioned = regex.test(content);
+            const html = content.replace(regex, '<em class="mention-text">$&</em>');
             return { html: html.replace(/\n/g, '<br>'), mentioned };
         }
 
 
         function renderMessage(message, isOutgoing, senderUsername, isUniversalChat) {
-            
             const bubble = document.createElement('div');
-            // Use the database message ID for correct tracking during polling
             bubble.setAttribute('data-message-id', message.id); 
-            
             bubble.className = `message-bubble ${isOutgoing ? 'outgoing' : 'incoming'}`;
             bubble.setAttribute('data-sender-username', senderUsername); 
             bubble.style.marginBottom = '5px'; 
+
+            // 2️⃣ Capture reply (Double-tap) - ADDED
+            bubble.addEventListener('dblclick', () => { 
+                replyToMessage = { content: message.content, author: senderUsername }; 
+                messageInput.placeholder = `Replying to @${senderUsername}`; 
+                messageInput.focus(); 
+            });
             
-            // --- 1. Sender Username (Universal Chat) ---
             if (!isOutgoing && isUniversalChat) {
                 const usernameSpan = document.createElement('span');
                 usernameSpan.textContent = `@${senderUsername}`;
-                usernameSpan.style.cssText = `
-                    font-weight: bold;
-                    display: block;
-                    margin-left: 10px;
-                    margin-bottom: 3px;
-                    color: ${getUsernameColor(message.sender_id)};
-                `;
-                messageArea.appendChild(usernameSpan);
+                usernameSpan.style.cssText = `font-weight: bold; display: block; margin-left: 10px; margin-bottom: 3px; color: ${getUsernameColor(message.sender_id)};`;
+                bubble.appendChild(usernameSpan);
+            }
+
+            // 4️⃣ Render quoted messages (Visual) - ADDED
+            if (message.quoted_content && message.quoted_author) { 
+                const quote = document.createElement('div'); 
+                quote.style.cssText = `font-size: 0.8em; opacity: 0.8; border-left: 3px solid var(--primary-color); padding-left: 8px; margin-bottom: 6px; text-align: left;`; 
+                quote.innerHTML = `<strong>@${message.quoted_author}</strong><br>${message.quoted_content}`; 
+                bubble.appendChild(quote); 
             }
             
-            // --- 2. Content and Mention Highlighting ---
             const content = document.createElement('p');
             content.className = 'message-content';
             content.style.margin = '0';
-
             const { html: formattedContent, mentioned } = checkAndFormatMentions(message.content);
             content.innerHTML = formattedContent; 
-            
-            if (mentioned && !isOutgoing) {
-                bubble.classList.add('mention-highlight');
-            }
+            if (mentioned && !isOutgoing) bubble.classList.add('mention-highlight');
 
-            // --- 3. Append Time ---
             const time = document.createElement('span');
             time.className = 'message-time-bubble';
             time.textContent = formatTime(message.created_at);
@@ -1049,21 +1039,13 @@
             bubble.appendChild(content);
             bubble.appendChild(time);
             messageArea.appendChild(bubble); 
-
-            // --- 4. Alignment ---
-            if (isOutgoing) {
-                bubble.style.alignSelf = 'flex-end';
-            } else {
-                bubble.style.alignSelf = 'flex-start';
-            }
+            bubble.style.alignSelf = isOutgoing ? 'flex-end' : 'flex-start';
         }
 
 
         async function sendMessage() {
             let userMessage = messageInput.value.trim();
-            
             if (!userMessage || !activeConversationId || !currentUserId) return;
-            
             sendButton.disabled = true; 
 
             // Optimistic Render
@@ -1073,77 +1055,71 @@
                 content: userMessage, 
                 created_at: new Date().toISOString(),
                 sender_id: currentUserId,
-                is_read: true, 
+                is_read: true,
+                quoted_content: replyToMessage?.content || null, // ADDED for optimistic reply UI
+                quoted_author: replyToMessage?.author || null 
             };
             
             renderMessage(tempMessage, true, 'You', activeConversationId === UNIVERSAL_CONVO_ID); 
             scrollToBottom();
             messageInput.value = ''; 
             
+            // 3️⃣ Send quoted data to Supabase - FIXED
             const insertData = {
                 conversation_id: activeConversationId,
                 sender_id: currentUserId,
-                content: userMessage, 
+                content: userMessage,
+                quoted_content: replyToMessage?.content || null, 
+                quoted_author: replyToMessage?.author || null 
             };
             
-            const { error, data } = await supabaseClient
-                .from('chat_messages')
-                .insert(insertData)
-                .select('id, created_at')
-                .single();
+            // Reset reply state - ADDED
+            replyToMessage = null; 
+            messageInput.placeholder = 'Type a message...';
+
+            const { error, data } = await supabaseClient.from('chat_messages').insert(insertData).select('id, created_at').single();
                 
-            if (error) {
-                console.error('Error sending message:', error);
-                alert('Failed to send message due to a server error.');
-            } else if (data) {
-                // Replace temp ID with real ID for polling to work correctly
+            if (error) console.error('Error sending message:', error);
+            else if (data) {
                 const tempBubble = document.querySelector(`[data-message-id="${tempId}"]`);
-                if (tempBubble) {
-                    tempBubble.setAttribute('data-message-id', data.id);
-                }
-                // Update the last message timestamp immediately after sending
+                if (tempBubble) tempBubble.setAttribute('data-message-id', data.id);
                 lastMessageTimestamp = data.created_at;
             }
-            
             setTimeout(fetchAllUsersAndConversations, 500); 
         }
 
-        // --- BACK BUTTON LOGIC ---
         function closeChatModal() {
             stopManualRefresh(); 
-            
-            activeConversationId = null;
-            activeRecipientId = null;
-            lastMessageTimestamp = null; 
-
+            activeConversationId = null; activeRecipientId = null; lastMessageTimestamp = null; 
             chatModal.classList.remove('open');
             document.body.style.overflow = ''; 
-            
-            chatHeaderAvatar.className = 'user-avatar';
-            chatHeaderAvatar.innerHTML = '';
-
-            setTimeout(() => {
-                chatModal.classList.add('hidden');
-            }, 300);
-            
-            // 🚩 FIX: Call to refresh list to update global badge after read status propagation
+            chatHeaderAvatar.className = 'user-avatar'; chatHeaderAvatar.innerHTML = '';
+            setTimeout(() => chatModal.classList.add('hidden'), 300);
             fetchAllUsersAndConversations(); 
         }
 
-        // --- Initialization ---
         document.addEventListener('DOMContentLoaded', async () => {
             initializeTheme();
             const user = await checkUserSession();
-            
             if (user) {
                 await fetchAllUsersAndConversations();
-                
                 setupMessageInputListeners(); 
-                
                 backToUsersListBtn.addEventListener('click', closeChatModal);
+
+                const urlParams = new URLSearchParams(window.location.search);
+                const targetUserId = urlParams.get('id');
+                if (targetUserId) {
+                    const userItem = document.querySelector(`.user-item[data-recipient-id="${targetUserId}"]`);
+                    if (userItem) userItem.click();
+                    else {
+                        const { data: targetUser } = await supabaseClient.from('users').select('username, avatar_url').eq('id', targetUserId).single();
+                        if (targetUser) openChatModal(null, targetUserId, targetUser.username, targetUser.avatar_url);
+                    }
+                }
             }
         });
-    </script> 
+    </script>
+
 
 </body>
 </html>
