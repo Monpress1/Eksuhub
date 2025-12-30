@@ -186,7 +186,7 @@ function renderCoinSidebar(coins) {
              onclick="showCoinInfo(${coins})"
              style="
             position: absolute; 
-            bottom: 130px; 
+            bottom: 15.0px; 
             left: 15px; 
             right: 15px; 
             background: var(--card-bg); 
