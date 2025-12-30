@@ -274,9 +274,16 @@
                 </div>
             </div>
             
-            <button id="followButton" style="margin-top: 20px; background: var(--primary-color); color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; display: none; transition: background 0.2s;">
-                <i class="fas fa-user-plus"></i> Follow
-            </button>
+            <div style="display: flex; justify-content: center; gap: 10px; margin-top: 20px;">
+                <button id="followButton" style="background: var(--primary-color); color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; display: none; transition: background 0.2s;">
+                    <i class="fas fa-user-plus"></i> Follow
+                </button>
+                
+                <button id="chatButton" style="background: transparent; border: 1px solid var(--primary-color); color: var(--primary-color); padding: 10px 20px; border-radius: 8px; cursor: pointer; display: none; transition: all 0.2s;">
+                    <i class="fas fa-comment-alt"></i> Chat
+                </button>
+            </div>
+
         </div>
 
         <h2 style="font-size: 1.3em;"><i class="fas fa-th-list"></i> <span id="postsHeader">User Posts</span></h2>
@@ -285,6 +292,22 @@
         </div>
 
     </div>
+
+<div id="customBotAlert" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.8); z-index: 9999; align-items: center; justify-content: center;">
+    <div style="background: var(--card-bg, #1e1e1e); border-radius: 12px; max-width: 350px; width: 90%; padding: 25px; text-align: center; border: 2px solid var(--primary-color, #0088ff); position: relative;">
+        
+        <div style="width: 80px; height: 80px; border-radius: 50%; overflow: hidden; margin: -65px auto 15px auto; border: 4px solid var(--card-bg, #1e1e1e); background: #1e1e1e; box-shadow: 0 4px 10px rgba(0,0,0,0.3);">
+            <img src="bot.jpg" onerror="this.src='https://cdn-icons-png.flaticon.com/512/4712/4712035.png'" style="width: 100%; height: 100%; object-fit: cover;">
+        </div>
+
+        <h3 style="color: var(--primary-color, #0088ff); margin: 0 0 10px 0; font-family: sans-serif;">EKSU Bot</h3>
+        <p id="botAlertText" style="color: var(--text-color, #f0f0f0); margin-bottom: 20px; font-size: 0.95em; line-height: 1.5; font-family: sans-serif;">Message goes here.</p>
+        
+        <button onclick="closeBotAlert()" style="background: var(--primary-color, #0088ff); color: white; border: none; padding: 10px 25px; border-radius: 8px; cursor: pointer; font-weight: bold; width: 100%;">
+            Got it
+        </button>
+    </div>
+</div>
 
     <script>
         // --- CONFIGURATION (Must match feed.html) ---
@@ -307,6 +330,7 @@
         const postCountDisplay = document.getElementById('postCount');
         const userPostsContainer = document.getElementById('userPosts');
         const followButton = document.getElementById('followButton');
+        const chatButton = document.getElementById('chatButton'); // Added Chat Button
         const themeToggleBtn = document.getElementById('themeToggleBtn');
         const profileActionButton = document.getElementById('profileActionButton');
         const postsHeader = document.getElementById('postsHeader');
@@ -578,16 +602,31 @@
             
             // --- DYNAMIC BUTTON LOGIC ---
             if (currentUserId === userId) {
+                // Viewing own profile
                 profileActionButton.innerHTML = '<i class="fas fa-edit"></i>';
                 profileActionButton.title = 'Edit Profile';
                 profileActionButton.onclick = openEditModal;
+                
                 followButton.style.display = 'none';
+                chatButton.style.display = 'none'; // Hide Chat Button on own profile
                 avatarEditIcon.style.display = 'block'; 
             } else {
+                // Viewing other user
                 profileActionButton.innerHTML = '<i class="fas fa-sign-out-alt"></i>';
                 profileActionButton.title = 'Logout';
                 profileActionButton.onclick = handleLogout;
-                // Follow button visibility and status is set below in the DOMContentLoaded
+                
+                // Show Chat Button and set redirect
+                chatButton.style.display = 'inline-block';
+               // On your PROFILE page
+chatButton.onclick = () => {
+    if (profileUserId) {
+        window.location.href = `chat.html?id=${profileUserId}`;
+    }
+};
+
+
+                // Follow button visibility is set in DOMContentLoaded
                 avatarEditIcon.style.display = 'none'; 
             }
             
@@ -622,67 +661,147 @@
             }
 
             userPostsContainer.innerHTML = '';
-            posts.forEach(post => {
-                const time = new Date(post.created_at).toLocaleString();
-                let postContentHtml = post.content || '';
-                let mediaHtml = '';
-                let isSystemMessage = post.type !== 'post';
 
-                // Handle System Messages
-                if (isSystemMessage) {
-                    const statusText = post.type === 'user_join' ? 'New User' : 'Profile Update';
-                    postContentHtml = `<i class="fas fa-info-circle" style="color: var(--primary-color);"></i> <strong>${statusText}:</strong> ${post.content}`;
-                } else {
-                    // Normal Post
-                    if (post.image_url) {
-                        const url = post.image_url.toLowerCase();
-                        const mediaClass = (url.endsWith('.mp4') || url.endsWith('.mov') || url.endsWith('.webm')) ? 'post-video' : 'post-image';
-                        if (mediaClass === 'post-video') {
-                            mediaHtml = `<video src="${post.image_url}" controls class="${mediaClass}"></video>`;
-                        } else {
-                            mediaHtml = `<img src="${post.image_url}" class="${mediaClass}" alt="Post Image" onerror="this.onerror=null; this.src='${PLACEHOLDER_AVATAR}'">`;
-                        }
-                    }
-                    postContentHtml = post.content ? `<p class="post-content-text">${post.content}</p>` : '';
-                }
+// --- 1. THE LOOP (Handles generating the posts) ---
+posts.forEach(post => {
+    const time = new Date(post.created_at).toLocaleString();
+    let postContentHtml = ''; // Initialize as empty
+    let mediaHtml = '';
+    let isSystemMessage = post.type !== 'post';
 
-                // Normal Post Stats (Hidden for system messages)
-                let actionsHtml = '';
-                if (!isSystemMessage) {
-                    const heartReactions = post.reactions ? post.reactions.filter(r => r.emoji === 'heart') : [];
-                    const postLikes = heartReactions.length;
-                    const hasUserLiked = heartReactions.some(r => r.user_id === currentUserId);
-                    const commentCount = post.comments[0].count;
-                    
-                    actionsHtml = `
-                        <div class="post-actions">
-                            <span class="action-button like-toggle" data-post-id="${post.id}" onclick="alert('Like functionality available on the feed.')">
-                                <i class="fas fa-heart like-icon ${hasUserLiked ? 'liked' : ''}"></i> 
-                                <span class="like-count">${postLikes}</span>
-                            </span>
-                            <span class="action-button comment-btn" data-post-id="${post.id}" onclick="alert('Comment functionality available on the feed.')">
-                                <i class="fas fa-comment-dots"></i> 
-                                <span class="comment-count">${commentCount}</span>
-                            </span>
-                        </div>
-                    `;
-                }
-
-                userPostsContainer.innerHTML += `
-                    <div class="post-card" style="${isSystemMessage ? 'border-left: 5px solid var(--primary-color); padding-left: 15px;' : ''}">
-                        <div class="post-info">
-                            <span style="font-style: italic;">${isSystemMessage ? 'System Update' : 'Posted'} on ${time}</span>
-                        </div>
-                        
-                        ${postContentHtml}
-                        
-                        ${mediaHtml}
-                        
-                        ${actionsHtml}
-                    </div>
-                `;
-            });
+    if (isSystemMessage) {
+        const statusText = post.type === 'user_join' ? 'New User' : 'Profile Update';
+        postContentHtml = `<i class="fas fa-info-circle" style="color: var(--primary-color);"></i> <strong>${statusText}:</strong> ${post.content}`;
+    } else {
+        if (post.image_url) {
+            const url = post.image_url.toLowerCase();
+            const mediaClass = (url.endsWith('.mp4') || url.endsWith('.mov') || url.endsWith('.webm')) ? 'post-video' : 'post-image';
+            if (mediaClass === 'post-video') {
+                mediaHtml = `<video src="${post.image_url}" controls class="${mediaClass}"></video>`;
+            } else {
+                mediaHtml = `<img src="${post.image_url}" class="${mediaClass}" alt="Post Image" onerror="this.onerror=null; this.src='${PLACEHOLDER_AVATAR}'">`;
+            }
         }
+        postContentHtml = post.content ? `<p class="post-content-text" style="margin-bottom:10px;">${post.content}</p>` : '';
+    }
+
+    // Build the Actions HTML
+    let actionsHtml = '';
+    if (!isSystemMessage) {
+        actionsHtml = `
+            <div class="post-actions" style="margin-top: 15px; padding-top: 10px; border-top: 1px solid var(--border-color); display: flex; gap: 20px;">
+                <span class="action-button" onclick="botAlert('To like this post, please view it in the main feed!')" style="cursor:pointer; color:var(--text-secondary); font-size:0.9em;">
+                    <i class="fas fa-heart"></i> Like
+                </span>
+                <span class="action-button" onclick="botAlert('I can help you comment on this if you open the post in the feed!')" style="cursor:pointer; color:var(--text-secondary); font-size:0.9em;">
+                    <i class="fas fa-comment"></i> Comment
+                </span>
+            </div>
+        `;
+    }
+
+    // Render the Card
+    userPostsContainer.innerHTML += `
+        <div class="post-card" style="background: var(--card-bg); padding: 20px; border-radius: 12px; margin-bottom: 20px; box-shadow: var(--shadow-dark); ${isSystemMessage ? 'border-left: 5px solid var(--primary-color);' : ''}">
+            <div class="post-info" style="margin-bottom: 10px;">
+                <span style="font-size: 0.8em; color: var(--text-secondary); font-style: italic;">
+                    ${isSystemMessage ? 'System Update' : 'Posted'} on ${time}
+                </span>
+            </div>
+            
+            <div class="clickable-post-area" onclick="window.location.href='index.html'" title="View in Feed" style="cursor:pointer;">
+                ${postContentHtml}
+                ${mediaHtml}
+            </div>
+            
+            ${actionsHtml}
+        </div>
+    `;
+}); // END OF FOR EACH LOOP
+
+// --- 
+
+userPostsContainer.innerHTML = '';
+
+posts.forEach(post => {
+    const time = new Date(post.created_at).toLocaleString();
+    
+    // 1. DECLARE VARIABLE AT THE TOP (This fixes the ReferenceError)
+    const isSystemMessage = post.type !== 'post'; 
+    
+    let postContentHtml = post.content || '';
+    let mediaHtml = '';
+
+    // 2. Handle Content Logic
+    if (isSystemMessage) {
+        const statusText = post.type === 'user_join' ? 'New User' : 'Profile Update';
+        postContentHtml = `<i class="fas fa-info-circle" style="color: var(--primary-color);"></i> <strong>${statusText}:</strong> ${post.content}`;
+    } else {
+        // Normal Post Media Logic
+        if (post.image_url) {
+            const url = post.image_url.toLowerCase();
+            const mediaClass = (url.endsWith('.mp4') || url.endsWith('.mov') || url.endsWith('.webm')) ? 'post-video' : 'post-image';
+            if (mediaClass === 'post-video') {
+                mediaHtml = `<video src="${post.image_url}" controls class="${mediaClass}"></video>`;
+            } else {
+                mediaHtml = `<img src="${post.image_url}" class="${mediaClass}" alt="Post Image">`;
+            }
+        }
+        postContentHtml = post.content ? `<p class="post-content-text">${post.content}</p>` : '';
+    }
+
+    // 3. Normal Post Stats (Now isSystemMessage is defined and visible here!)
+    let actionsHtml = '';
+    if (!isSystemMessage) {
+        // We use your new beautified botAlert here instead of the regular alert
+        actionsHtml = `
+            <div class="post-actions" style="margin-top: 15px; padding-top: 10px; border-top: 1px solid var(--border-color); display: flex; gap: 20px;">
+                <span class="action-button" onclick="botAlert('To like this post, please view it in the main feed!')" style="cursor:pointer; color:var(--text-secondary);">
+                    <i class="fas fa-heart"></i> Like
+                </span>
+                <span class="action-button" onclick="botAlert('I can help you comment on this if you open the post in the feed!')" style="cursor:pointer; color:var(--text-secondary);">
+                    <i class="fas fa-comment"></i> Comment
+                </span>
+            </div>
+        `;
+    }
+
+    // 4. Render the Card
+    userPostsContainer.innerHTML += `
+        <div class="post-card" style="background: var(--card-bg); padding: 20px; border-radius: 12px; margin-bottom: 20px; ${isSystemMessage ? 'border-left: 5px solid var(--primary-color);' : ''}">
+            <div class="post-info" style="margin-bottom: 10px; font-size: 0.8em; color: var(--text-secondary);">
+                <span>${isSystemMessage ? 'System Update' : 'Posted'} on ${time}</span>
+            </div>
+            
+            <div class="clickable-post-area" onclick="window.location.href='index.html'" style="cursor:pointer;">
+                ${postContentHtml}
+                ${mediaHtml}
+            </div>
+            
+            ${actionsHtml}
+        </div>
+    `;
+});
+
+                
+                // Ensure this part is INSIDE your posts.forEach loop
+userPostsContainer.innerHTML += `
+    <div class="post-card" style="${isSystemMessage ? 'border-left: 5px solid var(--primary-color); padding-left: 15px;' : ''}">
+        <div class="post-info">
+            <span style="font-style: italic;">${isSystemMessage ? 'System Update' : 'Posted'} on ${time}</span>
+        </div>
+        
+        <div class="clickable-post-area" onclick="window.location.href='index.html'" style="cursor:pointer;">
+            ${postContentHtml}
+            ${mediaHtml}
+        </div>
+        
+        ${actionsHtml}
+    </div>
+`;
+// Remove the semicolon after the brace below if it's inside a forEach
+}; 
+
         
         // --- EDIT PROFILE MODAL LOGIC ---
         
@@ -859,6 +978,37 @@
                 avatarFileUploader.addEventListener('change', handleAvatarUpload);
             }
         });
+        
+        // --- ALL YOUR OTHER CODE ABOVE ---
+
+/**
+ * Displays the beautified bot alert. 
+ * Needs to be outside of all other functions to be "Global".
+ */
+function botAlert(message) {
+    const modal = document.getElementById('customBotAlert');
+    const textElement = document.getElementById('botAlertText');
+    
+    if (modal && textElement) {
+        textElement.textContent = message;
+        modal.style.display = 'flex';
+    } else {
+        // Fallback in case the HTML isn't loaded yet
+        alert(message);
+    }
+}
+
+/**
+ * Closes the bot alert modal
+ */
+function closeBotAlert() {
+    const modal = document.getElementById('customBotAlert');
+    if (modal) modal.style.display = 'none';
+}
+
+// THIS SHOULD BE THE VERY LAST PART OF YOUR SCRIPT
+</script>
+
     </script> 
 
 </body>
