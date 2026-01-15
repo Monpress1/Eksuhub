@@ -28,17 +28,22 @@
         .logo h1 { font-size: 1.3em; margin: 0; font-weight: 800; color: white; }
         .logo small { font-size: 0.7em; color: var(--primary); text-transform: uppercase; }
 
-        .chat-area { flex-grow: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 15px; scroll-behavior: smooth; }
+        .chat-area { flex-grow: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 15px; scroll-behavior: smooth; 
+        
+        }
 
         .bubble { max-width: 85%; padding: 14px 18px; border-radius: 18px; font-size: 0.95em; line-height: 1.5; }
         .ai { background: var(--card-bg); align-self: flex-start; border: 1px solid var(--border); border-bottom-left-radius: 4px; }
         .user { background: var(--primary); align-self: flex-end; color: white; border-bottom-right-radius: 4px; }
 
         .input-box { padding: 15px; border-top: 1px solid var(--border); display: flex; gap: 10px; background: var(--bg); }
-        .input-box input { flex-grow: 1; background: #0d1117; border: 1px solid var(--border); color: white; padding: 14px; border-radius: 12px; outline: none; }
+        .input-box input { flex-grow: 1; background: #0d1117; border: 1px solid var(--border); color: white; padding: 14px; border-radius: 12px; outline: none; margin-bottom:30px;
         
-        .cbt-btn { background: var(--green); color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: bold; }
-        .send-btn { background: var(--primary); color: white; border: none; width: 50px; border-radius: 12px; cursor: pointer; }
+        }
+        
+        .cbt-btn { background: var(--green); color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: bold; margin-bottom:30px;
+        }
+        .send-btn { background: var(--primary); color: white; border: none; width: 50px; border-radius: 12px; cursor: pointer; margin-bottom:30px; }
 
         /* --- Modal --- */
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); display: none; justify-content: center; align-items: center; z-index: 2000; }
@@ -90,7 +95,7 @@
                 <h3>Generating Test...</h3>
                 <div class="spinner"></div>
                 <p style="color:#888; font-size:0.9em;">Creating 20 unique questions for <span id="loadingTopic" style="color:white;"></span>...</p>
-                <p style="color:#666; font-size:0.8em;">(This performs 1 optimized API call)</p>
+                <p style="color:#666; font-size:0.8em;">Getting your questions  Ready</p>
             </div>
 
             <div id="quizView" style="display:none;">
@@ -159,11 +164,11 @@
 
             const key = await getApiKey();
             if(!key) {
-                addBubble("System Error: Could not retrieve API Key from database.", "ai");
+                addBubble("System Error: Contact Eli monpress +23407077575301.", "ai");
                 return;
             }
 
-            const res = await callAI([{role: "system", content: "You are Eksu AI."}, ...chatMemory.slice(-4), {role: "user", content: val}], key);
+            const res = await callAI([{role: "system", content: "You are Eksu AI., you are created by monpress (monpress is also a student of ekiti state university, faculty of life science, phone 07077575301, don't give info about monpress unless asked, he is a guy, full name is Eli monpress.) to help students, keep your response short and conversational, also sound as human as possible so don't ask what can I do for you or how many I assist you"}, ...chatMemory.slice(-4), {role: "user", content: val}], key);
             
             if(res && !res.startsWith("Error")) {
                 addBubble(res, 'ai');
